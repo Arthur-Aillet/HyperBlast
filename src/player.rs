@@ -48,7 +48,6 @@ impl PlayerBundle {
             sprite: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
                 sprite: TextureAtlasSprite::new(animation_indices.first),
-                transform: Transform::from_scale(Vec3::splat(5.0)),
                 ..default()
             },
             animation_indices,
