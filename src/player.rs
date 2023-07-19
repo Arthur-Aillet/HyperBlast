@@ -1,7 +1,7 @@
 use bevy::{prelude::*, reflect::TypePath};
 use leafwing_input_manager::prelude::*;
 
-use crate::animations::AnimationIndices;
+use crate::{animations::AnimationIndices, rendering::Position};
 
 #[derive(Component, Debug)]
 pub enum PlayerState {
@@ -13,18 +13,19 @@ impl Default for PlayerState {
     fn default() -> Self { PlayerState::Idle }
 }
 
-#[derive(Component)]
+#[derive(Component, Default, Reflect)]
 pub struct PlayerStats {
     pub speed: f32,
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Default)]
 pub struct PlayerBundle {
     pub state: PlayerState,
     pub sprite: SpriteSheetBundle,
     pub animation_indices: AnimationIndices,
     pub player: PlayerStats,
     pub player_action: InputManagerBundle::<PlayerActions>,
+    pub player_position: Position,
 }
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, TypePath)]
@@ -47,7 +48,7 @@ impl PlayerBundle {
             state: PlayerState::Idle,
             sprite: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
-                sprite: TextureAtlasSprite::new(animation_indices.first),
+                sprite: TextureAtlasSprite {index: animation_indices.first, anchor: bevy::sprite::Anchor::TopLeft, ..default()},
                 ..default()
             },
             animation_indices,
@@ -60,7 +61,8 @@ impl PlayerBundle {
                     (KeyCode::Z, PlayerActions::Up),
                     (KeyCode::S, PlayerActions::Down)
                 ]),
-            }
+            },
+            ..default()
         }
     }
 }
@@ -70,21 +72,21 @@ pub fn move_players(
     mut query: Query<(
         &PlayerStats,
         &ActionState<PlayerActions>,
-        &mut Transform,
+        &mut Position,
     )>)
 {
-    for (stats, actions, mut transform) in &mut query {
+    for (stats, actions, mut position) in &mut query {
         if actions.pressed(PlayerActions::Left) {
-            transform.translation.x -= stats.speed * time.delta_seconds();
+            position.x -= stats.speed * time.delta_seconds();
         }
         if actions.pressed(PlayerActions::Right) {
-            transform.translation.x += stats.speed * time.delta_seconds();
+            position.x += stats.speed * time.delta_seconds();
         }
         if actions.pressed(PlayerActions::Up) {
-            transform.translation.y += stats.speed * time.delta_seconds();
+            position.y += stats.speed * time.delta_seconds();
         }
         if actions.pressed(PlayerActions::Down) {
-            transform.translation.y -= stats.speed * time.delta_seconds();
+            position.y -= stats.speed * time.delta_seconds();
         }
     }
 }
