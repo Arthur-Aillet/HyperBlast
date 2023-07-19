@@ -3,10 +3,10 @@ use leafwing_input_manager::prelude::*;
 
 use crate::{animations::AnimationIndices, rendering::Position};
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Hash, Reflect)]
 pub enum PlayerState {
     Idle,
-    _Moving
+    Moving
 }
 
 impl Default for PlayerState {
@@ -73,9 +73,10 @@ pub fn move_players(
         &PlayerStats,
         &ActionState<PlayerActions>,
         &mut Position,
+        &mut PlayerState,
     )>)
 {
-    for (stats, actions, mut position) in &mut query {
+    for (stats, actions, mut position, mut state) in &mut query {
         if actions.pressed(PlayerActions::Left) {
             position.x -= stats.speed * time.delta_seconds();
         }
@@ -87,6 +88,11 @@ pub fn move_players(
         }
         if actions.pressed(PlayerActions::Down) {
             position.y -= stats.speed * time.delta_seconds();
+        }
+        if actions.get_pressed().is_empty() {
+            *state = PlayerState::Idle;
+        } else {
+            *state = PlayerState::Moving;
         }
     }
 }
