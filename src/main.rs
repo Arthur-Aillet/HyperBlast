@@ -1,11 +1,13 @@
 mod player;
 use player::Player;
 
+use bevy_editor_pls::prelude::*;
 use bevy::prelude::*;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest())) // prevents blurry sprites
+        .add_plugin(EditorPlugin::default())
         .add_systems(Startup, setup)
         .add_systems(Update, animate_sprite)
         .run();
