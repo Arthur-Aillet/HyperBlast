@@ -9,11 +9,13 @@ pub struct AnimationIndices {
 }
 
 #[derive(Component, Reflect, Default)]
-pub struct AnimationState(String);
+pub struct AnimationState {
+    id: String,
+}
 
 impl AnimationState {
     pub fn new<T: Debug>(string: T) -> Self {
-        AnimationState {0: format!("{string:?}")}
+        AnimationState {id: format!("{string:?}")}
     }
 }
 
@@ -45,10 +47,10 @@ pub fn animate_sprites(
     )>,
 ) {
     let mut timer = timer_query.get_single_mut().expect("Lacks global timer");
-    for (state, mut current_handle, mut machine, mut current_sprite) in &mut query {
+    for (state, mut current_handle, machine, mut current_sprite) in &mut query {
         timer.tick(time.delta());
         if timer.just_finished() {
-            match machine.0.get(&state.0) {
+            match machine.0.get(&state.id) {
                 Some((sprite, indices)) => {
                     *current_handle = sprite.clone();
                     current_sprite.index = if current_sprite.index == indices.last {
