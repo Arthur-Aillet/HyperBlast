@@ -3,6 +3,8 @@ mod animations;
 mod rendering;
 
 use animations::AnimationIndices;
+use animations::AnimationState;
+use animations::AnimationStateMachine;
 use animations::AnimationTimer;
 
 use bevy_editor_pls::prelude::*;
@@ -16,12 +18,14 @@ fn main() {
         .register_type::<AnimationIndices>()
         .register_type::<PlayerStats>()
         .register_type::<PlayerState>()
+        .register_type::<AnimationState>()
+        .register_type::<AnimationStateMachine>()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(EditorPlugin::default())
         .add_plugins(InputManagerPlugin::<player::PlayerActions>::default())
         .add_systems(Startup, setup)
         .add_systems(Update, player::move_players)
-        .add_systems(Update, animations::animate_sprites)
+        .add_systems(PostUpdate, animations::animate_sprites)
         .add_systems(Last, rendering::update_transforms)
         .run();
 }

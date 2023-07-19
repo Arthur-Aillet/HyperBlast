@@ -1,9 +1,9 @@
-use bevy::{prelude::*, reflect::TypePath};
+use bevy::{prelude::*, reflect::TypePath, utils::hashbrown::HashMap};
 use leafwing_input_manager::prelude::*;
 
-use crate::{animations::AnimationIndices, rendering::Position};
+use crate::{animations::{AnimationIndices, AnimationStateMachine, AnimationState}, rendering::Position};
 
-#[derive(Component, Debug, Hash, Reflect)]
+#[derive(Component, Debug, Reflect)]
 pub enum PlayerState {
     Idle,
     Moving
@@ -20,9 +20,9 @@ pub struct PlayerStats {
 
 #[derive(Bundle, Default)]
 pub struct PlayerBundle {
-    pub state: PlayerState,
+    pub state: AnimationState,
+    pub state_machine: AnimationStateMachine,
     pub sprite: SpriteSheetBundle,
-    pub animation_indices: AnimationIndices,
     pub player: PlayerStats,
     pub player_action: InputManagerBundle::<PlayerActions>,
     pub player_position: Position,
@@ -43,15 +43,17 @@ impl PlayerBundle {
         TextureAtlas::from_grid(texture_handle, Vec2::new(17.0, 20.0), 4, 1, None, None);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
         let animation_indices = AnimationIndices { first: 0, last: 3 };
+        let mut state_machine = AnimationStateMachine::new();
 
+        state_machine.insert(PlayerState::Idle, (texture_atlas_handle.clone(), animation_indices.clone()));
         PlayerBundle {
-            state: PlayerState::Idle,
+            state: AnimationState::new(PlayerState::Idle),
             sprite: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
                 sprite: TextureAtlasSprite {index: animation_indices.first, anchor: bevy::sprite::Anchor::TopLeft, ..default()},
                 ..default()
             },
-            animation_indices,
+            state_machine,
             player: PlayerStats { speed: 50. },
             player_action: InputManagerBundle::<PlayerActions> {
                 action_state: ActionState::default(),
@@ -73,7 +75,7 @@ pub fn move_players(
         &PlayerStats,
         &ActionState<PlayerActions>,
         &mut Position,
-        &mut PlayerState,
+        &mut AnimationState,
     )>)
 {
     for (stats, actions, mut position, mut state) in &mut query {
@@ -90,9 +92,9 @@ pub fn move_players(
             position.y -= stats.speed * time.delta_seconds();
         }
         if actions.get_pressed().is_empty() {
-            *state = PlayerState::Idle;
+            *state = AnimationState::new(PlayerState::Idle);
         } else {
-            *state = PlayerState::Moving;
+            *state = AnimationState::new(PlayerState::Moving);
         }
     }
 }
