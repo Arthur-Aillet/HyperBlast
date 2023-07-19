@@ -15,6 +15,7 @@ fn main() {
         .add_plugins(EditorPlugin::default())
         .add_plugins(InputManagerPlugin::<player::PlayerActions>::default())
         .add_systems(Startup, setup)
+        .add_systems(Update, player::move_players)
         .add_systems(Update, animations::animate_sprites)
         .run();
 }

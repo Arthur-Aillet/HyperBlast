@@ -14,14 +14,16 @@ impl Default for PlayerState {
 }
 
 #[derive(Component)]
-pub struct Player;
+pub struct PlayerStats {
+    pub speed: f32,
+}
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
     pub state: PlayerState,
     pub sprite: SpriteSheetBundle,
     pub animation_indices: AnimationIndices,
-    pub player: Player,
+    pub player: PlayerStats,
     pub player_action: InputManagerBundle::<PlayerActions>,
 }
 
@@ -50,7 +52,7 @@ impl PlayerBundle {
                 ..default()
             },
             animation_indices,
-            player: Player,
+            player: PlayerStats { speed: 50. },
             player_action: InputManagerBundle::<PlayerActions> {
                 action_state: ActionState::default(),
                 input_map: InputMap::new([
@@ -60,6 +62,30 @@ impl PlayerBundle {
                     (KeyCode::S, PlayerActions::Down)
                 ]),
             }
+        }
+    }
+}
+
+pub fn move_players(
+    time: Res<Time>,
+    mut query: Query<(
+        &PlayerStats,
+        &ActionState<PlayerActions>,
+        &mut Transform,
+    )>)
+{
+    for (stats, actions, mut transform) in &mut query {
+        if actions.pressed(PlayerActions::Left) {
+            transform.translation.x -= stats.speed * time.delta_seconds();
+        }
+        if actions.pressed(PlayerActions::Right) {
+            transform.translation.x += stats.speed * time.delta_seconds();
+        }
+        if actions.pressed(PlayerActions::Up) {
+            transform.translation.y += stats.speed * time.delta_seconds();
+        }
+        if actions.pressed(PlayerActions::Down) {
+            transform.translation.y -= stats.speed * time.delta_seconds();
         }
     }
 }
