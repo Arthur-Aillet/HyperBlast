@@ -7,6 +7,7 @@ use animations::AnimationState;
 use animations::AnimationStateMachine;
 use animations::AnimationTimer;
 
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin};
 use bevy_editor_pls::prelude::*;
 use leafwing_input_manager::prelude::*;
 use bevy::prelude::*;
@@ -22,6 +23,7 @@ fn main() {
         .register_type::<AnimationStateMachine>()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(EditorPlugin::default())
+        .add_plugins((FrameTimeDiagnosticsPlugin::default(), EntityCountDiagnosticsPlugin::default()))
         .add_plugins(InputManagerPlugin::<player::PlayerActions>::default())
         .add_systems(Startup, setup)
         .add_systems(Update, player::move_players)
