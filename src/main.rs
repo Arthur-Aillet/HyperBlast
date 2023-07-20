@@ -43,7 +43,7 @@ fn setup(
     commands.spawn(camera);
     commands.spawn((
         bevy::core::Name::new("Global Timer"),
-        AnimationTimer(Timer::from_seconds(0.5, TimerMode::Repeating))
+        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating))
     ));
     commands.spawn((
         bevy::core::Name::new("Ground"),

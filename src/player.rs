@@ -6,7 +6,10 @@ use crate::{animations::{AnimationIndices, AnimationStateMachine, AnimationState
 #[derive(Component, Debug, Reflect)]
 pub enum PlayerState {
     Idle,
-    Moving
+    Left,
+    Right,
+    Up,
+    Down,
 }
 
 impl Default for PlayerState {
@@ -38,19 +41,30 @@ pub enum PlayerActions {
 
 impl PlayerBundle {
     pub fn setup(asset_server: &Res<AssetServer>, texture_atlases: &mut ResMut<Assets<TextureAtlas>>) -> PlayerBundle {
-        let texture_handle = asset_server.load("idle.png");
-        let texture_atlas =
-        TextureAtlas::from_grid(texture_handle, Vec2::new(17.0, 20.0), 4, 1, None, None);
-        let texture_atlas_handle = texture_atlases.add(texture_atlas);
-        let animation_indices = AnimationIndices { first: 0, last: 3 };
+        let idle_texture_handle = asset_server.load("idle.png");
+        let run_texture_handle = asset_server.load("run.png");
+        let idle_atlas = TextureAtlas::from_grid(idle_texture_handle, Vec2::new(17.0, 25.0), 4, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 15.}));
+        //let side_atlas = TextureAtlas::from_grid(run_texture_handle, Vec2::new(17.0, 21.0), 6, 1, Some(Vec2 {x: 2., y: 0.}), None);
+        //let up_atlas = TextureAtlas::from_grid(run_texture_handle.clone(), Vec2::new(17.0, 21.0), 6, 1, Some(Vec2 {x: 2., y: 0.}), None);
+        let down_atlas = TextureAtlas::from_grid(run_texture_handle.clone(), Vec2::new(17.0, 25.0), 6, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 15.}));
+
+        let idle_handle = texture_atlases.add(idle_atlas);
+        //let side_handle = texture_atlases.add(side_atlas);
+        //let up_handle = texture_atlases.add(up_atlas);
+        let down_handle = texture_atlases.add(down_atlas);
+
         let mut state_machine = AnimationStateMachine::new();
 
-        state_machine.insert(PlayerState::Idle, (texture_atlas_handle.clone(), animation_indices.clone()));
+        state_machine.insert(PlayerState::Idle, (idle_handle.clone(), AnimationIndices { first: 0, last: 3 }));
+        //state_machine.insert(PlayerState::Left, (side_handle.clone(), AnimationIndices { first: 0, last: 5 }));
+        //state_machine.insert(PlayerState::Right, (side_handle.clone(), AnimationIndices { first: 0, last: 5 }));
+        //state_machine.insert(PlayerState::Up, (up_handle.clone(), AnimationIndices { first: 0, last: 3 }));
+        state_machine.insert(PlayerState::Down, (down_handle.clone(), AnimationIndices { first: 0, last: 5 }));
         PlayerBundle {
-            state: AnimationState::new(PlayerState::Idle),
+            state: AnimationState::new(&PlayerState::Idle),
             sprite: SpriteSheetBundle {
-                texture_atlas: texture_atlas_handle,
-                sprite: TextureAtlasSprite {index: animation_indices.first, anchor: bevy::sprite::Anchor::TopLeft, ..default()},
+                texture_atlas: idle_handle,
+                sprite: TextureAtlasSprite {index: 0, anchor: bevy::sprite::Anchor::TopLeft, ..default()},
                 ..default()
             },
             state_machine,
@@ -81,20 +95,22 @@ pub fn move_players(
     for (stats, actions, mut position, mut state) in &mut query {
         if actions.pressed(PlayerActions::Left) {
             position.x -= stats.speed * time.delta_seconds();
+            *state = AnimationState::new(&PlayerState::Left);
         }
         if actions.pressed(PlayerActions::Right) {
             position.x += stats.speed * time.delta_seconds();
+            *state = AnimationState::new(&PlayerState::Right);
         }
         if actions.pressed(PlayerActions::Up) {
             position.y += stats.speed * time.delta_seconds();
+            *state = AnimationState::new(&PlayerState::Up);
         }
         if actions.pressed(PlayerActions::Down) {
             position.y -= stats.speed * time.delta_seconds();
+            *state = AnimationState::new(&PlayerState::Down);
         }
         if actions.get_pressed().is_empty() {
-            *state = AnimationState::new(PlayerState::Idle);
-        } else {
-            *state = AnimationState::new(PlayerState::Moving);
+            *state = AnimationState::new(&PlayerState::Idle);
         }
     }
 }

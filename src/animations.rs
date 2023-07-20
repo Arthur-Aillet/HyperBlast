@@ -14,21 +14,27 @@ pub struct AnimationState {
 }
 
 impl AnimationState {
-    pub fn new<T: Debug>(string: T) -> Self {
+    pub fn new<T: Debug>(string: &T) -> Self {
         AnimationState {id: format!("{string:?}")}
     }
 }
 
 #[derive(Component, Reflect, Default)]
-pub struct AnimationStateMachine(HashMap<String, (Handle<TextureAtlas>, AnimationIndices)>);
+pub struct AnimationStateMachine {
+    map: HashMap<String, (Handle<TextureAtlas>, AnimationIndices)>,
+    last_state: AnimationState
+}
 
 impl AnimationStateMachine {
     pub fn new() -> Self {
-        AnimationStateMachine {0: HashMap::new()}
+        AnimationStateMachine {
+            map: HashMap::new(),
+            last_state: AnimationState::default(),
+        }
     }
 
     pub fn insert<T: Debug>(&mut self, key: T, value: (Handle<TextureAtlas>, AnimationIndices)) {
-        self.0.insert(format!("{key:?}"), value);
+        self.map.insert(format!("{key:?}"), value);
     }
 }
 
@@ -47,17 +53,22 @@ pub fn animate_sprites(
     )>,
 ) {
     let mut timer = timer_query.get_single_mut().expect("Lacks global timer");
-    for (state, mut current_handle, machine, mut current_sprite) in &mut query {
+    for (state, mut current_handle, mut machine, mut current_sprite) in &mut query {
         timer.tick(time.delta());
         if timer.just_finished() {
-            match machine.0.get(&state.id) {
+            match machine.map.get(&state.id) {
                 Some((sprite, indices)) => {
+                    if state.id != machine.last_state.id {
+                        println!("1 != 2 : {} {}", state.id, machine.last_state.id);
+                        current_sprite.index = indices.first;
+                    }
                     *current_handle = sprite.clone();
                     current_sprite.index = if current_sprite.index == indices.last {
                         indices.first
                     } else {
                         current_sprite.index + 1
-                    }
+                    };
+                    machine.last_state = AnimationState{id: state.id.clone()};
                 }
                 None => {}
             }
