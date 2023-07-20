@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Component, Default)]
+#[derive(Component, Default, Reflect)]
 pub struct Position {
     pub x: f32,
     pub y: f32,

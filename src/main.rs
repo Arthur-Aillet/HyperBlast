@@ -13,6 +13,7 @@ use leafwing_input_manager::prelude::*;
 use bevy::prelude::*;
 use player::PlayerState;
 use player::PlayerStats;
+use rendering::Position;
 
 fn main() {
     App::new()
@@ -21,6 +22,7 @@ fn main() {
         .register_type::<PlayerState>()
         .register_type::<AnimationState>()
         .register_type::<AnimationStateMachine>()
+        .register_type::<Position>()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(EditorPlugin::default())
         .add_plugins((FrameTimeDiagnosticsPlugin::default(), EntityCountDiagnosticsPlugin::default()))

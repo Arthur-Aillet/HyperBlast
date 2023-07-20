@@ -1,7 +1,7 @@
 use bevy::{prelude::*, reflect::TypePath};
 use leafwing_input_manager::prelude::*;
 
-use crate::{animations::{AnimationIndices, AnimationStateMachine, AnimationState}, rendering::Position};
+use crate::{animations::{AnimationIndices, AnimationStateMachine, AnimationState, AnimationFlip}, rendering::Position};
 
 #[derive(Component, Debug, Reflect)]
 pub enum PlayerState {
@@ -44,22 +44,22 @@ impl PlayerBundle {
         let idle_texture_handle = asset_server.load("idle.png");
         let run_texture_handle = asset_server.load("run.png");
         let idle_atlas = TextureAtlas::from_grid(idle_texture_handle, Vec2::new(17.0, 25.0), 4, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 15.}));
-        //let side_atlas = TextureAtlas::from_grid(run_texture_handle, Vec2::new(17.0, 21.0), 6, 1, Some(Vec2 {x: 2., y: 0.}), None);
-        //let up_atlas = TextureAtlas::from_grid(run_texture_handle.clone(), Vec2::new(17.0, 21.0), 6, 1, Some(Vec2 {x: 2., y: 0.}), None);
         let down_atlas = TextureAtlas::from_grid(run_texture_handle.clone(), Vec2::new(17.0, 25.0), 6, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 15.}));
+        let up_atlas = TextureAtlas::from_grid(run_texture_handle.clone(), Vec2::new(17.0, 25.0), 6, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 69.}));
+        let side_atlas = TextureAtlas::from_grid(run_texture_handle, Vec2::new(17.0, 25.0), 6, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 42.}));
 
         let idle_handle = texture_atlases.add(idle_atlas);
-        //let side_handle = texture_atlases.add(side_atlas);
-        //let up_handle = texture_atlases.add(up_atlas);
+        let side_handle = texture_atlases.add(side_atlas);
+        let up_handle = texture_atlases.add(up_atlas);
         let down_handle = texture_atlases.add(down_atlas);
 
         let mut state_machine = AnimationStateMachine::new();
 
-        state_machine.insert(PlayerState::Idle, (idle_handle.clone(), AnimationIndices { first: 0, last: 3 }));
-        //state_machine.insert(PlayerState::Left, (side_handle.clone(), AnimationIndices { first: 0, last: 5 }));
-        //state_machine.insert(PlayerState::Right, (side_handle.clone(), AnimationIndices { first: 0, last: 5 }));
-        //state_machine.insert(PlayerState::Up, (up_handle.clone(), AnimationIndices { first: 0, last: 3 }));
-        state_machine.insert(PlayerState::Down, (down_handle.clone(), AnimationIndices { first: 0, last: 5 }));
+        state_machine.insert(PlayerState::Idle, (idle_handle.clone(), AnimationIndices { first: 0, last: 3 }, AnimationFlip::False));
+        state_machine.insert(PlayerState::Left, (side_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::XAxis));
+        state_machine.insert(PlayerState::Right, (side_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::False));
+        state_machine.insert(PlayerState::Up, (up_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::False));
+        state_machine.insert(PlayerState::Down, (down_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::False));
         PlayerBundle {
             state: AnimationState::new(&PlayerState::Idle),
             sprite: SpriteSheetBundle {

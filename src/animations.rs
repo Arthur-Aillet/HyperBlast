@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, default};
 
 use bevy::{prelude::*, utils::HashMap};
 
@@ -19,9 +19,18 @@ impl AnimationState {
     }
 }
 
+#[derive(Reflect, Default, PartialEq)]
+pub enum AnimationFlip {
+    #[default]
+    False,
+    XAxis,
+    YAxis,
+    XYAxis,
+}
+
 #[derive(Component, Reflect, Default)]
 pub struct AnimationStateMachine {
-    map: HashMap<String, (Handle<TextureAtlas>, AnimationIndices)>,
+    map: HashMap<String, (Handle<TextureAtlas>, AnimationIndices, AnimationFlip)>,
     last_state: AnimationState
 }
 
@@ -33,7 +42,7 @@ impl AnimationStateMachine {
         }
     }
 
-    pub fn insert<T: Debug>(&mut self, key: T, value: (Handle<TextureAtlas>, AnimationIndices)) {
+    pub fn insert<T: Debug>(&mut self, key: T, value: (Handle<TextureAtlas>, AnimationIndices, AnimationFlip)) {
         self.map.insert(format!("{key:?}"), value);
     }
 }
@@ -57,9 +66,19 @@ pub fn animate_sprites(
         timer.tick(time.delta());
         if timer.just_finished() {
             match machine.map.get(&state.id) {
-                Some((sprite, indices)) => {
+                Some((sprite, indices, flip)) => {
+                    if *flip == AnimationFlip::XAxis || *flip == AnimationFlip::XYAxis {
+                        current_sprite.flip_x = true;
+                    } else {
+                        current_sprite.flip_x = false;
+                    }
+                    if *flip == AnimationFlip::YAxis || *flip == AnimationFlip::XYAxis  {
+                        current_sprite.flip_y = true;
+                    } else {
+                        current_sprite.flip_y = false;
+                    }
+
                     if state.id != machine.last_state.id {
-                        println!("1 != 2 : {} {}", state.id, machine.last_state.id);
                         current_sprite.index = indices.first;
                     }
                     *current_handle = sprite.clone();
