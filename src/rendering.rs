@@ -1,10 +1,7 @@
 use bevy::prelude::*;
 
 #[derive(Component, Default, Reflect)]
-pub struct Position {
-    pub x: f32,
-    pub y: f32,
-}
+pub struct Position(pub Vec2);
 
 pub fn update_transforms(
     mut query: Query<(
@@ -12,8 +9,8 @@ pub fn update_transforms(
         &Position,
     )>)
 {
-    for (mut transfrom, position) in &mut query {
-        transfrom.translation.x = position.x.floor();
-        transfrom.translation.y = position.y.floor();
+    for (mut transfrom, Position(position)) in &mut query {
+        transfrom.translation.x = position.floor().x;
+        transfrom.translation.y = position.floor().y;
     }
 }

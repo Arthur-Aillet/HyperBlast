@@ -1,4 +1,4 @@
-use std::{fmt::Debug, default};
+use std::fmt::Debug;
 
 use bevy::{prelude::*, utils::HashMap};
 

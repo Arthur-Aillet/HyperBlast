@@ -93,24 +93,27 @@ pub fn move_players(
     )>)
 {
     for (stats, actions, mut position, mut state) in &mut query {
+        let mut direction = Vec2::default();
+
         if actions.pressed(PlayerActions::Left) {
-            position.x -= stats.speed * time.delta_seconds();
+            direction.x -= 1.;
             *state = AnimationState::new(&PlayerState::Left);
         }
         if actions.pressed(PlayerActions::Right) {
-            position.x += stats.speed * time.delta_seconds();
+            direction.x += 1.;
             *state = AnimationState::new(&PlayerState::Right);
         }
         if actions.pressed(PlayerActions::Up) {
-            position.y += stats.speed * time.delta_seconds();
+            direction.y += 1.;
             *state = AnimationState::new(&PlayerState::Up);
         }
         if actions.pressed(PlayerActions::Down) {
-            position.y -= stats.speed * time.delta_seconds();
+            direction.y -= 1.;
             *state = AnimationState::new(&PlayerState::Down);
         }
         if actions.get_pressed().is_empty() {
             *state = AnimationState::new(&PlayerState::Idle);
         }
+        position.0 += direction.normalize_or_zero() * stats.speed * time.delta_seconds();
     }
 }
