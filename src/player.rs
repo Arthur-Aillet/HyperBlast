@@ -111,9 +111,11 @@ pub fn move_players(
             direction.y -= 1.;
             *state = AnimationState::new(&PlayerState::Down);
         }
-        if actions.get_pressed().is_empty() {
+        if direction == Vec2::ZERO {
             *state = AnimationState::new(&PlayerState::Idle);
+        } else {
+            println!("{}", direction.angle_between(Vec2::NEG_Y).to_degrees());
+            position.0 += direction.normalize_or_zero() * stats.speed * time.delta_seconds();
         }
-        position.0 += direction.normalize_or_zero() * stats.speed * time.delta_seconds();
     }
 }
