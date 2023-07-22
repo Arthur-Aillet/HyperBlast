@@ -94,11 +94,23 @@ impl PlayerBundle {
     }
 }
 
-pub fn access_mouse(query: Query<&ActionState<Mouse>>) {
-    let action_state: &ActionState<Mouse> = query.single();
+pub fn access_mouse(
+    mouse: Query<&ActionState<Mouse>>,
+    players: Query<(&Transform, With<PlayerStats>)>,
+    camera: Query<(&Camera, &GlobalTransform)>,
+    mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
+) {
+    let action_state: &ActionState<Mouse> = mouse.single();
 
-    if let Some(box_pan_vector) = action_state.axis_pair(Mouse::MousePosition) {
-        println!("{:?}", box_pan_vector);
+    for (player_pos, _) in &players {
+        camera.into_iter().find(|(camera, _)| camera.is_active).map(|(camera, camera_transform)|
+        {
+            if let Some(box_pan_vector) = action_state.axis_pair(Mouse::MousePosition)
+                .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy())) {
+
+                lines.line_colored(box_pan_vector.origin, player_pos.translation, 0.0, Color::GOLD);
+            }
+        });
     }
 }
 

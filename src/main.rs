@@ -11,12 +11,12 @@ use animations::AnimationTimer;
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin};
 use bevy::window::PrimaryWindow;
 use bevy_editor_pls::prelude::*;
-use leafwing_input_manager::{systems::run_if_enabled, plugin::InputManagerSystem, prelude::*};
+use leafwing_input_manager::{plugin::InputManagerSystem, prelude::*};
+use bevy_prototype_debug_lines::*;
+
 use bevy::{input::InputSystem, prelude::*};
 use player::{PlayerState, PlayerStats};
 use rendering::Position;
-
-use crate::mouse::Mouse;
 
 fn main() {
     App::new()
@@ -28,6 +28,7 @@ fn main() {
         .register_type::<Position>()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(EditorPlugin::default())
+        .add_plugins(DebugLinesPlugin::default())
         .add_plugins((FrameTimeDiagnosticsPlugin::default(), EntityCountDiagnosticsPlugin::default()))
         .add_plugins(InputManagerPlugin::<player::PlayerActions>::default())
         .add_systems(Startup, setup)

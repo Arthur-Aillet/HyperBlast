@@ -9,6 +9,7 @@ edition = "2021"
 bevy = { version = "0.11.0", features = ["dynamic_linking"] }
 bevy_editor_pls = { git = "https://github.com/jakobhellermann/bevy_editor_pls.git", branch = "main" }
 leafwing-input-manager = "0.10.0"
+bevy_prototype_debug_lines = "0.11"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
