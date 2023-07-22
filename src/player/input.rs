@@ -63,7 +63,7 @@ pub fn move_players(
     )>,
 ) {
     for (stats, actions, mut position, mut state) in &mut query {
-        let mut direction = Vec2::default();
+        let mut direction = Vec2::ZERO;
 
         if actions.pressed(PlayerActions::Left) {
             direction.x -= 1.;
