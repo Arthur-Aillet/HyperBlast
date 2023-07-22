@@ -6,10 +6,12 @@ use crate::{animations::{AnimationIndices, AnimationStateMachine, AnimationState
 #[derive(Component, Debug, Reflect)]
 pub enum PlayerState {
     Idle,
-    Left,
-    Right,
-    Up,
-    Down,
+    LeftFront,
+    LeftBack,
+    RightFront,
+    RightBack,
+    Front,
+    Back,
 }
 
 impl Default for PlayerState {
@@ -44,22 +46,26 @@ impl PlayerBundle {
         let idle_texture_handle = asset_server.load("idle.png");
         let run_texture_handle = asset_server.load("run.png");
         let idle_atlas = TextureAtlas::from_grid(idle_texture_handle, Vec2::new(17.0, 25.0), 4, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 15.}));
-        let down_atlas = TextureAtlas::from_grid(run_texture_handle.clone(), Vec2::new(17.0, 25.0), 6, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 15.}));
-        let up_atlas = TextureAtlas::from_grid(run_texture_handle.clone(), Vec2::new(17.0, 25.0), 6, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 69.}));
-        let side_atlas = TextureAtlas::from_grid(run_texture_handle, Vec2::new(17.0, 25.0), 6, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 42.}));
+        let back_atlas = TextureAtlas::from_grid(run_texture_handle.clone(), Vec2::new(17.0, 25.0), 6, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 69.}));
+        let front_atlas = TextureAtlas::from_grid(run_texture_handle.clone(), Vec2::new(17.0, 25.0), 6, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 15.}));
+        let side_front_atlas = TextureAtlas::from_grid(run_texture_handle.clone(), Vec2::new(17.0, 25.0), 6, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 42.}));
+        let side_back_atlas = TextureAtlas::from_grid(run_texture_handle, Vec2::new(17.0, 25.0), 6, 1, Some(Vec2 {x: 2., y: 2.}), Some(Vec2{x: 15., y: 69. + 27.}));
 
         let idle_handle = texture_atlases.add(idle_atlas);
-        let side_handle = texture_atlases.add(side_atlas);
-        let up_handle = texture_atlases.add(up_atlas);
-        let down_handle = texture_atlases.add(down_atlas);
+        let side_front_handle = texture_atlases.add(side_front_atlas);
+        let side_back_handle = texture_atlases.add(side_back_atlas);
+        let front_handle = texture_atlases.add(front_atlas);
+        let back_handle = texture_atlases.add(back_atlas);
 
         let mut state_machine = AnimationStateMachine::new();
 
         state_machine.insert(PlayerState::Idle, (idle_handle.clone(), AnimationIndices { first: 0, last: 3 }, AnimationFlip::False));
-        state_machine.insert(PlayerState::Left, (side_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::XAxis));
-        state_machine.insert(PlayerState::Right, (side_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::False));
-        state_machine.insert(PlayerState::Up, (up_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::False));
-        state_machine.insert(PlayerState::Down, (down_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::False));
+        state_machine.insert(PlayerState::LeftFront, (side_front_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::XAxis));
+        state_machine.insert(PlayerState::RightFront, (side_front_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::False));
+        state_machine.insert(PlayerState::LeftBack, (side_back_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::XAxis));
+        state_machine.insert(PlayerState::RightBack, (side_back_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::False));
+        state_machine.insert(PlayerState::Front, (front_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::False));
+        state_machine.insert(PlayerState::Back, (back_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::False));
         PlayerBundle {
             state: AnimationState::new(&PlayerState::Idle),
             sprite: SpriteSheetBundle {
@@ -111,13 +117,16 @@ pub fn move_players(
             *state = AnimationState::new(&PlayerState::Idle);
         } else {
             // *state = AnimationState::new(&PlayerState::Down);
-            *state = match direction.angle_between(Vec2::NEG_Y).to_degrees() {
-                n if (0. < n && n < 45.) || (-45. < n && n < 0.) => {AnimationState::new(&PlayerState::Idle)},
-                n if (0. < n && n < 45.) || (-45. < n && n < 0.) => {AnimationState::new(&PlayerState::Idle)},
-                n if (0. < n && n < 45.) || (-45. < n && n < 0.) => {AnimationState::new(&PlayerState::Idle)},
-                n if (0. < n && n < 45.) || (-45. < n && n < 0.) => {AnimationState::new(&PlayerState::Idle)},
-                n if (0. < n && n < 45.) || (-45. < n && n < 0.) => {AnimationState::new(&PlayerState::Idle)},
-                n if (0. < n && n < 45.) || (-45. < n && n < 0.) => {AnimationState::new(&PlayerState::Idle)},
+            let mut angle = direction.angle_between(Vec2::NEG_Y).to_degrees();
+            if angle < 0. { angle = angle + 360. }
+            *state = match angle {
+                n if (n < 30. + 60. * 0.) => {AnimationState::new(&PlayerState::Front)},
+                n if (n <= 30. + 60. * 1.) => {AnimationState::new(&PlayerState::LeftFront)},
+                n if (n < 30. + 60. * 2.) => {AnimationState::new(&PlayerState::LeftBack)},
+                n if (n < 30. + 60. * 3.) => {AnimationState::new(&PlayerState::Back)},
+                n if (n < 30. + 60. * 4.) => {AnimationState::new(&PlayerState::RightBack)},
+                n if (n < 30. + 60. * 5.) => {AnimationState::new(&PlayerState::RightFront)},
+                n if (n < 30. + 60. * 6.) => {AnimationState::new(&PlayerState::Front)},
                 _ => { panic!("IMPOSSIBLE ANGLE!") }
             };
             position.0 += direction.normalize_or_zero() * stats.speed * time.delta_seconds();
