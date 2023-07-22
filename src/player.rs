@@ -1,7 +1,8 @@
 use bevy::{prelude::*, reflect::TypePath};
 use leafwing_input_manager::prelude::*;
+use mouse::Mouse;
 
-use crate::{animations::{AnimationIndices, AnimationStateMachine, AnimationState, AnimationFlip}, rendering::Position};
+use crate::{animations::{AnimationIndices, AnimationStateMachine, AnimationState, AnimationFlip}, rendering::Position, mouse};
 
 #[derive(Component, Debug, Reflect)]
 pub enum PlayerState {
@@ -25,11 +26,13 @@ pub struct PlayerStats {
 
 #[derive(Bundle, Default)]
 pub struct PlayerBundle {
+    pub name: Name,
     pub state: AnimationState,
     pub state_machine: AnimationStateMachine,
     pub sprite: SpriteSheetBundle,
     pub player: PlayerStats,
     pub player_action: InputManagerBundle::<PlayerActions>,
+    pub mouse_action: InputManagerBundle::<Mouse>,
     pub player_position: Position,
 }
 
@@ -67,6 +70,7 @@ impl PlayerBundle {
         state_machine.insert(PlayerState::Front, (front_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::False));
         state_machine.insert(PlayerState::Back, (back_handle.clone(), AnimationIndices { first: 0, last: 5 }, AnimationFlip::False));
         PlayerBundle {
+            name: bevy::core::Name::new("Player"),
             state: AnimationState::new(&PlayerState::Idle),
             sprite: SpriteSheetBundle {
                 texture_atlas: idle_handle,
@@ -84,8 +88,17 @@ impl PlayerBundle {
                     (KeyCode::S, PlayerActions::Down)
                 ]),
             },
+            mouse_action: InputManagerBundle::<Mouse>::default(),
             ..default()
         }
+    }
+}
+
+pub fn access_mouse(query: Query<&ActionState<Mouse>>) {
+    let action_state: &ActionState<Mouse> = query.single();
+
+    if let Some(box_pan_vector) = action_state.axis_pair(Mouse::MousePosition) {
+        println!("{:?}", box_pan_vector);
     }
 }
 
