@@ -97,24 +97,29 @@ pub fn move_players(
 
         if actions.pressed(PlayerActions::Left) {
             direction.x -= 1.;
-            *state = AnimationState::new(&PlayerState::Left);
         }
         if actions.pressed(PlayerActions::Right) {
             direction.x += 1.;
-            *state = AnimationState::new(&PlayerState::Right);
         }
         if actions.pressed(PlayerActions::Up) {
             direction.y += 1.;
-            *state = AnimationState::new(&PlayerState::Up);
         }
         if actions.pressed(PlayerActions::Down) {
             direction.y -= 1.;
-            *state = AnimationState::new(&PlayerState::Down);
         }
         if direction == Vec2::ZERO {
             *state = AnimationState::new(&PlayerState::Idle);
         } else {
-            println!("{}", direction.angle_between(Vec2::NEG_Y).to_degrees());
+            // *state = AnimationState::new(&PlayerState::Down);
+            *state = match direction.angle_between(Vec2::NEG_Y).to_degrees() {
+                n if (0. < n && n < 45.) || (-45. < n && n < 0.) => {AnimationState::new(&PlayerState::Idle)},
+                n if (0. < n && n < 45.) || (-45. < n && n < 0.) => {AnimationState::new(&PlayerState::Idle)},
+                n if (0. < n && n < 45.) || (-45. < n && n < 0.) => {AnimationState::new(&PlayerState::Idle)},
+                n if (0. < n && n < 45.) || (-45. < n && n < 0.) => {AnimationState::new(&PlayerState::Idle)},
+                n if (0. < n && n < 45.) || (-45. < n && n < 0.) => {AnimationState::new(&PlayerState::Idle)},
+                n if (0. < n && n < 45.) || (-45. < n && n < 0.) => {AnimationState::new(&PlayerState::Idle)},
+                _ => { panic!("IMPOSSIBLE ANGLE!") }
+            };
             position.0 += direction.normalize_or_zero() * stats.speed * time.delta_seconds();
         }
     }
