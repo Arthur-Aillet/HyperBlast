@@ -2,7 +2,7 @@ use bevy::{prelude::*, reflect::TypePath};
 use leafwing_input_manager::prelude::*;
 use mouse::Mouse;
 
-use crate::{animations::{AnimationIndices, AnimationStateMachine, AnimationState, AnimationFlip}, rendering::Position, mouse};
+use crate::{animations::{AnimationIndices, AnimationStateMachine, AnimationState, AnimationFlip}, rendering::Position, mouse, debug::DebugLevel};
 
 #[derive(Component, Debug, Reflect)]
 pub enum PlayerState {
@@ -98,6 +98,7 @@ pub fn access_mouse(
     mouse: Query<&ActionState<Mouse>>,
     players: Query<(&Transform, With<PlayerStats>)>,
     camera: Query<(&Camera, &GlobalTransform)>,
+    debug_level: Res<DebugLevel>,
     mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
 ) {
     let action_state: &ActionState<Mouse> = mouse.single();
@@ -108,7 +109,9 @@ pub fn access_mouse(
             if let Some(box_pan_vector) = action_state.axis_pair(Mouse::MousePosition)
                 .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy())) {
 
-                lines.line_colored(box_pan_vector.origin, player_pos.translation, 0.0, Color::GOLD);
+                if *debug_level == DebugLevel::Basic {
+                    lines.line_colored(box_pan_vector.origin, player_pos.translation, 0.0, Color::GOLD);
+                }
             }
         });
     }

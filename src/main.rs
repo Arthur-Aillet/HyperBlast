@@ -2,6 +2,7 @@ mod player;
 mod mouse;
 mod animations;
 mod rendering;
+mod debug;
 
 use animations::AnimationIndices;
 use animations::AnimationState;
@@ -11,6 +12,8 @@ use animations::AnimationTimer;
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin};
 use bevy::window::PrimaryWindow;
 use bevy_editor_pls::prelude::*;
+use debug::DebugLevel;
+use debug::debug_setup;
 use leafwing_input_manager::{plugin::InputManagerSystem, prelude::*};
 use bevy_prototype_debug_lines::*;
 
@@ -31,6 +34,7 @@ fn main() {
         .add_plugins(DebugLinesPlugin::default())
         .add_plugins((FrameTimeDiagnosticsPlugin::default(), EntityCountDiagnosticsPlugin::default()))
         .add_plugins(InputManagerPlugin::<player::PlayerActions>::default())
+        .add_plugins(InputManagerPlugin::<debug::DebugAction>::default())
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -43,6 +47,7 @@ fn main() {
                 .after(InputSystem),
         )
         .add_systems(Update, player::move_players)
+        .add_systems(Update, debug::switch_debug)
         .add_systems(Update, player::access_mouse)
         .add_systems(PostUpdate, animations::animate_sprites)
         .add_systems(Last, rendering::update_transforms)
@@ -55,8 +60,11 @@ fn setup(
     window: Query<Entity, With<PrimaryWindow>>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    println!("FIRST!");
+    commands.insert_resource(DebugLevel::None);
+
     let mut camera = Camera2dBundle::default();
+
+    commands.spawn(debug_setup());
 
     camera.projection.scale = 0.2;
     commands.spawn(camera);
