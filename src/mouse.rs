@@ -1,7 +1,5 @@
-
 use bevy::prelude::*;
 use leafwing_input_manager::{axislike::DualAxisData, prelude::*};
-
 
 #[derive(Actionlike, Clone, Debug, Copy, PartialEq, Eq, Reflect)]
 pub enum Mouse {

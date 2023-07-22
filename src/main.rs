@@ -1,24 +1,25 @@
-mod player;
-mod mouse;
 mod animations;
-mod rendering;
 mod debug;
+mod mouse;
+mod player;
+mod rendering;
 
 use animations::AnimationIndices;
 use animations::AnimationState;
 use animations::AnimationStateMachine;
 use animations::AnimationTimer;
 
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin};
+use bevy::diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
 use bevy::window::PrimaryWindow;
 use bevy_editor_pls::prelude::*;
-use debug::DebugLevel;
-use debug::debug_setup;
-use leafwing_input_manager::{plugin::InputManagerSystem, prelude::*};
 use bevy_prototype_debug_lines::*;
+use debug::debug_setup;
+use debug::DebugLevel;
+use leafwing_input_manager::{plugin::InputManagerSystem, prelude::*};
 
 use bevy::{input::InputSystem, prelude::*};
-use player::{PlayerState, PlayerStats};
+use player::input::PlayerState;
+use player::stats::PlayerStats;
 use rendering::Position;
 
 fn main() {
@@ -32,23 +33,26 @@ fn main() {
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(EditorPlugin::default())
         .add_plugins(DebugLinesPlugin::default())
-        .add_plugins((FrameTimeDiagnosticsPlugin::default(), EntityCountDiagnosticsPlugin::default()))
-        .add_plugins(InputManagerPlugin::<player::PlayerActions>::default())
+        .add_plugins((
+            FrameTimeDiagnosticsPlugin::default(),
+            EntityCountDiagnosticsPlugin::default(),
+        ))
+        .add_plugins(InputManagerPlugin::<player::input::PlayerActions>::default())
         .add_plugins(InputManagerPlugin::<debug::DebugAction>::default())
         .add_systems(Startup, setup)
         .add_systems(
             Update,
             mouse::update_cursor_state_from_window
-                    /*.run_if(run_if_enabled::<mouse::Mouse>)*/
+                /*.run_if(run_if_enabled::<mouse::Mouse>)*/
                 .in_set(InputManagerSystem::ManualControl)
                 .before(InputManagerSystem::ReleaseOnDisable)
                 .after(InputManagerSystem::Tick)
                 .after(InputManagerSystem::Update)
                 .after(InputSystem),
         )
-        .add_systems(Update, player::move_players)
+        .add_systems(Update, player::input::move_players)
         .add_systems(Update, debug::switch_debug)
-        .add_systems(Update, player::access_mouse)
+        .add_systems(Update, player::input::rotate_player)
         .add_systems(PostUpdate, animations::animate_sprites)
         .add_systems(Last, rendering::update_transforms)
         .run();
@@ -70,7 +74,7 @@ fn setup(
     commands.spawn(camera);
     commands.spawn((
         bevy::core::Name::new("Global Timer"),
-        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating))
+        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
     ));
     commands.spawn((
         bevy::core::Name::new("Ground"),
@@ -81,11 +85,14 @@ fn setup(
                 ..default()
             },
             ..default()
-        }
+        },
     ));
-    let player_id = commands.spawn(
-        player::PlayerBundle::setup(&asset_server, &mut texture_atlases),
-    ).id();
+    let player_id = commands
+        .spawn(player::setup::PlayerBundle::setup(
+            &asset_server,
+            &mut texture_atlases,
+        ))
+        .id();
 
     commands.entity(window.single()).insert(ActionStateDriver {
         action: crate::mouse::Mouse::MousePosition,

@@ -12,10 +12,7 @@ pub enum DebugLevel {
     Basic,
 }
 
-pub fn switch_debug(
-    action: Query<&ActionState<DebugAction>>,
-    mut debug_level: ResMut<DebugLevel>,
-) {
+pub fn switch_debug(action: Query<&ActionState<DebugAction>>, mut debug_level: ResMut<DebugLevel>) {
     for action in &action {
         if action.just_pressed(DebugAction::Click) {
             *debug_level = match *debug_level {
@@ -29,17 +26,15 @@ pub fn switch_debug(
 #[derive(Bundle)]
 pub struct DebugBundle {
     pub name: Name,
-    pub action: InputManagerBundle::<DebugAction>
+    pub action: InputManagerBundle<DebugAction>,
 }
 
 pub fn debug_setup() -> DebugBundle {
     DebugBundle {
-        name : Name::new("DebugManager"),
+        name: Name::new("DebugManager"),
         action: InputManagerBundle::<DebugAction> {
             action_state: ActionState::<DebugAction>::default(),
-            input_map: InputMap::new([
-                (KeyCode::V, DebugAction::Click),
-            ]),
-        }
+            input_map: InputMap::new([(KeyCode::V, DebugAction::Click)]),
+        },
     }
 }

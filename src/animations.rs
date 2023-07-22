@@ -15,7 +15,9 @@ pub struct AnimationState {
 
 impl AnimationState {
     pub fn new<T: Debug>(string: &T) -> Self {
-        AnimationState {id: format!("{string:?}")}
+        AnimationState {
+            id: format!("{string:?}"),
+        }
     }
 }
 
@@ -31,7 +33,7 @@ pub enum AnimationFlip {
 #[derive(Component, Reflect, Default)]
 pub struct AnimationStateMachine {
     map: HashMap<String, (Handle<TextureAtlas>, AnimationIndices, AnimationFlip)>,
-    last_state: AnimationState
+    last_state: AnimationState,
 }
 
 impl AnimationStateMachine {
@@ -42,14 +44,17 @@ impl AnimationStateMachine {
         }
     }
 
-    pub fn insert<T: Debug>(&mut self, key: T, value: (Handle<TextureAtlas>, AnimationIndices, AnimationFlip)) {
+    pub fn insert<T: Debug>(
+        &mut self,
+        key: T,
+        value: (Handle<TextureAtlas>, AnimationIndices, AnimationFlip),
+    ) {
         self.map.insert(format!("{key:?}"), value);
     }
 }
 
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(pub Timer);
-
 
 pub fn animate_sprites(
     time: Res<Time>,
@@ -72,7 +77,7 @@ pub fn animate_sprites(
                     } else {
                         current_sprite.flip_x = false;
                     }
-                    if *flip == AnimationFlip::YAxis || *flip == AnimationFlip::XYAxis  {
+                    if *flip == AnimationFlip::YAxis || *flip == AnimationFlip::XYAxis {
                         current_sprite.flip_y = true;
                     } else {
                         current_sprite.flip_y = false;
@@ -87,7 +92,9 @@ pub fn animate_sprites(
                     } else {
                         current_sprite.index + 1
                     };
-                    machine.last_state = AnimationState{id: state.id.clone()};
+                    machine.last_state = AnimationState {
+                        id: state.id.clone(),
+                    };
                 }
                 None => {}
             }
