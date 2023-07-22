@@ -70,33 +70,21 @@ pub fn animate_sprites(
     for (state, mut current_handle, mut machine, mut current_sprite) in &mut query {
         timer.tick(time.delta());
         if timer.just_finished() {
-            match machine.map.get(&state.id) {
-                Some((sprite, indices, flip)) => {
-                    if *flip == AnimationFlip::XAxis || *flip == AnimationFlip::XYAxis {
-                        current_sprite.flip_x = true;
-                    } else {
-                        current_sprite.flip_x = false;
-                    }
-                    if *flip == AnimationFlip::YAxis || *flip == AnimationFlip::XYAxis {
-                        current_sprite.flip_y = true;
-                    } else {
-                        current_sprite.flip_y = false;
-                    }
-
-                    if state.id != machine.last_state.id {
-                        current_sprite.index = indices.first;
-                    }
-                    *current_handle = sprite.clone();
-                    current_sprite.index = if current_sprite.index == indices.last {
-                        indices.first
-                    } else {
-                        current_sprite.index + 1
-                    };
-                    machine.last_state = AnimationState {
-                        id: state.id.clone(),
-                    };
+            if let Some((sprite, indices, flip)) = machine.map.get(&state.id) {
+                current_sprite.flip_x = *flip == AnimationFlip::XAxis || *flip == AnimationFlip::XYAxis;
+                current_sprite.flip_y = *flip == AnimationFlip::YAxis || *flip == AnimationFlip::XYAxis;
+                if state.id != machine.last_state.id {
+                    current_sprite.index = indices.first;
                 }
-                None => {}
+                *current_handle = sprite.clone();
+                current_sprite.index = if current_sprite.index == indices.last {
+                    indices.first
+                } else {
+                    current_sprite.index + 1
+                };
+                machine.last_state = AnimationState {
+                    id: state.id.clone(),
+                };
             }
         }
     }

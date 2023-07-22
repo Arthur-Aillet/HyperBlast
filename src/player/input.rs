@@ -13,8 +13,9 @@ pub enum PlayerActions {
     Down,
 }
 
-#[derive(Component, Debug, Reflect)]
+#[derive(Component, Debug, Reflect, Default)]
 pub enum PlayerState {
+    #[default]
     Idle,
     LeftFront,
     LeftBack,
@@ -22,12 +23,6 @@ pub enum PlayerState {
     RightBack,
     Front,
     Back,
-}
-
-impl Default for PlayerState {
-    fn default() -> Self {
-        PlayerState::Idle
-    }
 }
 
 pub fn rotate_player(
@@ -40,23 +35,21 @@ pub fn rotate_player(
     let action_state: &ActionState<Mouse> = mouse.single();
 
     for (player_pos, _) in &players {
-        camera.into_iter().find(|(camera, _)| camera.is_active).map(
-            |(camera, camera_transform)| {
-                if let Some(box_pan_vector) = action_state
-                    .axis_pair(Mouse::MousePosition)
-                    .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()))
-                {
-                    if *debug_level == DebugLevel::Basic {
-                        lines.line_colored(
-                            box_pan_vector.origin,
-                            player_pos.0.extend(0.),
-                            0.0,
-                            Color::GOLD,
-                        );
-                    }
+        if let Some((camera, camera_transform)) = camera.into_iter().find(|(camera, _)| camera.is_active) {
+            if let Some(box_pan_vector) = action_state
+                .axis_pair(Mouse::MousePosition)
+                .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()))
+            {
+                if *debug_level == DebugLevel::Basic {
+                    lines.line_colored(
+                        box_pan_vector.origin,
+                        player_pos.0.extend(0.),
+                        0.0,
+                        Color::GOLD,
+                    );
                 }
-            },
-        );
+            }
+        }
     }
 }
 
@@ -90,7 +83,7 @@ pub fn move_players(
             // *state = AnimationState::new(&PlayerState::Down);
             let mut angle = direction.angle_between(Vec2::NEG_Y).to_degrees();
             if angle < 0. {
-                angle = angle + 360.
+                angle += 360.
             }
             *state = match angle {
                 n if (n < 30. + 60. * 0.) => AnimationState::new(&PlayerState::Front),

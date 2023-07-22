@@ -34,8 +34,8 @@ fn main() {
         .add_plugins(EditorPlugin::default())
         .add_plugins(DebugLinesPlugin::default())
         .add_plugins((
-            FrameTimeDiagnosticsPlugin::default(),
-            EntityCountDiagnosticsPlugin::default(),
+            FrameTimeDiagnosticsPlugin,
+            EntityCountDiagnosticsPlugin,
         ))
         .add_plugins(InputManagerPlugin::<player::input::PlayerActions>::default())
         .add_plugins(InputManagerPlugin::<debug::DebugAction>::default())
