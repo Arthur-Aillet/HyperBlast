@@ -33,6 +33,7 @@ pub enum PlayerState {
     Back,
 }
 
+#[allow(clippy::type_complexity)]
 pub fn rotate_player(
     mouse: Query<&ActionState<Mouse>>,
     players: Query<(&Position, &GunEntity, With<PlayerStats>)>,

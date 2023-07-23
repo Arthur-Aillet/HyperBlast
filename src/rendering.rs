@@ -17,6 +17,7 @@ pub struct Offset(pub Vec2);
 #[derive(Component, Default, Reflect, Clone)]
 pub struct Size(pub Vec2);
 
+#[allow(clippy::type_complexity)]
 pub fn update_transforms(
     mut query: Query<(
         &mut Transform,
