@@ -3,6 +3,7 @@ mod debug;
 mod mouse;
 mod player;
 mod rendering;
+mod physics;
 
 use animations::AnimationIndices;
 use animations::AnimationState;
@@ -18,6 +19,7 @@ use debug::DebugLevel;
 use leafwing_input_manager::{plugin::InputManagerSystem, prelude::*};
 
 use bevy::{input::InputSystem, prelude::*};
+use physics::PhysicsPlugin;
 use player::input::PlayerState;
 use player::stats::PlayerStats;
 use rendering::Angle;
@@ -39,6 +41,7 @@ fn main() {
         .add_plugins((FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin))
         .add_plugins(InputManagerPlugin::<player::input::PlayerActions>::default())
         .add_plugins(InputManagerPlugin::<debug::DebugAction>::default())
+        .add_plugins(PhysicsPlugin)
         .add_systems(Startup, setup)
         .add_systems(
             Update,

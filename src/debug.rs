@@ -1,4 +1,5 @@
 use bevy::{prelude::*, reflect::TypePath};
+use bevy_rapier2d::render::DebugRenderContext;
 use leafwing_input_manager::prelude::*;
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, TypePath)]
@@ -12,13 +13,18 @@ pub enum DebugLevel {
     Basic,
 }
 
-pub fn switch_debug(action: Query<&ActionState<DebugAction>>, mut debug_level: ResMut<DebugLevel>) {
+pub fn switch_debug(
+    action: Query<&ActionState<DebugAction>>,
+    mut debug_level: ResMut<DebugLevel>,
+    mut rapier_debug: ResMut<DebugRenderContext>
+) {
     for action in &action {
         if action.just_pressed(DebugAction::Click) {
             *debug_level = match *debug_level {
                 DebugLevel::None => DebugLevel::Basic,
                 DebugLevel::Basic => DebugLevel::None,
-            }
+            };
+            rapier_debug.enabled = *debug_level == DebugLevel::Basic;
         }
     }
 }

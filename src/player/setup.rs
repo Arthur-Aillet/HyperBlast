@@ -1,11 +1,12 @@
 use bevy::{prelude::*, window::PrimaryWindow};
+use bevy_rapier2d::prelude::RigidBody;
 use leafwing_input_manager::{InputManagerBundle, prelude::ActionStateDriver};
 use mouse::Mouse;
 
 use crate::{
     animations::{AnimationFlip, AnimationIndices, AnimationState, AnimationStateMachine},
     mouse,
-    rendering::{Offset, Position, ZIndex},
+    rendering::{Offset, Position, ZIndex}, physics::TesselatedCollider,
 };
 
 use input::PlayerActions;
@@ -41,7 +42,7 @@ impl PlayerBundle {
         let idle_texture_handle = asset_server.load("idle.png");
         let run_texture_handle = asset_server.load("run.png");
         let idle_atlas = TextureAtlas::from_grid(
-            idle_texture_handle,
+            idle_texture_handle.clone(),
             Vec2::new(17.0, 25.0),
             4,
             1,
@@ -148,7 +149,12 @@ impl PlayerBundle {
                 AnimationFlip::False,
             ),
         );
-        let gun_id = commands.spawn(GunBundle::setup(asset_server)).id();
+        let bundle = GunBundle::setup(asset_server);
+        let col = TesselatedCollider {
+            texture: asset_server.load("marine_gun.png"),
+        };
+        let gun_id = commands.spawn(bundle).insert(col)
+        .insert(RigidBody::Fixed).id();
 
         let player = PlayerBundle {
             name: bevy::core::Name::new("Player"),
@@ -174,7 +180,7 @@ impl PlayerBundle {
             current_gun: GunEntity(gun_id),
         };
         if controller {
-            let player_id = commands.spawn(player);
+            commands.spawn(player);
         } else {
             let player_id = commands
                 .spawn(player)
