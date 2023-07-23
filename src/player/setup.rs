@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use leafwing_input_manager::prelude::*;
+use leafwing_input_manager::InputManagerBundle;
 use mouse::Mouse;
 
 use crate::{
@@ -162,16 +162,11 @@ impl PlayerBundle {
                 ..default()
             },
             state_machine,
-            player: PlayerStats { speed: 50. },
-            player_action: InputManagerBundle::<PlayerActions> {
-                action_state: ActionState::default(),
-                input_map: InputMap::new([
-                    (KeyCode::Q, PlayerActions::Left),
-                    (KeyCode::D, PlayerActions::Right),
-                    (KeyCode::Z, PlayerActions::Up),
-                    (KeyCode::S, PlayerActions::Down),
-                ]),
+            player: PlayerStats {
+                speed: 50.,
+                controller: false,
             },
+            player_action: input::player_input_setup(),
             mouse_action: InputManagerBundle::<Mouse>::default(),
             player_offset: Offset(Vec2::new(17. / 2., 25. / 2. + 8.)),
             zindex: ZIndex(25.),

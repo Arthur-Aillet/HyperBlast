@@ -1,5 +1,5 @@
 use bevy::{prelude::*, reflect::TypePath};
-use leafwing_input_manager::{prelude::ActionState, Actionlike};
+use leafwing_input_manager::{prelude::*, Actionlike};
 
 use crate::{
     animations::{AnimationFlip, AnimationState},
@@ -15,6 +15,8 @@ use super::{
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, TypePath)]
 pub enum PlayerActions {
+    ControllerMove,
+    ControllerLook,
     Left,
     Right,
     Up,
@@ -36,7 +38,7 @@ pub enum PlayerState {
 #[allow(clippy::type_complexity)]
 pub fn rotate_player(
     mouse: Query<&ActionState<Mouse>>,
-    players: Query<(&Position, &GunEntity, With<PlayerStats>)>,
+    players: Query<(&Position, &GunEntity, &ActionState<PlayerActions>, &PlayerStats)>,
     mut gun: Query<(
         &mut Position,
         &mut Angle,
@@ -47,43 +49,68 @@ pub fn rotate_player(
     debug_level: Res<DebugLevel>,
     mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
 ) {
-    let action_state: &ActionState<Mouse> = mouse.single();
+    let mouse_action_state: &ActionState<Mouse> = mouse.single();
 
-    for (player_pos, gun_id, _) in &players {
+    for (Position(player_pos), gun_id, player_actions, stats) in &players {
         if let Some((camera, camera_transform)) =
             camera.into_iter().find(|(camera, _)| camera.is_active)
         {
-            if let Some(mouse_pos) = action_state
+            let mut cursor_position: Option<Vec2> = None;
+
+            if stats.controller {
+                if player_actions.pressed(PlayerActions::ControllerLook) {
+                    let axis_pair = player_actions.clamped_axis_pair(PlayerActions::ControllerLook).unwrap();
+                    cursor_position = Some(*player_pos + axis_pair.xy().normalize() * 30.);
+                }
+            } else {
+                let mouse_ray = mouse_action_state
                 .axis_pair(Mouse::MousePosition)
-                .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()))
-            {
-                if let Ok((mut gun_pos, mut gun_angle, mut flip, _)) = gun.get_mut(gun_id.0) {
-                    let arms_vector = (Vec2::new(mouse_pos.origin.x, mouse_pos.origin.y)
-                        - player_pos.0)
-                        .normalize()
-                        * 1.;
-                    let mut cannon_center = (player_pos.0 + arms_vector.perp() * 5.5).extend(0.);
-                    let mut gun_orientation = mouse_pos.origin - cannon_center;
-                    gun_pos.0 = player_pos.0 + arms_vector;
-                    *gun_angle = Angle(gun_orientation.y.atan2(gun_orientation.x));
+                .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()));
+
+                if let Some(mouse_pos) = mouse_ray {
+                    cursor_position = Some(mouse_pos.origin.truncate());
+                }
+            }
+
+            if let Ok((mut gun_pos, mut gun_angle, mut flip, _)) = gun.get_mut(gun_id.0) {
+                gun_pos.0 = *player_pos;
+                gun_pos.0.x += 6.;
+                if let Some(cursor_position) = cursor_position {
+                    let direction = (cursor_position - gun_pos.0).normalize();
+                    let mut barrel_position = gun_pos.0 + direction.perp() * 5.5;
+                    let mut barrel_to_cursor = cursor_position - barrel_position;
+                    *gun_angle = Angle(barrel_to_cursor.y.atan2(barrel_to_cursor.x));
                     *flip = if gun_angle.0.abs().to_degrees() > 90. {
-                        cannon_center = (player_pos.0 + arms_vector.perp() * -5.5).extend(0.);
-                        gun_orientation = mouse_pos.origin - cannon_center;
-                        *gun_angle = Angle(gun_orientation.y.atan2(gun_orientation.x));
+                        barrel_position = gun_pos.0 + direction.perp() * -5.5;
+                        barrel_to_cursor = cursor_position - barrel_position;
+                        *gun_angle = Angle(barrel_to_cursor.y.atan2(barrel_to_cursor.x));
                         AnimationFlip::YAxis
                     } else {
                         AnimationFlip::False
                     };
                     if *debug_level == DebugLevel::Basic {
-                        lines.line_colored(player_pos.0.extend(0.), cannon_center, 0.0, Color::RED);
-                        lines.line_colored(cannon_center, mouse_pos.origin, 0.0, Color::GREEN);
+                        lines.line_colored((gun_pos.0).extend(0.), barrel_position.extend(0.), 0.0, Color::RED);
+                        lines.line_colored(barrel_position.extend(0.), cursor_position.extend(0.), 0.0, Color::GREEN);
+                        lines.line_colored(cursor_position.extend(0.), (gun_pos.0).extend(0.), 0.0, Color::GOLD);
                     }
-                }
-                if *debug_level == DebugLevel::Basic {
-                    lines.line_colored(mouse_pos.origin, player_pos.0.extend(0.), 0.0, Color::GOLD);
                 }
             }
         }
+    }
+}
+
+pub fn player_input_setup() -> InputManagerBundle::<PlayerActions> {
+    let mut input_map = InputMap::new([
+        (KeyCode::Q, PlayerActions::Left),
+        (KeyCode::D, PlayerActions::Right),
+        (KeyCode::Z, PlayerActions::Up),
+        (KeyCode::S, PlayerActions::Down),
+    ]);
+    input_map.insert(DualAxis::left_stick(), PlayerActions::ControllerMove);
+    input_map.insert(DualAxis::right_stick(), PlayerActions::ControllerLook);
+    InputManagerBundle::<PlayerActions> {
+        action_state: ActionState::default(),
+        input_map
     }
 }
 
@@ -111,6 +138,13 @@ pub fn move_players(
         if actions.pressed(PlayerActions::Down) {
             direction.y -= 1.;
         }
+
+        if actions.pressed(PlayerActions::ControllerMove) {
+            let axis_pair = actions.clamped_axis_pair(PlayerActions::ControllerMove).unwrap();
+            direction.x += axis_pair.x();
+            direction.y += axis_pair.y();
+        }
+
         if direction == Vec2::ZERO {
             *state = AnimationState::new(&PlayerState::Idle);
         } else {
@@ -130,7 +164,7 @@ pub fn move_players(
                     panic!("IMPOSSIBLE ANGLE!")
                 }
             };
-            position.0 += direction.normalize_or_zero() * stats.speed * time.delta_seconds();
+            position.0 += direction.clamp_length(0., 1.) * stats.speed * time.delta_seconds();
         }
     }
 }
