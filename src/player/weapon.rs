@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::rendering::{Position, Angle, ZIndex};
+use crate::rendering::{Position, Angle, ZIndex, Offset};
 
 #[derive(Component)]
 pub struct GunStats {
@@ -28,12 +28,12 @@ impl GunBundle {
             sprite: SpriteBundle {
                 texture: asset_server.load("marine_gun.png"),
                 sprite: Sprite {
-                    anchor: bevy::sprite::Anchor::TopLeft,
+                    anchor: bevy::sprite::Anchor::Custom(Vec2 { x: -((10./14.)*0.5), y: -((5./9.)*0.5) }),
                     ..default()
                 },
                 ..default()
             },
-            angle: Angle(32.),
+            angle: Angle(0.),
             zindex: ZIndex(50.),
             pos: Position(Vec2::ZERO)
         }

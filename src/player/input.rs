@@ -44,10 +44,25 @@ pub fn rotate_player(
                 .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()))
             {
                 if let Ok((mut gun_pos, mut gun_angle, _)) = gun.get_mut(gun_id.0) {
-                    let arms_vector = (Vec2::new(mouse_pos.origin.x, mouse_pos.origin.y) - player_pos.0).normalize() * 7.;
+                    let arms_vector = (Vec2::new(mouse_pos.origin.x, mouse_pos.origin.y) - player_pos.0).normalize() * 1.;
+                    let cannon_center = (player_pos.0 + arms_vector.perp() * 5.5).extend(0.);
+                    let gun_orientation = mouse_pos.origin - cannon_center;
                     gun_pos.0 = player_pos.0 + arms_vector;
-                    println!("{}",arms_vector.angle_between(Vec2::Y));
-                    *gun_angle = Angle(arms_vector.angle_between(Vec2::Y));
+                    *gun_angle = Angle(gun_orientation.y.atan2(gun_orientation.x));
+                    if *debug_level == DebugLevel::Basic {
+                        lines.line_colored(
+                            player_pos.0.extend(0.),
+                            cannon_center,
+                            0.0,
+                            Color::RED,
+                        );
+                        lines.line_colored(
+                            cannon_center,
+                            mouse_pos.origin,
+                            0.0,
+                            Color::GREEN,
+                        );
+                    }
                 }
                 if *debug_level == DebugLevel::Basic {
                     lines.line_colored(
