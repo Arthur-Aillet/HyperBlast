@@ -1,9 +1,9 @@
 use bevy::{prelude::*, reflect::TypePath};
 use leafwing_input_manager::{prelude::ActionState, Actionlike};
 
-use crate::{animations::AnimationState, debug::DebugLevel, mouse::Mouse, rendering::Position};
+use crate::{animations::AnimationState, debug::DebugLevel, mouse::Mouse, rendering::{Position, Angle}};
 
-use super::stats::PlayerStats;
+use super::{stats::PlayerStats, weapon::{GunEntity, GunStats}};
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, TypePath)]
 pub enum PlayerActions {
@@ -27,24 +27,31 @@ pub enum PlayerState {
 
 pub fn rotate_player(
     mouse: Query<&ActionState<Mouse>>,
-    players: Query<(&Position, With<PlayerStats>)>,
+    players: Query<(&Position, &GunEntity, With<PlayerStats>)>,
+    mut gun: Query<(&mut Position, &mut Angle, (With<GunStats>, Without<PlayerStats>))>,
     camera: Query<(&Camera, &GlobalTransform)>,
     debug_level: Res<DebugLevel>,
     mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
 ) {
     let action_state: &ActionState<Mouse> = mouse.single();
 
-    for (player_pos, _) in &players {
+    for (player_pos, gun_id, _) in &players {
         if let Some((camera, camera_transform)) =
             camera.into_iter().find(|(camera, _)| camera.is_active)
         {
-            if let Some(box_pan_vector) = action_state
+            if let Some(mouse_pos) = action_state
                 .axis_pair(Mouse::MousePosition)
                 .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()))
             {
+                if let Ok((mut gun_pos, mut gun_angle, _)) = gun.get_mut(gun_id.0) {
+                    let arms_vector = (Vec2::new(mouse_pos.origin.x, mouse_pos.origin.y) - player_pos.0).normalize() * 7.;
+                    gun_pos.0 = player_pos.0 + arms_vector;
+                    println!("{}",arms_vector.angle_between(Vec2::Y));
+                    *gun_angle = Angle(arms_vector.angle_between(Vec2::Y));
+                }
                 if *debug_level == DebugLevel::Basic {
                     lines.line_colored(
-                        box_pan_vector.origin,
+                        mouse_pos.origin,
                         player_pos.0.extend(0.),
                         0.0,
                         Color::GOLD,
@@ -82,7 +89,6 @@ pub fn move_players(
         if direction == Vec2::ZERO {
             *state = AnimationState::new(&PlayerState::Idle);
         } else {
-            // *state = AnimationState::new(&PlayerState::Down);
             let mut angle = direction.angle_between(Vec2::NEG_Y).to_degrees();
             if angle < 0. {
                 angle += 360.
@@ -95,9 +101,7 @@ pub fn move_players(
                 n if (n < 30. + 60. * 4.) => AnimationState::new(&PlayerState::RightBack),
                 n if (n < 30. + 60. * 5.) => AnimationState::new(&PlayerState::RightFront),
                 n if (n < 30. + 60. * 6.) => AnimationState::new(&PlayerState::Front),
-                _ => {
-                    panic!("IMPOSSIBLE ANGLE!")
-                }
+                _ => { panic!("IMPOSSIBLE ANGLE!") }
             };
             position.0 += direction.normalize_or_zero() * stats.speed * time.delta_seconds();
         }

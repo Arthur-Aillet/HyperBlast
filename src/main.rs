@@ -20,6 +20,7 @@ use leafwing_input_manager::{plugin::InputManagerSystem, prelude::*};
 use bevy::{input::InputSystem, prelude::*};
 use player::input::PlayerState;
 use player::stats::PlayerStats;
+use rendering::Angle;
 use rendering::Position;
 
 fn main() {
@@ -31,6 +32,7 @@ fn main() {
         .register_type::<AnimationState>()
         .register_type::<AnimationStateMachine>()
         .register_type::<Position>()
+        .register_type::<Angle>()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(EditorPlugin::default())
         .add_plugins(DebugLinesPlugin::default())
@@ -85,9 +87,7 @@ fn setup(
             ..default()
         },
     ));
-    let (player, gun) = player::setup::PlayerBundle::setup(&asset_server, &mut texture_atlases);
-    commands.spawn(gun);
-    let player_id = commands.spawn(player).id();
+    let player_id = player::setup::PlayerBundle::setup(&mut commands, &asset_server, &mut texture_atlases);
 
     commands.entity(window.single()).insert(ActionStateDriver {
         action: crate::mouse::Mouse::MousePosition,

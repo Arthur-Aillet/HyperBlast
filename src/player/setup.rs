@@ -5,7 +5,7 @@ use mouse::Mouse;
 use crate::{
     animations::{AnimationFlip, AnimationIndices, AnimationState, AnimationStateMachine},
     mouse,
-    rendering::{Offset, Position},
+    rendering::{Offset, Position, ZIndex},
 };
 
 use input::PlayerActions;
@@ -13,10 +13,10 @@ use input::PlayerActions;
 use super::{
     input::{self, PlayerState},
     stats::PlayerStats,
-    weapon::GunBundle,
+    weapon::{GunBundle, GunEntity},
 };
 
-#[derive(Bundle, Default)]
+#[derive(Bundle)]
 pub struct PlayerBundle {
     pub name: Name,
     pub state: AnimationState,
@@ -26,14 +26,17 @@ pub struct PlayerBundle {
     pub player_action: InputManagerBundle<PlayerActions>,
     pub mouse_action: InputManagerBundle<Mouse>,
     pub player_position: Position,
+    pub zindex: ZIndex,
     pub player_offset: Offset,
+    pub current_gun: GunEntity,
 }
 
 impl PlayerBundle {
     pub fn setup(
+        commands: &mut Commands,
         asset_server: &Res<AssetServer>,
         texture_atlases: &mut ResMut<Assets<TextureAtlas>>,
-    ) -> (PlayerBundle, GunBundle) {
+    ) -> Entity {
         let idle_texture_handle = asset_server.load("idle.png");
         let run_texture_handle = asset_server.load("run.png");
         let idle_atlas = TextureAtlas::from_grid(
@@ -144,6 +147,8 @@ impl PlayerBundle {
                 AnimationFlip::False,
             ),
         );
+        let gun_id = commands.spawn(GunBundle::setup(asset_server)).id();
+
         let player = PlayerBundle {
             name: bevy::core::Name::new("Player"),
             state: AnimationState::new(&PlayerState::Idle),
@@ -169,9 +174,11 @@ impl PlayerBundle {
             },
             mouse_action: InputManagerBundle::<Mouse>::default(),
             player_offset: Offset(Vec2::new(17. / 2., 25. / 2. + 8.)),
-            ..default()
+            zindex: ZIndex(25.),
+            player_position: Position(Vec2::ZERO),
+            current_gun: GunEntity(gun_id),
         };
-        let gun = GunBundle::setup(asset_server);
-        (player, gun)
+        let player_id = commands.spawn(player).id();
+        player_id
     }
 }

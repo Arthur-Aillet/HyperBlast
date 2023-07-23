@@ -8,7 +8,7 @@ pub struct AnimationIndices {
     pub last: usize,
 }
 
-#[derive(Component, Reflect, Default)]
+#[derive(Component, Reflect)]
 pub struct AnimationState {
     id: String,
 }
@@ -30,7 +30,7 @@ pub enum AnimationFlip {
     XYAxis,
 }
 
-#[derive(Component, Reflect, Default)]
+#[derive(Component, Reflect)]
 pub struct AnimationStateMachine {
     map: HashMap<String, (Handle<TextureAtlas>, AnimationIndices, AnimationFlip)>,
     last_state: AnimationState,
@@ -40,7 +40,7 @@ impl AnimationStateMachine {
     pub fn new() -> Self {
         AnimationStateMachine {
             map: HashMap::new(),
-            last_state: AnimationState::default(),
+            last_state: AnimationState::new(&""),
         }
     }
 
