@@ -1,9 +1,17 @@
 use bevy::{prelude::*, reflect::TypePath};
 use leafwing_input_manager::{prelude::ActionState, Actionlike};
 
-use crate::{animations::AnimationState, debug::DebugLevel, mouse::Mouse, rendering::{Position, Angle}};
+use crate::{
+    animations::{AnimationFlip, AnimationState},
+    debug::DebugLevel,
+    mouse::Mouse,
+    rendering::{Angle, Position},
+};
 
-use super::{stats::PlayerStats, weapon::{GunEntity, GunStats}};
+use super::{
+    stats::PlayerStats,
+    weapon::{GunEntity, GunStats},
+};
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, TypePath)]
 pub enum PlayerActions {
@@ -28,7 +36,12 @@ pub enum PlayerState {
 pub fn rotate_player(
     mouse: Query<&ActionState<Mouse>>,
     players: Query<(&Position, &GunEntity, With<PlayerStats>)>,
-    mut gun: Query<(&mut Position, &mut Angle, (With<GunStats>, Without<PlayerStats>))>,
+    mut gun: Query<(
+        &mut Position,
+        &mut Angle,
+        &mut AnimationFlip,
+        (With<GunStats>, Without<PlayerStats>),
+    )>,
     camera: Query<(&Camera, &GlobalTransform)>,
     debug_level: Res<DebugLevel>,
     mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
@@ -43,34 +56,30 @@ pub fn rotate_player(
                 .axis_pair(Mouse::MousePosition)
                 .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()))
             {
-                if let Ok((mut gun_pos, mut gun_angle, _)) = gun.get_mut(gun_id.0) {
-                    let arms_vector = (Vec2::new(mouse_pos.origin.x, mouse_pos.origin.y) - player_pos.0).normalize() * 1.;
-                    let cannon_center = (player_pos.0 + arms_vector.perp() * 5.5).extend(0.);
-                    let gun_orientation = mouse_pos.origin - cannon_center;
+                if let Ok((mut gun_pos, mut gun_angle, mut flip, _)) = gun.get_mut(gun_id.0) {
+                    let arms_vector = (Vec2::new(mouse_pos.origin.x, mouse_pos.origin.y)
+                        - player_pos.0)
+                        .normalize()
+                        * 1.;
+                    let mut cannon_center = (player_pos.0 + arms_vector.perp() * 5.5).extend(0.);
+                    let mut gun_orientation = mouse_pos.origin - cannon_center;
                     gun_pos.0 = player_pos.0 + arms_vector;
                     *gun_angle = Angle(gun_orientation.y.atan2(gun_orientation.x));
+                    *flip = if gun_angle.0.abs().to_degrees() > 90. {
+                        cannon_center = (player_pos.0 + arms_vector.perp() * -5.5).extend(0.);
+                        gun_orientation = mouse_pos.origin - cannon_center;
+                        *gun_angle = Angle(gun_orientation.y.atan2(gun_orientation.x));
+                        AnimationFlip::YAxis
+                    } else {
+                        AnimationFlip::False
+                    };
                     if *debug_level == DebugLevel::Basic {
-                        lines.line_colored(
-                            player_pos.0.extend(0.),
-                            cannon_center,
-                            0.0,
-                            Color::RED,
-                        );
-                        lines.line_colored(
-                            cannon_center,
-                            mouse_pos.origin,
-                            0.0,
-                            Color::GREEN,
-                        );
+                        lines.line_colored(player_pos.0.extend(0.), cannon_center, 0.0, Color::RED);
+                        lines.line_colored(cannon_center, mouse_pos.origin, 0.0, Color::GREEN);
                     }
                 }
                 if *debug_level == DebugLevel::Basic {
-                    lines.line_colored(
-                        mouse_pos.origin,
-                        player_pos.0.extend(0.),
-                        0.0,
-                        Color::GOLD,
-                    );
+                    lines.line_colored(mouse_pos.origin, player_pos.0.extend(0.), 0.0, Color::GOLD);
                 }
             }
         }
@@ -116,7 +125,9 @@ pub fn move_players(
                 n if (n < 30. + 60. * 4.) => AnimationState::new(&PlayerState::RightBack),
                 n if (n < 30. + 60. * 5.) => AnimationState::new(&PlayerState::RightFront),
                 n if (n < 30. + 60. * 6.) => AnimationState::new(&PlayerState::Front),
-                _ => { panic!("IMPOSSIBLE ANGLE!") }
+                _ => {
+                    panic!("IMPOSSIBLE ANGLE!")
+                }
             };
             position.0 += direction.normalize_or_zero() * stats.speed * time.delta_seconds();
         }

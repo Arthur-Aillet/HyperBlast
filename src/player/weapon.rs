@@ -1,11 +1,12 @@
 use bevy::prelude::*;
 
-use crate::rendering::{Position, Angle, ZIndex, Offset};
+use crate::{
+    animations::AnimationFlip,
+    rendering::{Angle, Offset, Position, Size, ZIndex},
+};
 
 #[derive(Component)]
-pub struct GunStats {
-
-}
+pub struct GunStats {}
 
 #[derive(Bundle)]
 pub struct GunBundle {
@@ -15,6 +16,9 @@ pub struct GunBundle {
     pub pos: Position,
     pub angle: Angle,
     pub zindex: ZIndex,
+    pub flip: AnimationFlip,
+    pub offset: Offset,
+    pub size: Size,
 }
 
 #[derive(Component)]
@@ -24,18 +28,21 @@ impl GunBundle {
     pub fn setup(asset_server: &Res<AssetServer>) -> Self {
         GunBundle {
             name: Name::new("Gun"),
-            stats: GunStats{},
+            stats: GunStats {},
             sprite: SpriteBundle {
                 texture: asset_server.load("marine_gun.png"),
                 sprite: Sprite {
-                    anchor: bevy::sprite::Anchor::Custom(Vec2 { x: -((10./14.)*0.5), y: -((5./9.)*0.5) }),
+                    anchor: bevy::sprite::Anchor::TopLeft,
                     ..default()
                 },
                 ..default()
             },
+            offset: Offset(Vec2::new(2., 2.)),
+            size: Size(Vec2::new(14., 9.)),
             angle: Angle(0.),
             zindex: ZIndex(50.),
-            pos: Position(Vec2::ZERO)
+            pos: Position(Vec2::ZERO),
+            flip: AnimationFlip::False,
         }
     }
 }

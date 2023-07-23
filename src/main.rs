@@ -87,7 +87,8 @@ fn setup(
             ..default()
         },
     ));
-    let player_id = player::setup::PlayerBundle::setup(&mut commands, &asset_server, &mut texture_atlases);
+    let player_id =
+        player::setup::PlayerBundle::setup(&mut commands, &asset_server, &mut texture_atlases);
 
     commands.entity(window.single()).insert(ActionStateDriver {
         action: crate::mouse::Mouse::MousePosition,

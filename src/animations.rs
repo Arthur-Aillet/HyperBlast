@@ -21,7 +21,7 @@ impl AnimationState {
     }
 }
 
-#[derive(Reflect, Default, PartialEq)]
+#[derive(Component, Reflect, Default, PartialEq)]
 pub enum AnimationFlip {
     #[default]
     False,
