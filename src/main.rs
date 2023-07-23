@@ -87,11 +87,6 @@ fn setup(
             ..default()
         },
     ));
-    let player_id =
-        player::setup::PlayerBundle::setup(&mut commands, &asset_server, &mut texture_atlases);
-
-    commands.entity(window.single()).insert(ActionStateDriver {
-        action: crate::mouse::Mouse::MousePosition,
-        targets: player_id.into(),
-    });
+    player::setup::PlayerBundle::setup(&mut commands, &asset_server, &mut texture_atlases, &window, true);
+    player::setup::PlayerBundle::setup(&mut commands, &asset_server, &mut texture_atlases, &window, false);
 }

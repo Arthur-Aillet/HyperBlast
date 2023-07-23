@@ -67,8 +67,8 @@ pub fn animate_sprites(
     )>,
 ) {
     let mut timer = timer_query.get_single_mut().expect("Lacks global timer");
+    timer.tick(time.delta());
     for (state, mut current_handle, mut machine, mut current_sprite) in &mut query {
-        timer.tick(time.delta());
         if timer.just_finished() {
             if let Some((sprite, indices, flip)) = machine.map.get(&state.id) {
                 current_sprite.flip_x =

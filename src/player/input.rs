@@ -49,8 +49,6 @@ pub fn rotate_player(
     debug_level: Res<DebugLevel>,
     mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
 ) {
-    let mouse_action_state: &ActionState<Mouse> = mouse.single();
-
     for (Position(player_pos), gun_id, player_actions, stats) in &players {
         if let Some((camera, camera_transform)) =
             camera.into_iter().find(|(camera, _)| camera.is_active)
@@ -63,12 +61,14 @@ pub fn rotate_player(
                     cursor_position = Some(*player_pos + axis_pair.xy().normalize() * 30.);
                 }
             } else {
-                let mouse_ray = mouse_action_state
-                .axis_pair(Mouse::MousePosition)
-                .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()));
+                if let Ok(mouse_action_state) = mouse.get_single() {
+                    let mouse_ray = mouse_action_state
+                    .axis_pair(Mouse::MousePosition)
+                    .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()));
 
-                if let Some(mouse_pos) = mouse_ray {
-                    cursor_position = Some(mouse_pos.origin.truncate());
+                    if let Some(mouse_pos) = mouse_ray {
+                        cursor_position = Some(mouse_pos.origin.truncate());
+                    }
                 }
             }
 
@@ -126,23 +126,25 @@ pub fn move_players(
     for (stats, actions, mut position, mut state) in &mut query {
         let mut direction = Vec2::ZERO;
 
-        if actions.pressed(PlayerActions::Left) {
-            direction.x -= 1.;
-        }
-        if actions.pressed(PlayerActions::Right) {
-            direction.x += 1.;
-        }
-        if actions.pressed(PlayerActions::Up) {
-            direction.y += 1.;
-        }
-        if actions.pressed(PlayerActions::Down) {
-            direction.y -= 1.;
-        }
-
-        if actions.pressed(PlayerActions::ControllerMove) {
-            let axis_pair = actions.clamped_axis_pair(PlayerActions::ControllerMove).unwrap();
-            direction.x += axis_pair.x();
-            direction.y += axis_pair.y();
+        if stats.controller {
+            if actions.pressed(PlayerActions::ControllerMove) {
+                let axis_pair = actions.clamped_axis_pair(PlayerActions::ControllerMove).unwrap();
+                direction.x += axis_pair.x();
+                direction.y += axis_pair.y();
+            }
+        } else {
+            if actions.pressed(PlayerActions::Left) {
+                direction.x -= 1.;
+            }
+            if actions.pressed(PlayerActions::Right) {
+                direction.x += 1.;
+            }
+            if actions.pressed(PlayerActions::Up) {
+                direction.y += 1.;
+            }
+            if actions.pressed(PlayerActions::Down) {
+                direction.y -= 1.;
+            }
         }
 
         if direction == Vec2::ZERO {

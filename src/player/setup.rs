@@ -1,5 +1,5 @@
-use bevy::prelude::*;
-use leafwing_input_manager::InputManagerBundle;
+use bevy::{prelude::*, window::PrimaryWindow};
+use leafwing_input_manager::{InputManagerBundle, prelude::ActionStateDriver};
 use mouse::Mouse;
 
 use crate::{
@@ -24,7 +24,6 @@ pub struct PlayerBundle {
     pub sprite: SpriteSheetBundle,
     pub player: PlayerStats,
     pub player_action: InputManagerBundle<PlayerActions>,
-    pub mouse_action: InputManagerBundle<Mouse>,
     pub player_position: Position,
     pub zindex: ZIndex,
     pub player_offset: Offset,
@@ -36,7 +35,9 @@ impl PlayerBundle {
         commands: &mut Commands,
         asset_server: &Res<AssetServer>,
         texture_atlases: &mut ResMut<Assets<TextureAtlas>>,
-    ) -> Entity {
+        window: &Query<Entity, With<PrimaryWindow>>,
+        controller: bool,
+    ) {
         let idle_texture_handle = asset_server.load("idle.png");
         let run_texture_handle = asset_server.load("run.png");
         let idle_atlas = TextureAtlas::from_grid(
@@ -164,16 +165,27 @@ impl PlayerBundle {
             state_machine,
             player: PlayerStats {
                 speed: 50.,
-                controller: false,
+                controller,
             },
             player_action: input::player_input_setup(),
-            mouse_action: InputManagerBundle::<Mouse>::default(),
             player_offset: Offset(Vec2::new(17. / 2., 25. / 2. + 8.)),
             zindex: ZIndex(25.),
             player_position: Position(Vec2::ZERO),
             current_gun: GunEntity(gun_id),
         };
-        let player_id = commands.spawn(player).id();
-        player_id
+        if controller {
+            let player_id = commands.spawn(player);
+        } else {
+            let player_id = commands
+                .spawn(player)
+                .insert(InputManagerBundle::<Mouse>::default())
+                .id();
+
+
+            commands.entity(window.single()).insert(ActionStateDriver {
+                action: crate::mouse::Mouse::MousePosition,
+                targets: player_id.into(),
+            });
+        }
     }
 }
