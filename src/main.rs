@@ -24,6 +24,7 @@ use rendering::Position;
 
 fn main() {
     App::new()
+        .insert_resource(Msaa::Off)
         .register_type::<AnimationIndices>()
         .register_type::<PlayerStats>()
         .register_type::<PlayerState>()
@@ -33,10 +34,7 @@ fn main() {
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(EditorPlugin::default())
         .add_plugins(DebugLinesPlugin::default())
-        .add_plugins((
-            FrameTimeDiagnosticsPlugin,
-            EntityCountDiagnosticsPlugin,
-        ))
+        .add_plugins((FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin))
         .add_plugins(InputManagerPlugin::<player::input::PlayerActions>::default())
         .add_plugins(InputManagerPlugin::<debug::DebugAction>::default())
         .add_systems(Startup, setup)
@@ -67,11 +65,11 @@ fn setup(
     commands.insert_resource(DebugLevel::None);
 
     let mut camera = Camera2dBundle::default();
+    camera.projection.scale = 0.2;
+    commands.spawn(camera);
 
     commands.spawn(debug_setup());
 
-    camera.projection.scale = 0.2;
-    commands.spawn(camera);
     commands.spawn((
         bevy::core::Name::new("Global Timer"),
         AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
@@ -87,12 +85,9 @@ fn setup(
             ..default()
         },
     ));
-    let player_id = commands
-        .spawn(player::setup::PlayerBundle::setup(
-            &asset_server,
-            &mut texture_atlases,
-        ))
-        .id();
+    let (player, gun) = player::setup::PlayerBundle::setup(&asset_server, &mut texture_atlases);
+    commands.spawn(gun);
+    let player_id = commands.spawn(player).id();
 
     commands.entity(window.single()).insert(ActionStateDriver {
         action: crate::mouse::Mouse::MousePosition,

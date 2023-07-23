@@ -1,23 +1,25 @@
 use bevy::prelude::*;
 
-#[derive(Bundle)]
-pub struct Gun {
+use crate::rendering::Position;
+
+#[derive(Bundle, Default)]
+pub struct GunBundle {
     pub sprite: SpriteBundle,
+    pub pos: Position,
 }
 
-impl Gun {
-    pub fn setup(
-        asset_server: &Res<AssetServer>,
-    ) -> Self {
-    Gun {
-        sprite: SpriteBundle {
-            texture: asset_server.load("marine_gun.png"),
-            sprite: Sprite {
-                anchor: bevy::sprite::Anchor::TopLeft,
+impl GunBundle {
+    pub fn setup(asset_server: &Res<AssetServer>) -> Self {
+        GunBundle {
+            sprite: SpriteBundle {
+                texture: asset_server.load("marine_gun.png"),
+                sprite: Sprite {
+                    anchor: bevy::sprite::Anchor::TopLeft,
+                    ..default()
+                },
                 ..default()
             },
             ..default()
-        },
-    }
+        }
     }
 }

@@ -13,6 +13,7 @@ use input::PlayerActions;
 use super::{
     input::{self, PlayerState},
     stats::PlayerStats,
+    weapon::GunBundle,
 };
 
 #[derive(Bundle, Default)]
@@ -32,7 +33,7 @@ impl PlayerBundle {
     pub fn setup(
         asset_server: &Res<AssetServer>,
         texture_atlases: &mut ResMut<Assets<TextureAtlas>>,
-    ) -> PlayerBundle {
+    ) -> (PlayerBundle, GunBundle) {
         let idle_texture_handle = asset_server.load("idle.png");
         let run_texture_handle = asset_server.load("run.png");
         let idle_atlas = TextureAtlas::from_grid(
@@ -143,7 +144,7 @@ impl PlayerBundle {
                 AnimationFlip::False,
             ),
         );
-        PlayerBundle {
+        let player = PlayerBundle {
             name: bevy::core::Name::new("Player"),
             state: AnimationState::new(&PlayerState::Idle),
             sprite: SpriteSheetBundle {
@@ -169,6 +170,8 @@ impl PlayerBundle {
             mouse_action: InputManagerBundle::<Mouse>::default(),
             player_offset: Offset(Vec2::new(17. / 2., 25. / 2. + 8.)),
             ..default()
-        }
+        };
+        let gun = GunBundle::setup(asset_server);
+        (player, gun)
     }
 }

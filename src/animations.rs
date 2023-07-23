@@ -71,8 +71,10 @@ pub fn animate_sprites(
         timer.tick(time.delta());
         if timer.just_finished() {
             if let Some((sprite, indices, flip)) = machine.map.get(&state.id) {
-                current_sprite.flip_x = *flip == AnimationFlip::XAxis || *flip == AnimationFlip::XYAxis;
-                current_sprite.flip_y = *flip == AnimationFlip::YAxis || *flip == AnimationFlip::XYAxis;
+                current_sprite.flip_x =
+                    *flip == AnimationFlip::XAxis || *flip == AnimationFlip::XYAxis;
+                current_sprite.flip_y =
+                    *flip == AnimationFlip::YAxis || *flip == AnimationFlip::XYAxis;
                 if state.id != machine.last_state.id {
                     current_sprite.index = indices.first;
                 }

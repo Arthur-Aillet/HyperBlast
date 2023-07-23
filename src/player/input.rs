@@ -35,7 +35,9 @@ pub fn rotate_player(
     let action_state: &ActionState<Mouse> = mouse.single();
 
     for (player_pos, _) in &players {
-        if let Some((camera, camera_transform)) = camera.into_iter().find(|(camera, _)| camera.is_active) {
+        if let Some((camera, camera_transform)) =
+            camera.into_iter().find(|(camera, _)| camera.is_active)
+        {
             if let Some(box_pan_vector) = action_state
                 .axis_pair(Mouse::MousePosition)
                 .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()))
