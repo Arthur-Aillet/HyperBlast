@@ -7,6 +7,7 @@ pub struct BulletStats {
     pub angle: f32,
     pub spread: f32,
     pub distance: f32,
+    pub distance_traveled: f32,
     pub speed: f32,
 }
 
@@ -32,10 +33,11 @@ impl BulletBundle {
             position: Position(barrel_end),
             zindex: Zindex(150.),
             stats: BulletStats {
+                distance_traveled: 0.,
                 angle,
                 spread: 0.5,
-                distance: 15.,
-                speed: 30.,
+                distance: 20. * 8.,
+                speed: 90.,
             },
             sprite: SpriteBundle {
                 texture,
@@ -46,13 +48,19 @@ impl BulletBundle {
 }
 
 pub fn move_bullets(
+    mut commands: Commands,
     time: Res<Time>,
     mut query: Query<(
+        Entity,
         &mut BulletStats,
         &mut Position,
     )>,
 ) {
-    for (stats, mut position) in &mut query {
+    for (entity, mut stats, mut position) in &mut query {
         (*position).0 += Vec2::from_angle(stats.angle) * stats.speed * time.delta_seconds();
+        (*stats).distance_traveled += stats.speed * time.delta_seconds();
+        if (*stats).distance_traveled > stats.distance {
+            commands.entity(entity).despawn_recursive();
+        }
     }
 }
