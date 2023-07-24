@@ -7,7 +7,7 @@ pub enum DebugAction {
     Click,
 }
 
-#[derive(Resource, PartialEq)]
+#[derive(Resource, PartialEq, Clone)]
 pub enum DebugLevel {
     None,
     Basic,

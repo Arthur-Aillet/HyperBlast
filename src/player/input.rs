@@ -21,6 +21,7 @@ pub enum PlayerActions {
     Right,
     Up,
     Down,
+    Shoot,
 }
 
 #[derive(Component, Debug, Reflect, Default)]
@@ -35,64 +36,109 @@ pub enum PlayerState {
     Back,
 }
 
+pub fn update_gun_angle(
+    debug_level: DebugLevel,
+    lines: &mut bevy_prototype_debug_lines::DebugLines,
+    gun_pos: Vec2,
+    cursor_position: Vec2,
+    gun_stats: &GunStats,
+    gun_angle: &mut Angle,
+    flip: &mut AnimationFlip
+) {
+    let direction = (cursor_position - gun_pos).normalize();
+    let mut barrel_position = gun_pos + direction.perp() * gun_stats.barrel_height;
+    let mut barrel_to_cursor = cursor_position - barrel_position;
+    *gun_angle = Angle(barrel_to_cursor.y.atan2(barrel_to_cursor.x));
+    *flip = if gun_angle.0.abs().to_degrees() > 90. {
+        barrel_position = gun_pos + direction.perp() * -gun_stats.barrel_height;
+        barrel_to_cursor = cursor_position - barrel_position;
+        *gun_angle = Angle(barrel_to_cursor.y.atan2(barrel_to_cursor.x));
+        AnimationFlip::YAxis
+    } else {
+        AnimationFlip::False
+    };
+    if debug_level == DebugLevel::Basic {
+        lines.line_colored((gun_pos).extend(0.), barrel_position.extend(0.), 0.0, Color::RED);
+        lines.line_colored(barrel_position.extend(0.), cursor_position.extend(0.), 0.0, Color::GREEN);
+        lines.line_colored(cursor_position.extend(0.), (gun_pos).extend(0.), 0.0, Color::GOLD);
+    }
+}
+
+pub fn calculate_cursor_position(
+    stats: &PlayerStats,
+    player_actions: &ActionState<PlayerActions>,
+    camera_transform: &GlobalTransform,
+    camera: &Camera,
+    player_pos: &Vec2,
+    mouse: Option<&ActionState<Mouse>>,
+) -> Option<Vec2> {
+    if stats.controller {
+        if player_actions.pressed(PlayerActions::ControllerLook) {
+            let axis_pair = player_actions.clamped_axis_pair(PlayerActions::ControllerLook).unwrap();
+            return Some(*player_pos + axis_pair.xy().normalize() * 30.);
+        }
+    } else {
+        if let Some(mouse_action_state) = mouse {
+            let mouse_ray = mouse_action_state
+            .axis_pair(Mouse::MousePosition)
+            .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()));
+
+            if let Some(mouse_pos) = mouse_ray {
+                return Some(mouse_pos.origin.truncate());
+            }
+        }
+    }
+    None
+}
+
 #[allow(clippy::type_complexity)]
-pub fn rotate_player(
+pub fn shooting_system(
+    time: Res<Time>,
     mouse: Query<&ActionState<Mouse>>,
     players: Query<(&Position, &GunEntity, &ActionState<PlayerActions>, &PlayerStats)>,
     mut gun: Query<(
         &mut Position,
         &mut Angle,
         &mut AnimationFlip,
-        (With<GunStats>, Without<PlayerStats>),
+        &mut GunStats,
+        Without<PlayerStats>,
     )>,
     camera: Query<(&Camera, &GlobalTransform)>,
     debug_level: Res<DebugLevel>,
     mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
 ) {
-    for (Position(player_pos), gun_id, player_actions, stats) in &players {
-        if let Some((camera, camera_transform)) =
-            camera.into_iter().find(|(camera, _)| camera.is_active)
-        {
-            let mut cursor_position: Option<Vec2> = None;
+    if let Some((camera, camera_transform)) =
+        camera.into_iter().find(|(camera, _)| camera.is_active)
+    {
+        for (Position(player_pos), gun_id, player_actions, stats) in &players {
+            let mouse_maybe = mouse.get_single();
+            let cursor_position: Option<Vec2> = calculate_cursor_position(stats, player_actions, camera_transform, camera, player_pos, mouse_maybe.ok(),);
 
-            if stats.controller {
-                if player_actions.pressed(PlayerActions::ControllerLook) {
-                    let axis_pair = player_actions.clamped_axis_pair(PlayerActions::ControllerLook).unwrap();
-                    cursor_position = Some(*player_pos + axis_pair.xy().normalize() * 30.);
-                }
-            } else {
-                if let Ok(mouse_action_state) = mouse.get_single() {
-                    let mouse_ray = mouse_action_state
-                    .axis_pair(Mouse::MousePosition)
-                    .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()));
-
-                    if let Some(mouse_pos) = mouse_ray {
-                        cursor_position = Some(mouse_pos.origin.truncate());
-                    }
-                }
-            }
-
-            if let Ok((mut gun_pos, mut gun_angle, mut flip, _)) = gun.get_mut(gun_id.0) {
+            if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _)) = gun.get_mut(gun_id.0) {
                 gun_pos.0 = *player_pos;
                 gun_pos.0.x += 6.;
+
                 if let Some(cursor_position) = cursor_position {
-                    let direction = (cursor_position - gun_pos.0).normalize();
-                    let mut barrel_position = gun_pos.0 + direction.perp() * 5.5;
-                    let mut barrel_to_cursor = cursor_position - barrel_position;
-                    *gun_angle = Angle(barrel_to_cursor.y.atan2(barrel_to_cursor.x));
-                    *flip = if gun_angle.0.abs().to_degrees() > 90. {
-                        barrel_position = gun_pos.0 + direction.perp() * -5.5;
-                        barrel_to_cursor = cursor_position - barrel_position;
-                        *gun_angle = Angle(barrel_to_cursor.y.atan2(barrel_to_cursor.x));
-                        AnimationFlip::YAxis
-                    } else {
-                        AnimationFlip::False
-                    };
-                    if *debug_level == DebugLevel::Basic {
-                        lines.line_colored((gun_pos.0).extend(0.), barrel_position.extend(0.), 0.0, Color::RED);
-                        lines.line_colored(barrel_position.extend(0.), cursor_position.extend(0.), 0.0, Color::GREEN);
-                        lines.line_colored(cursor_position.extend(0.), (gun_pos.0).extend(0.), 0.0, Color::GOLD);
-                    }
+                    update_gun_angle((*debug_level).clone(), &mut lines, gun_pos.0, cursor_position, &gun_stats, &mut gun_angle, &mut flip)
+                }
+                let angle = (*gun_angle).0;
+                let direction = Vec2::from_angle(angle).normalize();
+                let barrel_position: Vec2;
+                if *flip == AnimationFlip::False {
+                    barrel_position = gun_pos.0 + direction.perp() * gun_stats.barrel_height;
+                } else {
+                    barrel_position = gun_pos.0 + direction.perp() * -gun_stats.barrel_height;
+                }
+                let barrel_end = barrel_position + Vec2::from_angle(angle) * gun_stats.barrel_length;
+                if *debug_level == DebugLevel::Basic && cursor_position.is_none() {
+                    lines.line_colored((gun_pos.0).extend(0.), (barrel_position).extend(0.), 0.0, Color::AZURE);
+                    lines.line_colored((gun_pos.0).extend(0.), (gun_pos.0 + Vec2::from_angle(angle) * gun_stats.barrel_length).extend(0.), 0.0, Color::CYAN);
+                    lines.line_colored((barrel_position).extend(0.), (barrel_end).extend(0.), 0.0, Color::PURPLE);
+                }
+
+                gun_stats.timer.tick(time.delta());
+                if player_actions.pressed(PlayerActions::Shoot) {
+                    (gun_stats.shoot)(&mut gun_stats);
                 }
             }
         }
@@ -106,8 +152,11 @@ pub fn player_input_setup() -> InputManagerBundle::<PlayerActions> {
         (KeyCode::Z, PlayerActions::Up),
         (KeyCode::S, PlayerActions::Down),
     ]);
-    input_map.insert(DualAxis::left_stick(), PlayerActions::ControllerMove);
-    input_map.insert(DualAxis::right_stick(), PlayerActions::ControllerLook);
+    input_map.insert(DualAxis::left_stick(), PlayerActions::ControllerMove)
+        .insert(DualAxis::right_stick(), PlayerActions::ControllerLook)
+        .insert(MouseButton::Left, PlayerActions::Shoot)
+        .insert(GamepadButtonType::South, PlayerActions::Shoot);
+
     InputManagerBundle::<PlayerActions> {
         action_state: ActionState::default(),
         input_map

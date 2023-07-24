@@ -93,9 +93,6 @@ fn generate_colliders(
         } else {
             continue;
         };
-
-        println!("{}", image.texture_descriptor.size.width);
-        println!("{}", image.texture_descriptor.size.height);
         let shape = create_compound_collider_from_image(
             DynamicImage::ImageRgba8(
                 ImageBuffer::from_vec(

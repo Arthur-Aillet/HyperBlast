@@ -46,7 +46,6 @@ fn main() {
         .add_systems(
             Update,
             mouse::update_cursor_state_from_window
-                /*.run_if(run_if_enabled::<mouse::Mouse>)*/
                 .in_set(InputManagerSystem::ManualControl)
                 .before(InputManagerSystem::ReleaseOnDisable)
                 .after(InputManagerSystem::Tick)
@@ -55,7 +54,7 @@ fn main() {
         )
         .add_systems(Update, player::input::move_players)
         .add_systems(Update, debug::switch_debug)
-        .add_systems(Update, player::input::rotate_player)
+        .add_systems(Update, player::input::shooting_system)
         .add_systems(PostUpdate, animations::animate_sprites)
         .add_systems(Last, rendering::update_transforms)
         .run();
