@@ -6,7 +6,7 @@ use mouse::Mouse;
 use crate::{
     animations::{AnimationFlip, AnimationIndices, AnimationState, AnimationStateMachine},
     mouse,
-    rendering::{Offset, Position, ZIndex}, physics::TesselatedCollider,
+    rendering::{Offset, Position, Zindex}, physics::TesselatedCollider,
 };
 
 use input::PlayerActions;
@@ -26,7 +26,7 @@ pub struct PlayerBundle {
     pub player: PlayerStats,
     pub player_action: InputManagerBundle<PlayerActions>,
     pub player_position: Position,
-    pub zindex: ZIndex,
+    pub zindex: Zindex,
     pub player_offset: Offset,
     pub current_gun: GunEntity,
 }
@@ -175,7 +175,7 @@ impl PlayerBundle {
             },
             player_action: input::player_input_setup(),
             player_offset: Offset(Vec2::new(17. / 2., 25. / 2. + 8.)),
-            zindex: ZIndex(25.),
+            zindex: Zindex(25.),
             player_position: Position(Vec2::ZERO),
             current_gun: GunEntity(gun_id),
         };

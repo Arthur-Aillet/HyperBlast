@@ -9,7 +9,7 @@ pub struct Angle(pub f32);
 pub struct Position(pub Vec2);
 
 #[derive(Component, Default, Reflect, Clone)]
-pub struct ZIndex(pub f32);
+pub struct Zindex(pub f32);
 
 #[derive(Component, Default, Reflect, Clone)]
 pub struct Offset(pub Vec2);
@@ -25,7 +25,7 @@ pub fn update_transforms(
         &Position,
         Option<&Offset>,
         Option<&Angle>,
-        Option<&ZIndex>,
+        Option<&Zindex>,
         Option<&Size>,
         Option<&AnimationFlip>,
     )>,

@@ -4,10 +4,12 @@ use bevy::{prelude::*, time::Stopwatch};
 
 use crate::{
     animations::AnimationFlip,
-    rendering::{Angle, Offset, Position, Size, ZIndex},
+    rendering::{Angle, Offset, Position, Size, Zindex}, player::bullets::BulletBundle,
 };
 
-type ShootFn = fn(&mut GunStats);
+use super::stats::PlayerStats;
+
+type ShootFn = fn(&mut Commands, &Res<AssetServer>, &mut GunStats, &mut PlayerStats, Vec2, f32);
 
 #[derive(Component)]
 pub struct GunStats {
@@ -25,7 +27,7 @@ pub struct GunBundle {
     pub sprite: SpriteBundle,
     pub pos: Position,
     pub angle: Angle,
-    pub zindex: ZIndex,
+    pub zindex: Zindex,
     pub flip: AnimationFlip,
     pub offset: Offset,
     pub size: Size,
@@ -58,16 +60,23 @@ impl GunBundle {
             },
             size: Size(Vec2::new(14., 9.)),
             angle: Angle(0.),
-            zindex: ZIndex(50.),
+            zindex: Zindex(50.),
             pos: Position(Vec2::ZERO),
             flip: AnimationFlip::False,
         }
     }
 }
 
-pub fn basic_shoot_fn(stats: &mut GunStats) {
+pub fn basic_shoot_fn(
+    commands: &mut Commands,
+    asset_server: &Res<AssetServer>,
+    stats: &mut GunStats,
+    player: &mut PlayerStats,
+    barrel_end: Vec2,
+    angle: f32,
+) {
     if stats.timer.elapsed_secs() >= 1. {
-        println!("Shoot!, since {}", stats.timer.elapsed_secs());
         stats.timer.reset();
+        commands.spawn(BulletBundle::marine_bullet(asset_server, barrel_end, angle));
     }
 }
