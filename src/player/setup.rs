@@ -150,12 +150,12 @@ impl PlayerBundle {
             ),
         );
         let bundle = GunBundle::setup(asset_server);
-        let col = TesselatedCollider {
-            texture: asset_server.load("marine_gun.png"),
-        };
-        let gun_id = commands.spawn(bundle).insert(col)
-        .insert(RigidBody::Fixed).id();
 
+        let gun_id = commands.spawn(bundle).id();
+
+        let col = TesselatedCollider {
+            texture: asset_server.load("collider.png"),
+        };
         let player = PlayerBundle {
             name: bevy::core::Name::new("Player"),
             state: AnimationState::new(&PlayerState::Idle),
@@ -180,11 +180,15 @@ impl PlayerBundle {
             current_gun: GunEntity(gun_id),
         };
         if controller {
-            commands.spawn(player);
+            commands.spawn(player)
+                .insert(col)
+                .insert(RigidBody::Fixed);
         } else {
             let player_id = commands
                 .spawn(player)
                 .insert(InputManagerBundle::<Mouse>::default())
+                .insert(col)
+                .insert(RigidBody::Fixed)
                 .id();
 
 

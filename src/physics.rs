@@ -8,11 +8,11 @@ pub struct PhysicsPlugin;
 
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
-
-        app.add_plugins(RapierDebugRenderPlugin::default().disabled());
-
-        app.add_systems(PostUpdate, generate_colliders);
+        app
+            .register_type::<TesselatedCollider>()
+            .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
+            .add_plugins(RapierDebugRenderPlugin::default().disabled())
+            .add_systems(PreUpdate, generate_colliders);
     }
 }
 
@@ -57,26 +57,27 @@ use image::ImageBuffer;
 
 /// A component used to automatically add a [`CollisionShape`] to an entity that is generated
 /// automatically by tesselating [`Image`] collision shape based on it's alpha channel
-#[derive(Default, Component)]
+#[derive(Default, Component, Reflect)]
 pub struct TesselatedCollider {
     pub texture: Handle<Image>,
 }
 
-fn create_compound_collider_from_image(image: DynamicImage) -> Option<Collider>
+fn create_compound_collider_from_image(image: DynamicImage) -> Collider
 {
     let mut shapes: Vec<(Vec2, Rot, Collider)> = Vec::new();
 
-    for (x, pixel) in image.as_rgba8().unwrap().pixels().enumerate() {
+    for (count, pixel) in image.as_rgba8().unwrap().pixels().enumerate() {
         if pixel.0[3] != 0 {
+            let x = count % image.width() as usize;
+            let y = count / image.width() as usize;
             shapes.push((
-                Vec2::new((x%image.width() as usize) as f32, (x/image.width() as usize) as f32),
+                Vec2::new(x as f32 + 0.5, y as f32 * -1. - 0.5),
                 0. as rapier::math::Real,
                 Collider::cuboid(0.5, 0.5)
             ));
         }
     }
-    let compound = Collider::compound(shapes);
-    Some(compound)
+    Collider::compound(shapes)
 }
 
 fn generate_colliders(
@@ -93,6 +94,8 @@ fn generate_colliders(
             continue;
         };
 
+        println!("{}", image.texture_descriptor.size.width);
+        println!("{}", image.texture_descriptor.size.height);
         let shape = create_compound_collider_from_image(
             DynamicImage::ImageRgba8(
                 ImageBuffer::from_vec(
@@ -100,10 +103,9 @@ fn generate_colliders(
                     image.texture_descriptor.size.height,
                     image.data.clone(),
                 )
-                .unwrap(),
+            .unwrap(),
             )
-        )
-        .expect("Could not generate collision shape from image");
+        );
 
         commands
             .entity(ent)
