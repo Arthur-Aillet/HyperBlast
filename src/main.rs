@@ -58,6 +58,7 @@ fn main() {
         .add_systems(Update, player::bullets::move_bullets)
         .add_systems(Update, player::bullets::detect_collision_bullets)
         .add_systems(PostUpdate, animations::animate_sprites)
+        .add_systems(PostUpdate, player::stats::player_death)
         .add_systems(Last, rendering::update_transforms)
         .run();
 }

@@ -45,7 +45,7 @@ impl GunBundle {
             barrel_height: 5.5,
             timer: Stopwatch::new(),
             shoot: basic_shoot_fn,
-            damage: 5.,
+            damage: 20.,
         };
         stats.timer.set_elapsed(Duration::new(1, 0));
         GunBundle {
