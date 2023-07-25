@@ -96,7 +96,7 @@ pub fn calculate_cursor_position(
 pub fn shooting_system(
     time: Res<Time>,
     mouse: Query<&ActionState<Mouse>>,
-    mut players: Query<(&Position, &GunEntity, &ActionState<PlayerActions>, &mut PlayerStats)>,
+    mut players: Query<(Entity, &Position, &GunEntity, &ActionState<PlayerActions>, &mut PlayerStats)>,
     mut gun: Query<(
         &mut Position,
         &mut Angle,
@@ -113,7 +113,7 @@ pub fn shooting_system(
     if let Some((camera, camera_transform)) =
         camera.into_iter().find(|(camera, _)| camera.is_active)
     {
-        for (Position(player_pos), gun_id, player_actions, mut stats) in &mut players {
+        for (entity, Position(player_pos), gun_id, player_actions, mut stats) in &mut players {
             let mouse_maybe = mouse.get_single();
             let cursor_position: Option<Vec2> = calculate_cursor_position(&stats, player_actions, camera_transform, camera, player_pos, mouse_maybe.ok(),);
 
@@ -141,7 +141,7 @@ pub fn shooting_system(
 
                 gun_stats.timer.tick(time.delta());
                 if (player_actions.pressed(PlayerActions::Shoot) && !stats.controller) || (player_actions.pressed(PlayerActions::ControllerShoot) && stats.controller) {
-                    (gun_stats.shoot)(&mut commands, &asset_server, &mut gun_stats, &mut stats, barrel_end, angle);
+                    (gun_stats.shoot)(&mut commands, &asset_server, &mut gun_stats, &mut stats, barrel_end, angle, entity);
                 }
             }
         }

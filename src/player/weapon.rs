@@ -9,7 +9,7 @@ use crate::{
 
 use super::stats::PlayerStats;
 
-type ShootFn = fn(&mut Commands, &Res<AssetServer>, &mut GunStats, &mut PlayerStats, Vec2, f32);
+type ShootFn = fn(&mut Commands, &Res<AssetServer>, &mut GunStats, &mut PlayerStats, Vec2, f32, Entity);
 
 #[derive(Component)]
 pub struct GunStats {
@@ -71,12 +71,14 @@ pub fn basic_shoot_fn(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
     stats: &mut GunStats,
-    player: &mut PlayerStats,
+    _player: &mut PlayerStats,
     barrel_end: Vec2,
     angle: f32,
+    owner: Entity,
 ) {
     if stats.timer.elapsed_secs() >= 1. {
         stats.timer.reset();
-        commands.spawn(BulletBundle::marine_bullet(asset_server, barrel_end, angle));
+        commands.spawn(BulletBundle::marine_bullet(asset_server, barrel_end, angle, owner));
     }
 }
+

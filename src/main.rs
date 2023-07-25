@@ -56,6 +56,7 @@ fn main() {
         .add_systems(Update, debug::switch_debug)
         .add_systems(Update, player::input::shooting_system)
         .add_systems(Update, player::bullets::move_bullets)
+        .add_systems(Update, player::bullets::detect_collision_bullets)
         .add_systems(PostUpdate, animations::animate_sprites)
         .add_systems(Last, rendering::update_transforms)
         .run();

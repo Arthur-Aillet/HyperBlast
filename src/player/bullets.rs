@@ -1,6 +1,9 @@
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
-use crate::rendering::{Zindex, Position};
+use crate::{rendering::{Zindex, Position, Offset, Size}, physics::TesselatedCollider};
+
+use super::stats::PlayerStats;
 
 #[derive(Component)]
 pub struct BulletStats {
@@ -9,6 +12,7 @@ pub struct BulletStats {
     pub distance: f32,
     pub distance_traveled: f32,
     pub speed: f32,
+    pub owner: Entity,
 }
 
 #[derive(Bundle)]
@@ -18,6 +22,9 @@ pub struct BulletBundle {
     pub sprite: SpriteBundle,
     pub zindex: Zindex,
     pub position: Position,
+    pub collider: TesselatedCollider,
+    pub offset: Offset,
+    pub size: Size,
 }
 
 impl BulletBundle {
@@ -25,14 +32,18 @@ impl BulletBundle {
         asset_server: &Res<AssetServer>,
         barrel_end: Vec2,
         angle: f32,
+        player: Entity,
 ) -> Self {
         let texture: Handle<Image> = asset_server.load("bullet.png");
 
         BulletBundle {
+            offset: Offset(Vec2::new(3., 3.)),
             name: Name::new("Marine bullet"),
             position: Position(barrel_end),
             zindex: Zindex(150.),
+            size: Size(Vec2 { x: 6., y: 6. }),
             stats: BulletStats {
+                owner: player,
                 distance_traveled: 0.,
                 angle,
                 spread: 0.5,
@@ -42,7 +53,64 @@ impl BulletBundle {
             sprite: SpriteBundle {
                 texture,
                 ..default()
+            },
+            collider: TesselatedCollider {
+                texture: asset_server.load("bullet.png"),
+                offset: Vec2::new(-3., 3.),
             }
+        }
+    }
+}
+
+fn player_bullet_collision(
+    player: (Entity, Mut<'_, PlayerStats>),
+    bullet: &mut BulletStats
+) {
+    let (player_id, player_stats) = player;
+    if bullet.owner != player_id {
+        println!("Collision!");
+    }
+}
+
+pub fn detect_collision_bullets(
+    mut _commands: Commands,
+    mut collision_events: EventReader<CollisionEvent>,
+    mut bullets: Query<
+        &mut BulletStats,
+    >,
+    mut players: Query<
+        &mut PlayerStats,
+    >,
+) {
+    for collision_event in collision_events.iter() {
+        match collision_event {
+            CollisionEvent::Started(entity1, entity2, _) => {
+                let bullet = if let Ok(bullet_found) = bullets.get_mut(*entity1) {
+                    Some(bullet_found)
+                } else {
+                    if let Ok(bullet_found) = bullets.get_mut(*entity2) {
+                        Some(bullet_found)
+                    } else {
+                        None
+                    }
+                };
+                let player = if let Ok(player_found) = players.get_mut(*entity1) {
+                    Some((*entity1, player_found))
+                } else {
+                    if let Ok(player_found) = players.get_mut(*entity2) {
+                        Some((*entity2, player_found))
+                    } else {
+                        None
+                    }
+                };
+
+                if let Some(mut bullet) = bullet {
+                    if let Some(player) = player {
+                        player_bullet_collision(player, &mut bullet);
+                    }
+                }
+            },
+            _ => {}
         }
     }
 }

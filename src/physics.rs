@@ -16,7 +16,6 @@ impl Plugin for PhysicsPlugin {
     }
 }
 
-/// Helper methods on [`bevy_rapier2d::CollisionEvent`]
 pub trait CollisionEventExt {
     fn entities(&self) -> (Entity, Entity);
     fn is_started(&self) -> bool;
@@ -41,7 +40,6 @@ impl CollisionEventExt for CollisionEvent {
         }
     }
 
-    /// Whether or not the contact has just stopped
     fn is_stopped(&self) -> bool {
         !self.is_started()
     }
@@ -55,14 +53,13 @@ use image::DynamicImage;
 use image::GenericImageView;
 use image::ImageBuffer;
 
-/// A component used to automatically add a [`CollisionShape`] to an entity that is generated
-/// automatically by tesselating [`Image`] collision shape based on it's alpha channel
 #[derive(Default, Component, Reflect)]
 pub struct TesselatedCollider {
     pub texture: Handle<Image>,
+    pub offset: Vec2, // TODO: SHOULD'NT EXIST, WHY ARE THEY DISPLACED!!
 }
 
-fn create_compound_collider_from_image(image: DynamicImage) -> Collider
+fn create_compound_collider_from_image(image: DynamicImage, offset: Vec2) -> Collider
 {
     let mut shapes: Vec<(Vec2, Rot, Collider)> = Vec::new();
 
@@ -71,7 +68,7 @@ fn create_compound_collider_from_image(image: DynamicImage) -> Collider
             let x = count % image.width() as usize;
             let y = count / image.width() as usize;
             shapes.push((
-                Vec2::new(x as f32 + 0.5, y as f32 * -1. - 0.5),
+                Vec2::new(x as f32 + 0.5 + offset.x, y as f32 * -1. - 0.5 + offset.y),
                 0. as rapier::math::Real,
                 Collider::cuboid(0.5, 0.5)
             ));
@@ -101,12 +98,19 @@ fn generate_colliders(
                     image.data.clone(),
                 )
             .unwrap(),
-            )
+            ),
+            tesselated_collider.offset
         );
 
         commands
             .entity(ent)
             .insert(shape)
-            .insert(TesselatedColliderHasLoaded);
+            .insert(TesselatedColliderHasLoaded)
+            .insert(ActiveEvents::COLLISION_EVENTS)
+            .insert(RigidBody::Dynamic)
+            .insert(GravityScale(0.0))
+            .insert(ColliderMassProperties::Density(0.0))
+            .insert(LockedAxes::ROTATION_LOCKED)
+            .insert(LockedAxes::TRANSLATION_LOCKED);
     }
 }

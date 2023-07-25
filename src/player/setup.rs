@@ -1,5 +1,4 @@
 use bevy::{prelude::*, window::PrimaryWindow};
-use bevy_rapier2d::prelude::RigidBody;
 use leafwing_input_manager::{InputManagerBundle, prelude::ActionStateDriver};
 use mouse::Mouse;
 
@@ -29,6 +28,7 @@ pub struct PlayerBundle {
     pub zindex: Zindex,
     pub player_offset: Offset,
     pub current_gun: GunEntity,
+    pub collider: TesselatedCollider,
 }
 
 impl PlayerBundle {
@@ -153,9 +153,6 @@ impl PlayerBundle {
 
         let gun_id = commands.spawn(bundle).id();
 
-        let col = TesselatedCollider {
-            texture: asset_server.load("collider.png"),
-        };
         let player = PlayerBundle {
             name: bevy::core::Name::new("Player"),
             state: AnimationState::new(&PlayerState::Idle),
@@ -178,17 +175,17 @@ impl PlayerBundle {
             zindex: Zindex(25.),
             player_position: Position(Vec2::ZERO),
             current_gun: GunEntity(gun_id),
+            collider: TesselatedCollider {
+                texture: asset_server.load("collider.png"),
+                offset: Vec2::ZERO,
+            }
         };
         if controller {
-            commands.spawn(player)
-                .insert(col)
-                .insert(RigidBody::Fixed);
+            commands.spawn(player);
         } else {
             let player_id = commands
                 .spawn(player)
                 .insert(InputManagerBundle::<Mouse>::default())
-                .insert(col)
-                .insert(RigidBody::Fixed)
                 .id();
 
 

@@ -61,8 +61,9 @@ pub fn update_transforms(
                 if sprite.flip_y {
                     offset.y = size.y - offset.y;
                 }
-
                 sprite.anchor = bevy::sprite::Anchor::Custom(((offset * 2. - size) / size) * 0.5);
+            } else {
+                offset_transform = offset.unwrap_or(&Offset(Vec2::ZERO)).0.floor();
             }
         } else {
             offset_transform = offset.unwrap_or(&Offset(Vec2::ZERO)).0.floor();
