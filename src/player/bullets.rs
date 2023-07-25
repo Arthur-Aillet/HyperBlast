@@ -63,17 +63,20 @@ impl BulletBundle {
 }
 
 fn player_bullet_collision(
+    commands: &mut Commands,
     player: (Entity, Mut<'_, PlayerStats>),
-    bullet: &mut BulletStats
+    bullet: (Entity, Mut<'_, BulletStats>)
 ) {
     let (player_id, player_stats) = player;
-    if bullet.owner != player_id {
+    let (bullet_id, bullet_stats) = bullet;
+    if bullet_stats.owner != player_id {
         println!("Collision!");
+        commands.entity(bullet_id).despawn();
     }
 }
 
 pub fn detect_collision_bullets(
-    mut _commands: Commands,
+    mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
     mut bullets: Query<
         &mut BulletStats,
@@ -86,10 +89,10 @@ pub fn detect_collision_bullets(
         match collision_event {
             CollisionEvent::Started(entity1, entity2, _) => {
                 let bullet = if let Ok(bullet_found) = bullets.get_mut(*entity1) {
-                    Some(bullet_found)
+                    Some((*entity1, bullet_found))
                 } else {
                     if let Ok(bullet_found) = bullets.get_mut(*entity2) {
-                        Some(bullet_found)
+                        Some((*entity2, bullet_found))
                     } else {
                         None
                     }
@@ -104,9 +107,9 @@ pub fn detect_collision_bullets(
                     }
                 };
 
-                if let Some(mut bullet) = bullet {
+                if let Some(bullet) = bullet {
                     if let Some(player) = player {
-                        player_bullet_collision(player, &mut bullet);
+                        player_bullet_collision(&mut commands, player, bullet);
                     }
                 }
             },
