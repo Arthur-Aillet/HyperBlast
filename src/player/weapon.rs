@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use bevy::{prelude::*, time::Stopwatch};
+use rand::Rng;
 
 use crate::{
     animations::AnimationFlip,
@@ -16,6 +17,7 @@ pub struct GunStats {
     pub handle_position: Vec2,
     pub barrel_length: f32,
     pub barrel_height: f32,
+    pub spread: f32,
     pub shoot: ShootFn,
     pub timer: Stopwatch,
     pub damage: f32,
@@ -46,6 +48,7 @@ impl GunBundle {
             timer: Stopwatch::new(),
             shoot: basic_shoot_fn,
             damage: 20.,
+            spread: (10_f32).to_radians(),
         };
         stats.timer.set_elapsed(Duration::new(1, 0));
         GunBundle {
@@ -80,7 +83,9 @@ pub fn basic_shoot_fn(
 ) {
     if stats.timer.elapsed_secs() >= 1. {
         stats.timer.reset();
-        commands.spawn(BulletBundle::marine_bullet(asset_server, barrel_end, angle, owner));
+        let mut rng = rand::thread_rng();
+
+        commands.spawn(BulletBundle::marine_bullet(asset_server, barrel_end, angle + rng.gen_range(stats.spread * -1. ..stats.spread), owner));
     }
 }
 

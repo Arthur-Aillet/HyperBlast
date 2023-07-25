@@ -143,10 +143,14 @@ pub fn shooting_system(
                     barrel_position = gun_pos.0 + direction.perp() * -gun_stats.barrel_height;
                 }
                 let barrel_end = barrel_position + Vec2::from_angle(angle) * gun_stats.barrel_length;
-                if *debug_level == DebugLevel::Basic && cursor_position.is_none() {
-                    lines.line_colored((gun_pos.0).extend(0.), (barrel_position).extend(0.), 0.0, Color::AZURE);
-                    lines.line_colored((gun_pos.0).extend(0.), (gun_pos.0 + Vec2::from_angle(angle) * gun_stats.barrel_length).extend(0.), 0.0, Color::CYAN);
-                    lines.line_colored((barrel_position).extend(0.), (barrel_end).extend(0.), 0.0, Color::PURPLE);
+                if *debug_level == DebugLevel::Basic {
+                    if cursor_position.is_none() {
+                        lines.line_colored((gun_pos.0).extend(0.), (barrel_position).extend(0.), 0.0, Color::AZURE);
+                        lines.line_colored((gun_pos.0).extend(0.), (gun_pos.0 + Vec2::from_angle(angle) * gun_stats.barrel_length).extend(0.), 0.0, Color::CYAN);
+                        lines.line_colored((barrel_position).extend(0.), (barrel_end).extend(0.), 0.0, Color::PURPLE);
+                    }
+                    lines.line_colored((barrel_end).extend(0.), (barrel_end + Vec2::from_angle(angle + gun_stats.spread) * 30.).extend(0.), 0.0, Color::LIME_GREEN);
+                    lines.line_colored((barrel_end).extend(0.), (barrel_end + Vec2::from_angle(angle - gun_stats.spread) * 30.).extend(0.), 0.0, Color::LIME_GREEN);
                 }
 
                 gun_stats.timer.tick(time.delta());
