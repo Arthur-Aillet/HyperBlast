@@ -1,6 +1,21 @@
 use bevy::{prelude::*, reflect::TypePath};
 use bevy_rapier2d::render::DebugRenderContext;
 use leafwing_input_manager::prelude::*;
+use bevy_editor_pls::prelude::*;
+use bevy_prototype_debug_lines::*;
+use bevy::diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
+
+pub struct DebugPlugin;
+
+impl Plugin for DebugPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(EditorPlugin::default())
+            .add_plugins(DebugLinesPlugin::default())
+            .add_plugins((FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin))
+            .add_systems(Startup, setup_debug)
+            .add_systems(Update, switch_debug);
+    }
+}
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, TypePath)]
 pub enum DebugAction {
@@ -11,6 +26,11 @@ pub enum DebugAction {
 pub enum DebugLevel {
     None,
     Basic,
+}
+
+fn setup_debug(mut commands: Commands) {
+    commands.insert_resource(DebugLevel::None);
+    commands.spawn(debug_setup());
 }
 
 pub fn switch_debug(

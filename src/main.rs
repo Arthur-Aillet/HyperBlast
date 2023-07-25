@@ -4,13 +4,9 @@ mod mouse;
 mod physics;
 mod player;
 mod rendering;
+mod camera;
 
-use bevy::diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
 use bevy::window::PrimaryWindow;
-use bevy_editor_pls::prelude::*;
-use bevy_prototype_debug_lines::*;
-use debug::debug_setup;
-use debug::DebugLevel;
 use leafwing_input_manager::{plugin::InputManagerSystem, prelude::*};
 
 use bevy::{input::InputSystem, prelude::*};
@@ -21,15 +17,13 @@ fn main() {
     App::new()
         .register_type::<PlayerStats>()
         .register_type::<PlayerState>()
-        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .add_plugins(EditorPlugin::default())
-        .add_plugins(DebugLinesPlugin::default())
-        .add_plugins((FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin))
         .add_plugins(InputManagerPlugin::<player::input::PlayerActions>::default())
         .add_plugins(InputManagerPlugin::<debug::DebugAction>::default())
         .add_plugins(physics::PhysicsPlugin)
         .add_plugins(rendering::RenderingPlugin)
         .add_plugins(animation::AnimationPlugin)
+        .add_plugins(debug::DebugPlugin)
+        .add_plugins(camera::CameraPlugin)
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -41,7 +35,6 @@ fn main() {
                 .after(InputSystem),
         )
         .add_systems(Update, player::input::move_players)
-        .add_systems(Update, debug::switch_debug)
         .add_systems(Update, player::input::shooting_system)
         .add_systems(Update, player::bullets::move_bullets)
         .add_systems(Update, player::bullets::detect_collision_bullets)
@@ -55,13 +48,6 @@ fn setup(
     window: Query<Entity, With<PrimaryWindow>>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    commands.insert_resource(DebugLevel::None);
-
-    let mut camera = Camera2dBundle::default();
-    camera.projection.scale = 0.2;
-    commands.spawn(camera);
-
-    commands.spawn(debug_setup());
 
     commands.spawn((
         bevy::core::Name::new("Ground"),
