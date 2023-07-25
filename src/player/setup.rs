@@ -3,7 +3,7 @@ use leafwing_input_manager::{InputManagerBundle, prelude::ActionStateDriver};
 use mouse::Mouse;
 
 use crate::{
-    animations::{AnimationFlip, AnimationIndices, AnimationState, AnimationStateMachine},
+    animation::{AnimationFlip, AnimationIndices, AnimationState, AnimationStateMachine},
     mouse,
     rendering::{Offset, Position, Zindex}, physics::TesselatedCollider,
 };

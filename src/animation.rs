@@ -2,6 +2,20 @@ use std::fmt::Debug;
 
 use bevy::{prelude::*, utils::HashMap};
 
+pub struct AnimationPlugin;
+
+impl Plugin for AnimationPlugin {
+    fn build(&self, app: &mut App) {
+        app.register_type::<AnimationIndices>()
+            .register_type::<AnimationState>()
+            .register_type::<AnimationFlip>()
+            .register_type::<AnimationTimer>()
+            .register_type::<AnimationStateMachine>()
+            .add_systems(Startup, setup_animation_plugin)
+            .add_systems(PostUpdate, animate_sprites);
+    }
+}
+
 #[derive(Component, Reflect, Default, Clone)]
 pub struct AnimationIndices {
     pub first: usize,
@@ -53,8 +67,15 @@ impl AnimationStateMachine {
     }
 }
 
-#[derive(Component, Deref, DerefMut)]
+#[derive(Component, Deref, DerefMut, Reflect)]
 pub struct AnimationTimer(pub Timer);
+
+pub fn setup_animation_plugin(mut commands: Commands) {
+    commands.spawn((
+        bevy::core::Name::new("Global Animation Timer"),
+        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+    ));
+}
 
 pub fn animate_sprites(
     time: Res<Time>,

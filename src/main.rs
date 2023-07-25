@@ -1,14 +1,9 @@
-mod animations;
+mod animation;
 mod debug;
 mod mouse;
 mod player;
 mod rendering;
 mod physics;
-
-use animations::AnimationIndices;
-use animations::AnimationState;
-use animations::AnimationStateMachine;
-use animations::AnimationTimer;
 
 use bevy::diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
 use bevy::window::PrimaryWindow;
@@ -24,11 +19,8 @@ use player::stats::PlayerStats;
 
 fn main() {
     App::new()
-        .register_type::<AnimationIndices>()
         .register_type::<PlayerStats>()
         .register_type::<PlayerState>()
-        .register_type::<AnimationState>()
-        .register_type::<AnimationStateMachine>()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(EditorPlugin::default())
         .add_plugins(DebugLinesPlugin::default())
@@ -37,6 +29,7 @@ fn main() {
         .add_plugins(InputManagerPlugin::<debug::DebugAction>::default())
         .add_plugins(physics::PhysicsPlugin)
         .add_plugins(rendering::RenderingPlugin)
+        .add_plugins(animation::AnimationPlugin)
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -52,7 +45,6 @@ fn main() {
         .add_systems(Update, player::input::shooting_system)
         .add_systems(Update, player::bullets::move_bullets)
         .add_systems(Update, player::bullets::detect_collision_bullets)
-        .add_systems(PostUpdate, animations::animate_sprites)
         .add_systems(PostUpdate, player::stats::player_death)
         .run();
 }
@@ -71,10 +63,6 @@ fn setup(
 
     commands.spawn(debug_setup());
 
-    commands.spawn((
-        bevy::core::Name::new("Global Timer"),
-        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
-    ));
     commands.spawn((
         bevy::core::Name::new("Ground"),
         SpriteBundle {

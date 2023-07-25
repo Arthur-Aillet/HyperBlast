@@ -2,7 +2,7 @@ use bevy::{prelude::*, reflect::TypePath};
 use leafwing_input_manager::{prelude::*, Actionlike};
 
 use crate::{
-    animations::AnimationState,
+    animation::AnimationState,
     debug::DebugLevel,
     mouse::Mouse,
     rendering::{Flip, Angle, Position},
