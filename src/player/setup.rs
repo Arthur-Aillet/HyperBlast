@@ -11,7 +11,7 @@ use crate::{
 use input::PlayerActions;
 
 use super::{
-    input::{self, PlayerState},
+    input::{self, PlayerState, IsController},
     stats::PlayerStats,
     weapon::{GunBundle, GunEntity},
 };
@@ -149,9 +149,8 @@ impl PlayerBundle {
                 AnimationFlip::False,
             ),
         );
-        let bundle = GunBundle::setup(asset_server);
 
-        let gun_id = commands.spawn(bundle).id();
+        let gun_id = commands.spawn(GunBundle::setup(asset_server)).id();
 
         let player = PlayerBundle {
             name: bevy::core::Name::new("Player"),
@@ -166,10 +165,7 @@ impl PlayerBundle {
                 ..default()
             },
             state_machine,
-            player: PlayerStats {
-                speed: 50.,
-                controller,
-            },
+            player: PlayerStats::default(),
             player_action: input::player_input_setup(),
             player_offset: Offset(Vec2::new(17. / 2., 25. / 2. + 8.)),
             zindex: Zindex(25.),
@@ -181,7 +177,7 @@ impl PlayerBundle {
             }
         };
         if controller {
-            commands.spawn(player);
+            commands.spawn(player).insert(IsController);
         } else {
             let player_id = commands
                 .spawn(player)

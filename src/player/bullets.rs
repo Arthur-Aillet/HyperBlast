@@ -3,7 +3,7 @@ use bevy_rapier2d::prelude::*;
 
 use crate::{rendering::{Zindex, Position, Offset, Size}, physics::TesselatedCollider};
 
-use super::stats::PlayerStats;
+use super::{stats::PlayerStats, weapon::{GunStats, GunEntity}};
 
 #[derive(Component)]
 pub struct BulletStats {
@@ -64,14 +64,17 @@ impl BulletBundle {
 
 fn player_bullet_collision(
     commands: &mut Commands,
-    player: (Entity, Mut<'_, PlayerStats>),
-    bullet: (Entity, Mut<'_, BulletStats>)
+    player: (Entity, (&GunEntity, Mut<'_, PlayerStats>)),
+    bullet: (Entity, Mut<'_, BulletStats>),
+    gun: Mut<'_, GunStats>,
 ) {
-    let (player_id, player_stats) = player;
+    let (player_id, (_, mut player_stats)) = player;
     let (bullet_id, bullet_stats) = bullet;
+    let gun_stats = gun;
+
     if bullet_stats.owner != player_id {
-        println!("Collision!");
         commands.entity(bullet_id).despawn();
+        player_stats.health -= (gun_stats.damage + player_stats.damages_added) * player_stats.damages_multiplier;
     }
 }
 
@@ -81,8 +84,12 @@ pub fn detect_collision_bullets(
     mut bullets: Query<
         &mut BulletStats,
     >,
-    mut players: Query<
-        &mut PlayerStats,
+    mut players: Query<(
+        &GunEntity,
+        &mut PlayerStats)
+    >,
+    mut guns: Query<
+        &mut GunStats,
     >,
 ) {
     for collision_event in collision_events.iter() {
@@ -109,7 +116,8 @@ pub fn detect_collision_bullets(
 
                 if let Some(bullet) = bullet {
                     if let Some(player) = player {
-                        player_bullet_collision(&mut commands, player, bullet);
+                        let gun = guns.get_mut(player.1.0.0);
+                        player_bullet_collision(&mut commands, player, bullet, gun.expect("Gun not found"));
                     }
                 }
             },

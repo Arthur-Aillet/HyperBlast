@@ -13,6 +13,9 @@ use super::{
     weapon::{GunEntity, GunStats},
 };
 
+#[derive(Component)]
+pub struct IsController;
+
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, TypePath)]
 pub enum PlayerActions {
     ControllerMove,
@@ -66,14 +69,14 @@ pub fn update_gun_angle(
 }
 
 pub fn calculate_cursor_position(
-    stats: &PlayerStats,
+    is_controller: bool,
     player_actions: &ActionState<PlayerActions>,
     camera_transform: &GlobalTransform,
     camera: &Camera,
     player_pos: &Vec2,
     mouse: Option<&ActionState<Mouse>>,
 ) -> Option<Vec2> {
-    if stats.controller {
+    if is_controller {
         if player_actions.pressed(PlayerActions::ControllerLook) {
             let axis_pair = player_actions.clamped_axis_pair(PlayerActions::ControllerLook).unwrap();
             return Some(*player_pos + axis_pair.xy().normalize() * 30.);
@@ -96,7 +99,14 @@ pub fn calculate_cursor_position(
 pub fn shooting_system(
     time: Res<Time>,
     mouse: Query<&ActionState<Mouse>>,
-    mut players: Query<(Entity, &Position, &GunEntity, &ActionState<PlayerActions>, &mut PlayerStats)>,
+    mut players: Query<(
+        Entity,
+        Option<&IsController>,
+        &Position,
+        &GunEntity,
+        &ActionState<PlayerActions>,
+        &mut PlayerStats
+    )>,
     mut gun: Query<(
         &mut Position,
         &mut Angle,
@@ -113,9 +123,9 @@ pub fn shooting_system(
     if let Some((camera, camera_transform)) =
         camera.into_iter().find(|(camera, _)| camera.is_active)
     {
-        for (entity, Position(player_pos), gun_id, player_actions, mut stats) in &mut players {
+        for (entity, controller, Position(player_pos), gun_id, player_actions, mut stats) in &mut players {
             let mouse_maybe = mouse.get_single();
-            let cursor_position: Option<Vec2> = calculate_cursor_position(&stats, player_actions, camera_transform, camera, player_pos, mouse_maybe.ok(),);
+            let cursor_position: Option<Vec2> = calculate_cursor_position(controller.is_some(), player_actions, camera_transform, camera, player_pos, mouse_maybe.ok(),);
 
             if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _)) = gun.get_mut(gun_id.0) {
                 gun_pos.0 = *player_pos;
@@ -140,7 +150,7 @@ pub fn shooting_system(
                 }
 
                 gun_stats.timer.tick(time.delta());
-                if (player_actions.pressed(PlayerActions::Shoot) && !stats.controller) || (player_actions.pressed(PlayerActions::ControllerShoot) && stats.controller) {
+                if (player_actions.pressed(PlayerActions::Shoot) && !controller.is_some()) || (player_actions.pressed(PlayerActions::ControllerShoot) && controller.is_some()) {
                     (gun_stats.shoot)(&mut commands, &asset_server, &mut gun_stats, &mut stats, barrel_end, angle, entity);
                 }
             }
@@ -158,7 +168,7 @@ pub fn player_input_setup() -> InputManagerBundle::<PlayerActions> {
     input_map.insert(DualAxis::left_stick(), PlayerActions::ControllerMove)
         .insert(DualAxis::right_stick(), PlayerActions::ControllerLook)
         .insert(MouseButton::Left, PlayerActions::Shoot)
-        .insert(GamepadButtonType::South, PlayerActions::ControllerShoot);
+        .insert(GamepadButtonType::RightTrigger2, PlayerActions::ControllerShoot);
 
     InputManagerBundle::<PlayerActions> {
         action_state: ActionState::default(),
@@ -169,16 +179,17 @@ pub fn player_input_setup() -> InputManagerBundle::<PlayerActions> {
 pub fn move_players(
     time: Res<Time>,
     mut query: Query<(
+        Option<&IsController>,
         &PlayerStats,
         &ActionState<PlayerActions>,
         &mut Position,
         &mut AnimationState,
     )>,
 ) {
-    for (stats, actions, mut position, mut state) in &mut query {
+    for (controller, stats, actions, mut position, mut state) in &mut query {
         let mut direction = Vec2::ZERO;
 
-        if stats.controller {
+        if controller.is_some() {
             if actions.pressed(PlayerActions::ControllerMove) {
                 let axis_pair = actions.clamped_axis_pair(PlayerActions::ControllerMove).unwrap();
                 direction.x += axis_pair.x();

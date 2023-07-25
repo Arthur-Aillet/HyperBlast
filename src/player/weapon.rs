@@ -18,6 +18,7 @@ pub struct GunStats {
     pub barrel_height: f32,
     pub shoot: ShootFn,
     pub timer: Stopwatch,
+    pub damage: f32,
 }
 
 #[derive(Bundle)]
@@ -44,6 +45,7 @@ impl GunBundle {
             barrel_height: 5.5,
             timer: Stopwatch::new(),
             shoot: basic_shoot_fn,
+            damage: 5.,
         };
         stats.timer.set_elapsed(Duration::new(1, 0));
         GunBundle {
