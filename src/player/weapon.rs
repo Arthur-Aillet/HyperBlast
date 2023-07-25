@@ -4,8 +4,7 @@ use bevy::{prelude::*, time::Stopwatch};
 use rand::Rng;
 
 use crate::{
-    animations::AnimationFlip,
-    rendering::{Angle, Offset, Position, Size, Zindex}, player::bullets::BulletBundle,
+    rendering::{Angle, Offset, Position, Size, Zindex, Flip}, player::bullets::BulletBundle,
 };
 
 use super::stats::PlayerStats;
@@ -31,7 +30,7 @@ pub struct GunBundle {
     pub pos: Position,
     pub angle: Angle,
     pub zindex: Zindex,
-    pub flip: AnimationFlip,
+    pub flip: Flip,
     pub offset: Offset,
     pub size: Size,
 }
@@ -67,7 +66,7 @@ impl GunBundle {
             angle: Angle(0.),
             zindex: Zindex(50.),
             pos: Position(Vec2::ZERO),
-            flip: AnimationFlip::False,
+            flip: Flip::False,
         }
     }
 }

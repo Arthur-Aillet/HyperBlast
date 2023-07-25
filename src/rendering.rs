@@ -1,12 +1,10 @@
 use bevy::prelude::*;
 
-use crate::animations::AnimationFlip;
-
-#[derive(Component, Default, Reflect, Clone)]
-pub struct Angle(pub f32);
-
 #[derive(Component, Default, Reflect, Clone)]
 pub struct Position(pub Vec2);
+
+#[derive(Component, Default, Reflect, Clone)]
+pub struct Angle(pub f32); // Not supported yet
 
 #[derive(Component, Default, Reflect, Clone)]
 pub struct Zindex(pub f32);
@@ -17,23 +15,48 @@ pub struct Offset(pub Vec2);
 #[derive(Component, Default, Reflect, Clone)]
 pub struct Size(pub Vec2);
 
+
+#[derive(Component, Reflect, Default, PartialEq)]
+pub enum Flip {
+    #[default]
+    False,
+    XAxis,
+    YAxis,
+    XYAxis,
+}
+
+pub struct RenderingPlugin;
+
+impl Plugin for RenderingPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(Msaa::Off)
+            .register_type::<Position>()
+            .register_type::<Angle>()
+            .register_type::<Zindex>()
+            .register_type::<Offset>()
+            .register_type::<Size>()
+            .register_type::<Flip>()
+            .add_systems(Last, update_transforms);
+    }
+}
+
 #[allow(clippy::type_complexity)]
 pub fn update_transforms(
     mut query: Query<(
         &mut Transform,
-        Option<&mut Sprite>,
         &Position,
+        Option<&mut Sprite>,
         Option<&Offset>,
         Option<&Angle>,
         Option<&Zindex>,
         Option<&Size>,
-        Option<&AnimationFlip>,
+        Option<&Flip>,
     )>,
 ) {
     for (
         mut transfrom,
-        sprite_maybe,
         Position(position),
+        sprite_maybe,
         offset,
         angle,
         zindex,
@@ -48,8 +71,8 @@ pub fn update_transforms(
         }
         if let Some(mut sprite) = sprite_maybe {
             if let Some(flip) = flip_maybe {
-                sprite.flip_x = *flip == AnimationFlip::XAxis || *flip == AnimationFlip::XYAxis;
-                sprite.flip_y = *flip == AnimationFlip::YAxis || *flip == AnimationFlip::XYAxis;
+                sprite.flip_x = *flip == Flip::XAxis || *flip == Flip::XYAxis;
+                sprite.flip_y = *flip == Flip::YAxis || *flip == Flip::XYAxis;
             }
             if let Some(size) = size_maybe {
                 let size = size.0.floor();

@@ -19,29 +19,24 @@ use debug::DebugLevel;
 use leafwing_input_manager::{plugin::InputManagerSystem, prelude::*};
 
 use bevy::{input::InputSystem, prelude::*};
-use physics::PhysicsPlugin;
 use player::input::PlayerState;
 use player::stats::PlayerStats;
-use rendering::Angle;
-use rendering::Position;
 
 fn main() {
     App::new()
-        .insert_resource(Msaa::Off)
         .register_type::<AnimationIndices>()
         .register_type::<PlayerStats>()
         .register_type::<PlayerState>()
         .register_type::<AnimationState>()
         .register_type::<AnimationStateMachine>()
-        .register_type::<Position>()
-        .register_type::<Angle>()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(EditorPlugin::default())
         .add_plugins(DebugLinesPlugin::default())
         .add_plugins((FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin))
         .add_plugins(InputManagerPlugin::<player::input::PlayerActions>::default())
         .add_plugins(InputManagerPlugin::<debug::DebugAction>::default())
-        .add_plugins(PhysicsPlugin)
+        .add_plugins(physics::PhysicsPlugin)
+        .add_plugins(rendering::RenderingPlugin)
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -59,7 +54,6 @@ fn main() {
         .add_systems(Update, player::bullets::detect_collision_bullets)
         .add_systems(PostUpdate, animations::animate_sprites)
         .add_systems(PostUpdate, player::stats::player_death)
-        .add_systems(Last, rendering::update_transforms)
         .run();
 }
 

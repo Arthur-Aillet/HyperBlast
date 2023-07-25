@@ -1,6 +1,6 @@
 # Todo:
 - [ ] Camera
-- [ ] Dispertion
+- [x] Dispertion
 - [ ] Augment system
 - [ ] Ui hp
 - [~] Fix le bug des balles en 0/0

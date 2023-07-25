@@ -2,10 +2,10 @@ use bevy::{prelude::*, reflect::TypePath};
 use leafwing_input_manager::{prelude::*, Actionlike};
 
 use crate::{
-    animations::{AnimationFlip, AnimationState},
+    animations::AnimationState,
     debug::DebugLevel,
     mouse::Mouse,
-    rendering::{Angle, Position},
+    rendering::{Flip, Angle, Position},
 };
 
 use super::{
@@ -47,7 +47,7 @@ pub fn update_gun_angle(
     cursor_position: Vec2,
     gun_stats: &GunStats,
     gun_angle: &mut Angle,
-    flip: &mut AnimationFlip
+    flip: &mut Flip
 ) {
     let direction = (cursor_position - gun_pos).normalize();
     let mut barrel_position = gun_pos + direction.perp() * gun_stats.barrel_height;
@@ -57,9 +57,9 @@ pub fn update_gun_angle(
         barrel_position = gun_pos + direction.perp() * -gun_stats.barrel_height;
         barrel_to_cursor = cursor_position - barrel_position;
         *gun_angle = Angle(barrel_to_cursor.y.atan2(barrel_to_cursor.x));
-        AnimationFlip::YAxis
+        Flip::YAxis
     } else {
-        AnimationFlip::False
+        Flip::False
     };
     if debug_level == DebugLevel::Basic {
         lines.line_colored((gun_pos).extend(0.), barrel_position.extend(0.), 0.0, Color::RED);
@@ -110,7 +110,7 @@ pub fn shooting_system(
     mut gun: Query<(
         &mut Position,
         &mut Angle,
-        &mut AnimationFlip,
+        &mut Flip,
         &mut GunStats,
         Without<PlayerStats>,
     )>,
@@ -137,7 +137,7 @@ pub fn shooting_system(
                 let angle = (*gun_angle).0;
                 let direction = Vec2::from_angle(angle).normalize();
                 let barrel_position: Vec2;
-                if *flip == AnimationFlip::False {
+                if *flip == Flip::False {
                     barrel_position = gun_pos.0 + direction.perp() * gun_stats.barrel_height;
                 } else {
                     barrel_position = gun_pos.0 + direction.perp() * -gun_stats.barrel_height;
