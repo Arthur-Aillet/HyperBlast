@@ -51,11 +51,12 @@ impl BulletBundle {
                 speed: 90.,
             },
             sprite: SpriteBundle {
-                texture,
+                texture: texture.clone(),
+                transform: Transform::from_translation(barrel_end.extend(150.)), // TODO: SHOULD'NT EXIST, SHOULD BE PROPERLY FIXED BY "update_transform" system
                 ..default()
             },
             collider: TesselatedCollider {
-                texture: asset_server.load("bullet.png"),
+                texture,
                 offset: Vec2::new(-3., 3.),
             }
         }
