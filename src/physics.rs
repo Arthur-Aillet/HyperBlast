@@ -8,8 +8,7 @@ pub struct PhysicsPlugin;
 
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .register_type::<TesselatedCollider>()
+        app.register_type::<TesselatedCollider>()
             .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
             .add_plugins(RapierDebugRenderPlugin::default().disabled())
             .add_systems(PreUpdate, generate_colliders);
@@ -59,8 +58,7 @@ pub struct TesselatedCollider {
     pub offset: Vec2, // TODO: SHOULD'NT EXIST, WHY ARE THEY DISPLACED!!
 }
 
-fn create_compound_collider_from_image(image: DynamicImage, offset: Vec2) -> Collider
-{
+fn create_compound_collider_from_image(image: DynamicImage, offset: Vec2) -> Collider {
     let mut shapes: Vec<(Vec2, Rot, Collider)> = Vec::new();
 
     for (count, pixel) in image.as_rgba8().unwrap().pixels().enumerate() {
@@ -70,7 +68,7 @@ fn create_compound_collider_from_image(image: DynamicImage, offset: Vec2) -> Col
             shapes.push((
                 Vec2::new(x as f32 + 0.5 + offset.x, y as f32 * -1. - 0.5 + offset.y),
                 0. as rapier::math::Real,
-                Collider::cuboid(0.5, 0.5)
+                Collider::cuboid(0.5, 0.5),
             ));
         }
     }
@@ -97,9 +95,9 @@ fn generate_colliders(
                     image.texture_descriptor.size.height,
                     image.data.clone(),
                 )
-            .unwrap(),
+                .unwrap(),
             ),
-            tesselated_collider.offset
+            tesselated_collider.offset,
         );
 
         commands

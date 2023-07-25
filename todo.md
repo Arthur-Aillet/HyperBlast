@@ -10,3 +10,4 @@
 - [ ] Drop et pickup des armes
 - [ ] Map, mur et colliders
 - [ ] player spawning
+- [ ] refactor shooting system

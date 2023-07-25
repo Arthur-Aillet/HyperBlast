@@ -1,17 +1,18 @@
 use bevy::{prelude::*, window::PrimaryWindow};
-use leafwing_input_manager::{InputManagerBundle, prelude::ActionStateDriver};
+use leafwing_input_manager::{prelude::ActionStateDriver, InputManagerBundle};
 use mouse::Mouse;
 
 use crate::{
     animation::{AnimationFlip, AnimationIndices, AnimationState, AnimationStateMachine},
     mouse,
-    rendering::{Offset, Position, Zindex}, physics::TesselatedCollider,
+    physics::TesselatedCollider,
+    rendering::{Offset, Position, Zindex},
 };
 
 use input::PlayerActions;
 
 use super::{
-    input::{self, PlayerState, IsController},
+    input::{self, IsController, PlayerState},
     stats::PlayerStats,
     weapon::{GunBundle, GunEntity},
 };
@@ -174,7 +175,7 @@ impl PlayerBundle {
             collider: TesselatedCollider {
                 texture: asset_server.load("collider.png"),
                 offset: Vec2::ZERO,
-            }
+            },
         };
         if controller {
             commands.spawn(player).insert(IsController);
@@ -183,7 +184,6 @@ impl PlayerBundle {
                 .spawn(player)
                 .insert(InputManagerBundle::<Mouse>::default())
                 .id();
-
 
             commands.entity(window.single()).insert(ActionStateDriver {
                 action: crate::mouse::Mouse::MousePosition,

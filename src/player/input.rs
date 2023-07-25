@@ -5,7 +5,7 @@ use crate::{
     animation::AnimationState,
     debug::DebugLevel,
     mouse::Mouse,
-    rendering::{Flip, Angle, Position},
+    rendering::{Angle, Flip, Position},
 };
 
 use super::{
@@ -47,7 +47,7 @@ pub fn update_gun_angle(
     cursor_position: Vec2,
     gun_stats: &GunStats,
     gun_angle: &mut Angle,
-    flip: &mut Flip
+    flip: &mut Flip,
 ) {
     let direction = (cursor_position - gun_pos).normalize();
     let mut barrel_position = gun_pos + direction.perp() * gun_stats.barrel_height;
@@ -62,9 +62,24 @@ pub fn update_gun_angle(
         Flip::False
     };
     if debug_level == DebugLevel::Basic {
-        lines.line_colored((gun_pos).extend(0.), barrel_position.extend(0.), 0.0, Color::RED);
-        lines.line_colored(barrel_position.extend(0.), cursor_position.extend(0.), 0.0, Color::GREEN);
-        lines.line_colored(cursor_position.extend(0.), (gun_pos).extend(0.), 0.0, Color::GOLD);
+        lines.line_colored(
+            (gun_pos).extend(0.),
+            barrel_position.extend(0.),
+            0.0,
+            Color::RED,
+        );
+        lines.line_colored(
+            barrel_position.extend(0.),
+            cursor_position.extend(0.),
+            0.0,
+            Color::GREEN,
+        );
+        lines.line_colored(
+            cursor_position.extend(0.),
+            (gun_pos).extend(0.),
+            0.0,
+            Color::GOLD,
+        );
     }
 }
 
@@ -78,24 +93,24 @@ pub fn calculate_cursor_position(
 ) -> Option<Vec2> {
     if is_controller {
         if player_actions.pressed(PlayerActions::ControllerLook) {
-            let axis_pair = player_actions.clamped_axis_pair(PlayerActions::ControllerLook).unwrap();
+            let axis_pair = player_actions
+                .clamped_axis_pair(PlayerActions::ControllerLook)
+                .unwrap();
             return Some(*player_pos + axis_pair.xy().normalize() * 30.);
         }
-    } else {
-        if let Some(mouse_action_state) = mouse {
-            let mouse_ray = mouse_action_state
+    } else if let Some(mouse_action_state) = mouse {
+        let mouse_ray = mouse_action_state
             .axis_pair(Mouse::MousePosition)
             .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()));
 
-            if let Some(mouse_pos) = mouse_ray {
-                return Some(mouse_pos.origin.truncate());
-            }
+        if let Some(mouse_pos) = mouse_ray {
+            return Some(mouse_pos.origin.truncate());
         }
     }
     None
 }
 
-#[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity, clippy::too_many_arguments)] // :D
 pub fn shooting_system(
     time: Res<Time>,
     mouse: Query<&ActionState<Mouse>>,
@@ -105,7 +120,7 @@ pub fn shooting_system(
         &Position,
         &GunEntity,
         &ActionState<PlayerActions>,
-        &mut PlayerStats
+        &mut PlayerStats,
     )>,
     mut gun: Query<(
         &mut Position,
@@ -123,79 +138,140 @@ pub fn shooting_system(
     if let Some((camera, camera_transform)) =
         camera.into_iter().find(|(camera, _)| camera.is_active)
     {
-        for (entity, controller, Position(player_pos), gun_id, player_actions, mut stats) in &mut players {
+        for (entity, controller, Position(player_pos), gun_id, player_actions, mut stats) in
+            &mut players
+        {
             let mouse_maybe = mouse.get_single();
-            let cursor_position: Option<Vec2> = calculate_cursor_position(controller.is_some(), player_actions, camera_transform, camera, player_pos, mouse_maybe.ok(),);
+            let cursor_position: Option<Vec2> = calculate_cursor_position(
+                controller.is_some(),
+                player_actions,
+                camera_transform,
+                camera,
+                player_pos,
+                mouse_maybe.ok(),
+            );
 
-            if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _)) = gun.get_mut(gun_id.0) {
+            if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _)) =
+                gun.get_mut(gun_id.0)
+            {
                 gun_pos.0 = *player_pos;
                 gun_pos.0.x += 6.;
 
                 if let Some(cursor_position) = cursor_position {
-                    update_gun_angle((*debug_level).clone(), &mut lines, gun_pos.0, cursor_position, &gun_stats, &mut gun_angle, &mut flip)
+                    update_gun_angle(
+                        (*debug_level).clone(),
+                        &mut lines,
+                        gun_pos.0,
+                        cursor_position,
+                        &gun_stats,
+                        &mut gun_angle,
+                        &mut flip,
+                    )
                 }
-                let angle = (*gun_angle).0;
+                let angle = gun_angle.0;
                 let direction = Vec2::from_angle(angle).normalize();
-                let barrel_position: Vec2;
-                if *flip == Flip::False {
-                    barrel_position = gun_pos.0 + direction.perp() * gun_stats.barrel_height;
+                let barrel_position = if *flip == Flip::False {
+                    gun_pos.0 + direction.perp() * gun_stats.barrel_height
                 } else {
-                    barrel_position = gun_pos.0 + direction.perp() * -gun_stats.barrel_height;
-                }
-                let barrel_end = barrel_position + Vec2::from_angle(angle) * gun_stats.barrel_length;
+                    gun_pos.0 + direction.perp() * -gun_stats.barrel_height
+                };
+                let barrel_end =
+                    barrel_position + Vec2::from_angle(angle) * gun_stats.barrel_length;
                 if *debug_level == DebugLevel::Basic {
                     if cursor_position.is_none() {
-                        lines.line_colored((gun_pos.0).extend(0.), (barrel_position).extend(0.), 0.0, Color::AZURE);
-                        lines.line_colored((gun_pos.0).extend(0.), (gun_pos.0 + Vec2::from_angle(angle) * gun_stats.barrel_length).extend(0.), 0.0, Color::CYAN);
-                        lines.line_colored((barrel_position).extend(0.), (barrel_end).extend(0.), 0.0, Color::PURPLE);
+                        lines.line_colored(
+                            (gun_pos.0).extend(0.),
+                            (barrel_position).extend(0.),
+                            0.0,
+                            Color::AZURE,
+                        );
+                        lines.line_colored(
+                            (gun_pos.0).extend(0.),
+                            (gun_pos.0 + Vec2::from_angle(angle) * gun_stats.barrel_length)
+                                .extend(0.),
+                            0.0,
+                            Color::CYAN,
+                        );
+                        lines.line_colored(
+                            (barrel_position).extend(0.),
+                            (barrel_end).extend(0.),
+                            0.0,
+                            Color::PURPLE,
+                        );
                     }
-                    lines.line_colored((barrel_end).extend(0.), (barrel_end + Vec2::from_angle(angle + gun_stats.spread) * 30.).extend(0.), 0.0, Color::LIME_GREEN);
-                    lines.line_colored((barrel_end).extend(0.), (barrel_end + Vec2::from_angle(angle - gun_stats.spread) * 30.).extend(0.), 0.0, Color::LIME_GREEN);
+                    lines.line_colored(
+                        (barrel_end).extend(0.),
+                        (barrel_end + Vec2::from_angle(angle + gun_stats.spread) * 30.).extend(0.),
+                        0.0,
+                        Color::LIME_GREEN,
+                    );
+                    lines.line_colored(
+                        (barrel_end).extend(0.),
+                        (barrel_end + Vec2::from_angle(angle - gun_stats.spread) * 30.).extend(0.),
+                        0.0,
+                        Color::LIME_GREEN,
+                    );
                 }
 
                 gun_stats.timer.tick(time.delta());
-                if (player_actions.pressed(PlayerActions::Shoot) && !controller.is_some()) || (player_actions.pressed(PlayerActions::ControllerShoot) && controller.is_some()) {
-                    (gun_stats.shoot)(&mut commands, &asset_server, &mut gun_stats, &mut stats, barrel_end, angle, entity);
+                if (player_actions.pressed(PlayerActions::Shoot) && controller.is_none())
+                    || (player_actions.pressed(PlayerActions::ControllerShoot)
+                        && controller.is_some())
+                {
+                    (gun_stats.shoot)(
+                        &mut commands,
+                        &asset_server,
+                        &mut gun_stats,
+                        &mut stats,
+                        barrel_end,
+                        angle,
+                        entity,
+                    );
                 }
             }
         }
     }
 }
 
-pub fn player_input_setup() -> InputManagerBundle::<PlayerActions> {
+pub fn player_input_setup() -> InputManagerBundle<PlayerActions> {
     let mut input_map = InputMap::new([
         (KeyCode::Q, PlayerActions::Left),
         (KeyCode::D, PlayerActions::Right),
         (KeyCode::Z, PlayerActions::Up),
         (KeyCode::S, PlayerActions::Down),
     ]);
-    input_map.insert(DualAxis::left_stick(), PlayerActions::ControllerMove)
+    input_map
+        .insert(DualAxis::left_stick(), PlayerActions::ControllerMove)
         .insert(DualAxis::right_stick(), PlayerActions::ControllerLook)
         .insert(MouseButton::Left, PlayerActions::Shoot)
-        .insert(GamepadButtonType::RightTrigger2, PlayerActions::ControllerShoot);
+        .insert(
+            GamepadButtonType::RightTrigger2,
+            PlayerActions::ControllerShoot,
+        );
 
     InputManagerBundle::<PlayerActions> {
         action_state: ActionState::default(),
-        input_map
+        input_map,
     }
 }
 
-pub fn move_players(
-    time: Res<Time>,
-    mut query: Query<(
-        Option<&IsController>,
-        &PlayerStats,
-        &ActionState<PlayerActions>,
-        &mut Position,
-        &mut AnimationState,
-    )>,
-) {
+type PlayerEntity<'a> = (
+    Option<&'a IsController>,
+    &'a PlayerStats,
+    &'a ActionState<PlayerActions>,
+    &'a mut Position,
+    &'a mut AnimationState,
+);
+
+pub fn move_players(time: Res<Time>, mut query: Query<PlayerEntity>) {
     for (controller, stats, actions, mut position, mut state) in &mut query {
         let mut direction = Vec2::ZERO;
 
         if controller.is_some() {
             if actions.pressed(PlayerActions::ControllerMove) {
-                let axis_pair = actions.clamped_axis_pair(PlayerActions::ControllerMove).unwrap();
+                let axis_pair = actions
+                    .clamped_axis_pair(PlayerActions::ControllerMove)
+                    .unwrap();
                 direction.x += axis_pair.x();
                 direction.y += axis_pair.y();
             }

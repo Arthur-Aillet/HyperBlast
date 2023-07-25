@@ -21,14 +21,7 @@ impl PlayerStats {
     }
 }
 
-pub fn player_death(
-    mut commands: Commands,
-    players: Query<(
-        Entity,
-        &GunEntity,
-        &PlayerStats
-    )>,
-) {
+pub fn player_death(mut commands: Commands, players: Query<(Entity, &GunEntity, &PlayerStats)>) {
     for (entity, gun, stats) in &players {
         if stats.health <= 0. {
             commands.entity(entity).despawn_recursive();

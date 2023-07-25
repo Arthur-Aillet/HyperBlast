@@ -15,7 +15,6 @@ pub struct Offset(pub Vec2);
 #[derive(Component, Default, Reflect, Clone)]
 pub struct Size(pub Vec2);
 
-
 #[derive(Component, Reflect, Default, PartialEq)]
 pub enum Flip {
     #[default]

@@ -1,9 +1,9 @@
 mod animation;
 mod debug;
 mod mouse;
+mod physics;
 mod player;
 mod rendering;
-mod physics;
 
 use bevy::diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
 use bevy::window::PrimaryWindow;
@@ -74,6 +74,18 @@ fn setup(
             ..default()
         },
     ));
-    player::setup::PlayerBundle::setup(&mut commands, &asset_server, &mut texture_atlases, &window, true);
-    player::setup::PlayerBundle::setup(&mut commands, &asset_server, &mut texture_atlases, &window, false);
+    player::setup::PlayerBundle::setup(
+        &mut commands,
+        &asset_server,
+        &mut texture_atlases,
+        &window,
+        true,
+    );
+    player::setup::PlayerBundle::setup(
+        &mut commands,
+        &asset_server,
+        &mut texture_atlases,
+        &window,
+        false,
+    );
 }

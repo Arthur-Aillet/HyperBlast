@@ -16,7 +16,7 @@ pub enum DebugLevel {
 pub fn switch_debug(
     action: Query<&ActionState<DebugAction>>,
     mut debug_level: ResMut<DebugLevel>,
-    mut rapier_debug: ResMut<DebugRenderContext>
+    mut rapier_debug: ResMut<DebugRenderContext>,
 ) {
     for action in &action {
         if action.just_pressed(DebugAction::Click) {
