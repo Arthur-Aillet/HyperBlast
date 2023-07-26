@@ -1,14 +1,16 @@
 # Todo:
 - [x] Camera
 - [x] Dispertion
-- [ ] Augment system
 - [ ] Ui hp
-- [~] Fix le bug des balles en 0/0
-- [ ] Dodge
+- [ ] Map, mur et colliders
+- [ ] YOLE
 - [ ] Tourner le joueur dans la direction de l'aim
+- [ ] player in plugin
+- [ ] Dodge
+- [ ] Augment system
+- [ ] Reload
+- [ ] player spawning
+- [ ] refactor shooting system
 - [ ] Plusieurs armes
 - [ ] Drop et pickup des armes
-- [ ] Map, mur et colliders
-- [ ] player spawning
-- [ ] player in plugin
-- [ ] refactor shooting system
+- [~] Fix le bug des balles en 0/0

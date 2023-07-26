@@ -89,7 +89,7 @@ pub fn basic_shoot_fn(
         commands.spawn(BulletBundle::marine_bullet(
             asset_server,
             barrel_end,
-            angle + rng.gen_range((stats.spread * -1.)..stats.spread),
+            angle + rng.gen_range((stats.spread * -1.) ..stats.spread),
             owner,
         ));
     }

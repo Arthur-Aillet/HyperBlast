@@ -11,27 +11,13 @@ impl Plugin for CameraPlugin {
     }
 }
 
-pub fn maximum(first: f32, other: f32) -> f32 {
-    if first > other {
-        first
-    } else if other > first {
-        other
-    } else if first == other {
-        if first.is_sign_positive() && other.is_sign_negative() { first } else { other }
-    } else {
-        first + other
-    }
-}
-
 fn resize_camera(
     mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
     window_query: Query<&Window>,
     debug_level: ResMut<DebugLevel>,
-    mut query: Query<(&Position, With<PlayerStats>)>,
+    query: Query<(&Position, With<PlayerStats>)>,
     mut camera: Query<(&mut Transform, &mut OrthographicProjection, With<Camera2d>)>
 ) {
-    let camera_position = Vec2::ZERO;
-
     for (mut camera_pos, mut camera_projection, _) in &mut camera {
         let average_player_positions: Vec2 = query.iter().map(|(Position(pos), _)| *pos).sum::<Vec2>() / query.iter().len() as f32;
         let mut max: Vec2 = Vec2::NEG_INFINITY;
@@ -64,9 +50,8 @@ fn resize_camera(
 }
 
 fn setup_camera(mut commands: Commands) {
-    let mut camera = Camera2dBundle::default();
+    let camera = Camera2dBundle::default();
 
-    //camera.projection.scale = 0.4;
     commands.spawn(camera);
 }
 

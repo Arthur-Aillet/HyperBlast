@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 mod animation;
 mod debug;
 mod mouse;
@@ -5,6 +7,7 @@ mod physics;
 mod player;
 mod rendering;
 mod camera;
+mod ui;
 
 use bevy::window::PrimaryWindow;
 use leafwing_input_manager::{plugin::InputManagerSystem, prelude::*};
@@ -23,6 +26,7 @@ fn main() {
         .add_plugins(rendering::RenderingPlugin)
         .add_plugins(animation::AnimationPlugin)
         .add_plugins(debug::DebugPlugin)
+        .add_plugins(ui::UiPlugin)
         .add_plugins(camera::CameraPlugin)
         .add_systems(Startup, setup)
         .add_systems(
