@@ -133,7 +133,7 @@ pub fn shooting_system(
     debug_level: Res<DebugLevel>,
     mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    gun_assets: Res<super::assets::GunAssets>,
 ) {
     if let Some((camera, camera_transform)) =
         camera.into_iter().find(|(camera, _)| camera.is_active)
@@ -220,7 +220,7 @@ pub fn shooting_system(
                 {
                     (gun_stats.shoot)(
                         &mut commands,
-                        &asset_server,
+                        &gun_assets,
                         &mut gun_stats,
                         &mut stats,
                         barrel_end,

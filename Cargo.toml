@@ -13,6 +13,7 @@ bevy_prototype_debug_lines = "0.11"
 bevy_rapier2d = "0.22.0"
 image = "0.23.14"
 rand = "0.8.5"
+bevy_asset_loader = { version = "0.17.0", features = ["2d"] }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

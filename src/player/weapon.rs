@@ -8,10 +8,10 @@ use crate::{
     rendering::{Angle, Flip, Offset, Position, Size, Zindex},
 };
 
-use super::stats::PlayerStats;
+use super::{stats::PlayerStats, assets::GunAssets};
 
 type ShootFn =
-    fn(&mut Commands, &Res<AssetServer>, &mut GunStats, &mut PlayerStats, Vec2, f32, Entity);
+    fn(&mut Commands, &Res<GunAssets>, &mut GunStats, &mut PlayerStats, Vec2, f32, Entity);
 
 #[derive(Component)]
 pub struct GunStats {
@@ -41,7 +41,9 @@ pub struct GunBundle {
 pub struct GunEntity(pub Entity);
 
 impl GunBundle {
-    pub fn setup(asset_server: &Res<AssetServer>) -> Self {
+    pub fn setup(
+        guns: &Res<GunAssets>,
+    ) -> Self {
         let mut stats = GunStats {
             handle_position: Vec2::new(2., 2.),
             barrel_length: 12.,
@@ -57,7 +59,7 @@ impl GunBundle {
             offset: Offset(stats.handle_position),
             stats,
             sprite: SpriteBundle {
-                texture: asset_server.load("marine_gun.png"),
+                texture: guns.marine.clone(),
                 sprite: Sprite {
                     anchor: bevy::sprite::Anchor::TopLeft,
                     ..default()
@@ -75,7 +77,7 @@ impl GunBundle {
 
 pub fn basic_shoot_fn(
     commands: &mut Commands,
-    asset_server: &Res<AssetServer>,
+    assets: &Res<GunAssets>,
     stats: &mut GunStats,
     _player: &mut PlayerStats,
     barrel_end: Vec2,
@@ -87,7 +89,7 @@ pub fn basic_shoot_fn(
         let mut rng = rand::thread_rng();
 
         commands.spawn(BulletBundle::marine_bullet(
-            asset_server,
+            assets,
             barrel_end,
             angle + rng.gen_range((stats.spread * -1.) ..stats.spread),
             owner,

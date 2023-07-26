@@ -9,7 +9,6 @@ mod rendering;
 mod camera;
 mod ui;
 
-use bevy::window::PrimaryWindow;
 use leafwing_input_manager::plugin::InputManagerSystem;
 
 use bevy::{input::InputSystem, prelude::*};
@@ -39,10 +38,7 @@ fn main() {
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    window: Query<Entity, With<PrimaryWindow>>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-
     commands.spawn((
         bevy::core::Name::new("Ground"),
         SpriteBundle {
@@ -54,18 +50,4 @@ fn setup(
             ..default()
         },
     ));
-    player::setup::PlayerBundle::setup(
-        &mut commands,
-        &asset_server,
-        &mut texture_atlases,
-        &window,
-        true,
-    );
-    player::setup::PlayerBundle::setup(
-        &mut commands,
-        &asset_server,
-        &mut texture_atlases,
-        &window,
-        false,
-    );
 }

@@ -8,7 +8,7 @@ use crate::{
 
 use super::{
     stats::PlayerStats,
-    weapon::{GunEntity, GunStats},
+    weapon::{GunEntity, GunStats}, assets::GunAssets,
 };
 
 #[derive(Component)]
@@ -35,13 +35,11 @@ pub struct BulletBundle {
 
 impl BulletBundle {
     pub fn marine_bullet(
-        asset_server: &Res<AssetServer>,
+        assets: &Res<GunAssets>,
         barrel_end: Vec2,
         angle: f32,
         player: Entity,
     ) -> Self {
-        let texture: Handle<Image> = asset_server.load("bullet.png");
-
         BulletBundle {
             offset: Offset(Vec2::new(3., 3.)),
             name: Name::new("Marine bullet"),
@@ -57,12 +55,12 @@ impl BulletBundle {
                 speed: 90.,
             },
             sprite: SpriteBundle {
-                texture: texture.clone(),
+                texture: assets.marine_bullet.clone(),
                 transform: Transform::from_translation(barrel_end.extend(150.)), // TODO: SHOULD'NT EXIST, SHOULD BE PROPERLY FIXED BY "update_transform" system
                 ..default()
             },
             collider: TesselatedCollider {
-                texture,
+                texture: assets.marine_bullet.clone(),
                 offset: Vec2::new(-3., 3.),
             },
         }
