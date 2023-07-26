@@ -1,5 +1,5 @@
 # Todo:
-- [ ] Camera
+- [x] Camera
 - [x] Dispertion
 - [ ] Augment system
 - [ ] Ui hp
@@ -10,4 +10,5 @@
 - [ ] Drop et pickup des armes
 - [ ] Map, mur et colliders
 - [ ] player spawning
+- [ ] player in plugin
 - [ ] refactor shooting system

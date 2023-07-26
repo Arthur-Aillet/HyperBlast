@@ -28,6 +28,43 @@ pub enum DebugLevel {
     Basic,
 }
 
+pub fn draw_rectangle(
+    lines: &mut ResMut<bevy_prototype_debug_lines::DebugLines>,
+    center: Vec2,
+    size: Vec2,
+    color: Color
+) {
+    let point_a = Vec2::new(center.x - size.x / 2., center.y - size.y / 2.);
+    let point_b = Vec2::new(center.x + size.x / 2., center.y - size.y / 2.);
+    let point_c = Vec2::new(center.x - size.x / 2., center.y + size.y / 2.);
+    let point_d = Vec2::new(center.x + size.x / 2., center.y + size.y / 2.);
+
+    lines.line_colored(
+        point_a.extend(0.),
+        point_b.extend(0.),
+        0.0,
+        color,
+    );
+    lines.line_colored(
+        point_b.extend(0.),
+        point_d.extend(0.),
+        0.0,
+        color,
+    );
+    lines.line_colored(
+        point_d.extend(0.),
+        point_c.extend(0.),
+        0.0,
+        color,
+    );
+    lines.line_colored(
+        point_c.extend(0.),
+        point_a.extend(0.),
+        0.0,
+        color,
+    );
+}
+
 fn setup_debug(mut commands: Commands) {
     commands.insert_resource(DebugLevel::None);
     commands.spawn(debug_setup());
