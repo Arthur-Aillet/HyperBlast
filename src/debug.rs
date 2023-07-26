@@ -12,6 +12,7 @@ impl Plugin for DebugPlugin {
         app.add_plugins(EditorPlugin::default())
             .add_plugins(DebugLinesPlugin::default())
             .add_plugins((FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin))
+            .add_plugins(InputManagerPlugin::<DebugAction>::default())
             .add_systems(Startup, setup_debug)
             .add_systems(Update, switch_debug);
     }

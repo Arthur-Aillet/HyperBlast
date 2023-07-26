@@ -10,24 +10,19 @@ mod camera;
 mod ui;
 
 use bevy::window::PrimaryWindow;
-use leafwing_input_manager::{plugin::InputManagerSystem, prelude::*};
+use leafwing_input_manager::plugin::InputManagerSystem;
 
 use bevy::{input::InputSystem, prelude::*};
-use player::input::PlayerState;
-use player::stats::PlayerStats;
 
 fn main() {
     App::new()
-        .register_type::<PlayerStats>()
-        .register_type::<PlayerState>()
-        .add_plugins(InputManagerPlugin::<player::input::PlayerActions>::default())
-        .add_plugins(InputManagerPlugin::<debug::DebugAction>::default())
         .add_plugins(physics::PhysicsPlugin)
         .add_plugins(rendering::RenderingPlugin)
         .add_plugins(animation::AnimationPlugin)
         .add_plugins(debug::DebugPlugin)
         .add_plugins(ui::UiPlugin)
         .add_plugins(camera::CameraPlugin)
+        .add_plugins(player::PlayerPlugin)
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -38,11 +33,6 @@ fn main() {
                 .after(InputManagerSystem::Update)
                 .after(InputSystem),
         )
-        .add_systems(Update, player::input::move_players)
-        .add_systems(Update, player::input::shooting_system)
-        .add_systems(Update, player::bullets::move_bullets)
-        .add_systems(Update, player::bullets::detect_collision_bullets)
-        .add_systems(PostUpdate, player::stats::player_death)
         .run();
 }
 
