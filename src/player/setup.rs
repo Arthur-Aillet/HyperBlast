@@ -12,9 +12,10 @@ use crate::{
 use input::PlayerActions;
 
 use super::{
+    assets::{GunAssets, PlayerAssets},
     input::{self, IsController, PlayerState},
     stats::PlayerStats,
-    weapon::{GunBundle, GunEntity}, assets::{PlayerAssets, GunAssets},
+    weapon::{GunBundle, GunEntity},
 };
 
 #[derive(Bundle)]
@@ -23,11 +24,11 @@ pub struct PlayerBundle {
     pub state: AnimationState,
     pub state_machine: AnimationStateMachine,
     pub sprite: SpriteSheetBundle,
-    pub player: PlayerStats,
-    pub player_action: InputManagerBundle<PlayerActions>,
-    pub player_position: Position,
+    pub stats: PlayerStats,
+    pub action: InputManagerBundle<PlayerActions>,
+    pub position: Position,
     pub zindex: Zindex,
-    pub player_offset: Offset,
+    pub offset: Offset,
     pub current_gun: GunEntity,
     pub collider: TesselatedCollider,
 }
@@ -38,66 +39,52 @@ impl PlayerBundle {
         window: &Query<Entity, With<PrimaryWindow>>,
         controller: bool,
         assets: &Res<PlayerAssets>,
-        guns_assets: &Res<GunAssets>
+        guns_assets: &Res<GunAssets>,
     ) {
-        let mut state_machine = AnimationStateMachine::new();
-
-        state_machine.insert(
-            PlayerState::Idle,
+        let state_machine = AnimationStateMachine::new_filled([
             (
+                PlayerState::Idle,
                 assets.idle.clone(),
                 AnimationIndices { first: 0, last: 3 },
                 AnimationFlip::False,
             ),
-        );
-        state_machine.insert(
-            PlayerState::LeftFront,
             (
+                PlayerState::LeftFront,
                 assets.side_front.clone(),
                 AnimationIndices { first: 0, last: 5 },
                 AnimationFlip::XAxis,
             ),
-        );
-        state_machine.insert(
-            PlayerState::RightFront,
             (
+                PlayerState::RightFront,
                 assets.side_back.clone(),
                 AnimationIndices { first: 0, last: 5 },
                 AnimationFlip::False,
             ),
-        );
-        state_machine.insert(
-            PlayerState::LeftBack,
             (
+                PlayerState::LeftBack,
                 assets.side_back.clone(),
                 AnimationIndices { first: 0, last: 5 },
                 AnimationFlip::XAxis,
             ),
-        );
-        state_machine.insert(
-            PlayerState::RightBack,
             (
+                PlayerState::RightBack,
                 assets.back.clone(),
                 AnimationIndices { first: 0, last: 5 },
                 AnimationFlip::False,
             ),
-        );
-        state_machine.insert(
-            PlayerState::Front,
             (
+                PlayerState::Front,
                 assets.front.clone(),
                 AnimationIndices { first: 0, last: 5 },
                 AnimationFlip::False,
             ),
-        );
-        state_machine.insert(
-            PlayerState::Back,
             (
+                PlayerState::Back,
                 assets.back.clone(),
                 AnimationIndices { first: 0, last: 5 },
                 AnimationFlip::False,
             ),
-        );
+        ]);
 
         let gun_id = commands.spawn(GunBundle::setup(guns_assets)).id();
 
@@ -114,11 +101,11 @@ impl PlayerBundle {
                 ..default()
             },
             state_machine,
-            player: PlayerStats::default(),
-            player_action: input::player_input_setup(),
-            player_offset: Offset(Vec2::new(17. / 2., 25. / 2. + 8.)),
+            stats: PlayerStats::default(),
+            action: input::player_input_setup(),
+            offset: Offset(Vec2::new(17. / 2., 25. / 2. + 8.)),
             zindex: Zindex(25.),
-            player_position: Position(Vec2::ZERO),
+            position: Position(Vec2::ZERO),
             current_gun: GunEntity(gun_id),
             collider: TesselatedCollider {
                 texture: assets.collider.clone(),

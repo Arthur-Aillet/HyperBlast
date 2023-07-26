@@ -8,7 +8,7 @@ use crate::{
     rendering::{Angle, Flip, Offset, Position, Size, Zindex},
 };
 
-use super::{stats::PlayerStats, assets::GunAssets};
+use super::{assets::GunAssets, stats::PlayerStats};
 
 type ShootFn =
     fn(&mut Commands, &Res<GunAssets>, &mut GunStats, &mut PlayerStats, Vec2, f32, Entity);
@@ -41,9 +41,7 @@ pub struct GunBundle {
 pub struct GunEntity(pub Entity);
 
 impl GunBundle {
-    pub fn setup(
-        guns: &Res<GunAssets>,
-    ) -> Self {
+    pub fn setup(guns: &Res<GunAssets>) -> Self {
         let mut stats = GunStats {
             handle_position: Vec2::new(2., 2.),
             barrel_length: 12.,
@@ -91,7 +89,7 @@ pub fn basic_shoot_fn(
         commands.spawn(BulletBundle::marine_bullet(
             assets,
             barrel_end,
-            angle + rng.gen_range((stats.spread * -1.) ..stats.spread),
+            angle + rng.gen_range((stats.spread * -1.)..stats.spread),
             owner,
         ));
     }

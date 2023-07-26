@@ -1,19 +1,19 @@
+pub mod assets;
 pub mod bullets;
 pub mod input;
 pub mod setup;
 pub mod stats;
 pub mod weapon;
-pub mod assets;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use bevy_asset_loader::prelude::*;
 
 use input::PlayerState;
-use stats::PlayerStats;
 use leafwing_input_manager::prelude::*;
+use stats::PlayerStats;
 
-use self::assets::{PlayerAssets, GunAssets};
+use self::assets::{GunAssets, PlayerAssets};
 
 pub struct PlayerPlugin;
 
@@ -37,20 +37,8 @@ fn setup_players(
     mut commands: Commands,
     window: Query<Entity, With<PrimaryWindow>>,
     assets: Res<PlayerAssets>,
-    guns: Res<GunAssets>
+    guns: Res<GunAssets>,
 ) {
-    setup::PlayerBundle::setup(
-        &mut commands,
-        &window,
-        true,
-        &assets,
-        &guns,
-    );
-    setup::PlayerBundle::setup(
-        &mut commands,
-        &window,
-        false,
-        &assets,
-        &guns,
-    );
+    setup::PlayerBundle::setup(&mut commands, &window, true, &assets, &guns);
+    setup::PlayerBundle::setup(&mut commands, &window, false, &assets, &guns);
 }

@@ -1,12 +1,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod animation;
+mod camera;
 mod debug;
 mod mouse;
 mod physics;
 mod player;
 mod rendering;
-mod camera;
 mod ui;
 
 use leafwing_input_manager::plugin::InputManagerSystem;
@@ -35,10 +35,7 @@ fn main() {
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         bevy::core::Name::new("Ground"),
         SpriteBundle {

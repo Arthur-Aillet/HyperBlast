@@ -58,6 +58,18 @@ impl AnimationStateMachine {
         }
     }
 
+    pub fn new_filled<T: Debug, const COUNT: usize>(
+        content: [(T, Handle<TextureAtlas>, AnimationIndices, AnimationFlip); COUNT],
+    ) -> Self {
+        let mut new = Self::new();
+
+        for (key, a, b, c) in content {
+            new.map.insert(format!("{key:?}"), (a, b, c));
+        }
+        new
+    }
+
+    #[allow(dead_code)]
     pub fn insert<T: Debug>(
         &mut self,
         key: T,

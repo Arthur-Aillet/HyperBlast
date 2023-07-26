@@ -7,8 +7,9 @@ use crate::{
 };
 
 use super::{
+    assets::GunAssets,
     stats::PlayerStats,
-    weapon::{GunEntity, GunStats}, assets::GunAssets,
+    weapon::{GunEntity, GunStats},
 };
 
 #[derive(Component)]

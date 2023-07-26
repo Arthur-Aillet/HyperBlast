@@ -18,5 +18,6 @@ pub fn setup_ui(mut commands: Commands, _asset_server: Res<AssetServer>) {
                 ..default()
             },
             ..default()
-        }).insert(Name::new("UI Root"));
+        })
+        .insert(Name::new("UI Root"));
 }
