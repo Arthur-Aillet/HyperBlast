@@ -9,7 +9,8 @@ pub struct DebugPlugin;
 
 impl Plugin for DebugPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(EditorPlugin::default())
+        app
+            .add_plugins(EditorPlugin::default())
             .add_plugins(DebugLinesPlugin::default())
             .add_plugins((FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin))
             .add_plugins(InputManagerPlugin::<DebugAction>::default())

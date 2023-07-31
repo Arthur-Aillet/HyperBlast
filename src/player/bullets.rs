@@ -80,7 +80,7 @@ fn player_bullet_collision(
 
     if bullet_stats.owner != player_id {
         commands.entity(bullet_id).despawn();
-        player_stats.health -=
+        player_stats.current_health -=
             (gun_stats.damage + player_stats.damages_added) * player_stats.damages_multiplier;
     }
 }

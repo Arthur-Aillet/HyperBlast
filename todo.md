@@ -11,6 +11,8 @@
 - [ ] Reload
 - [ ] player spawning
 - [ ] refactor shooting system
+- [ ] Light sources + bloom!
 - [ ] Plusieurs armes
 - [ ] Drop et pickup des armes
 - [~] Fix le bug des balles en 0/0
+- [ ] Pixel Perfect shader
