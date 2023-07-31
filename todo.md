@@ -2,7 +2,7 @@
 - [x] Camera
 - [x] Dispertion
 - [x] Ui hp
-- [ ] Editor_pls activable with flag
+- [x] Editor_pls activable with flag
 - [ ] Map, mur et colliders
 - [ ] YOLE
 - [ ] Tourner le joueur dans la direction de l'aim
@@ -13,6 +13,7 @@
 - [ ] Reload ui
 - [ ] player spawning
 - [ ] refactor shooting system
+- [ ] bullets have sphere collision zone
 - [ ] Light sources + bloom!
 - [ ] Plusieurs armes
 - [ ] Drop et pickup des armes

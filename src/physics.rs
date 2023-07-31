@@ -49,7 +49,6 @@ impl CollisionEventExt for CollisionEvent {
 struct TesselatedColliderHasLoaded;
 
 use image::DynamicImage;
-use image::GenericImageView;
 use image::ImageBuffer;
 
 #[derive(Default, Component, Reflect)]
