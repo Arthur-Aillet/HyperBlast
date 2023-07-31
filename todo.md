@@ -1,14 +1,16 @@
 # Todo:
 - [x] Camera
 - [x] Dispertion
-- [ ] Ui hp
+- [x] Ui hp
+- [ ] Editor_pls activable with flag
 - [ ] Map, mur et colliders
 - [ ] YOLE
 - [ ] Tourner le joueur dans la direction de l'aim
 - [ ] player in plugin
+- [ ] Reload
 - [ ] Dodge
 - [ ] Augment system
-- [ ] Reload
+- [ ] Reload ui
 - [ ] player spawning
 - [ ] refactor shooting system
 - [ ] Light sources + bloom!

@@ -1,6 +1,5 @@
 use bevy::diagnostic::{EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
 use bevy::{prelude::*, reflect::TypePath};
-use bevy_editor_pls::prelude::*;
 use bevy_prototype_debug_lines::*;
 use bevy_rapier2d::render::DebugRenderContext;
 use leafwing_input_manager::prelude::*;
@@ -8,9 +7,19 @@ use leafwing_input_manager::prelude::*;
 pub struct DebugPlugin;
 
 impl Plugin for DebugPlugin {
+    #[cfg(feature = "editor")]
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(EditorPlugin::default())
+            .add_plugins(bevy_editor_pls::prelude::EditorPlugin::default())
+            .add_plugins(DebugLinesPlugin::default())
+            .add_plugins((FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin))
+            .add_plugins(InputManagerPlugin::<DebugAction>::default())
+            .add_systems(Startup, setup_debug)
+            .add_systems(Update, switch_debug);
+    }
+    #[cfg(not(feature = "editor"))]
+    fn build(&self, app: &mut App) {
+        app
             .add_plugins(DebugLinesPlugin::default())
             .add_plugins((FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin))
             .add_plugins(InputManagerPlugin::<DebugAction>::default())
