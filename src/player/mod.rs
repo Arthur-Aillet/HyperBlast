@@ -27,7 +27,7 @@ impl Plugin for PlayerPlugin {
             .add_plugins(InputManagerPlugin::<input::PlayerActions>::default())
             .add_systems(Startup, setup_players)
             .add_systems(PreUpdate, input::calculate_players_direction)
-            .add_systems(PreUpdate, roll::start_roll)
+            .add_systems(PreUpdate, roll::start_roll.after(input::calculate_players_direction))
             .add_systems(Update, input::move_players)
             .add_systems(Update, roll::rolling)
             .add_systems(Update, input::shooting_system)

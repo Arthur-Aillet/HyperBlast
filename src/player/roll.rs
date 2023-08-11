@@ -39,19 +39,20 @@ pub fn start_roll(
     )>
 ) {
     for (entity, action_state, direction, mut state, mut machine, stats, _) in &mut query {
-        if action_state.just_pressed(PlayerActions::Roll) {
-            println!("Here?");
-
+        if action_state.pressed(PlayerActions::Roll) { // Why Just Pressed work half of the time
+            let roll_stats;
             *state = if direction.value == Vec2::ZERO {
+                roll_stats = RollStats::new(input::Direction { value: Vec2::NEG_Y });
                 AnimationState::new(&PlayerState::DodgeFront)
             } else {
+                roll_stats = RollStats::new(direction.clone());
                 match direction.to_angle() {
                     n if (n < 30. + 60. * 0.) => AnimationState::new(&PlayerState::DodgeFront),
                     n if (n <= 30. + 60. * 1.) => AnimationState::new(&PlayerState::DodgeLeftFront),
                     n if (n < 30. + 60. * 2.) => AnimationState::new(&PlayerState::DodgeLeftBack),
                     n if (n < 30. + 60. * 3.) => AnimationState::new(&PlayerState::DodgeBack),
                     n if (n < 30. + 60. * 4.) => AnimationState::new(&PlayerState::DodgeRightBack),
-                    n if (n <= 30. + 60. * 5.) => AnimationState::new(&PlayerState::DodgeRightFront),
+                    n if (n < 30. + 60. * 5.) => AnimationState::new(&PlayerState::DodgeRightFront),
                     n if (n < 30. + 60. * 6.) => AnimationState::new(&PlayerState::DodgeFront),
                     _ => {
                         panic!("IMPOSSIBLE ANGLE!")
@@ -59,8 +60,7 @@ pub fn start_roll(
                 }
             };
             machine.set_manual(true);
-            let test = RollStats::new(direction.clone());
-            commands.entity(entity).insert(RollStats::new(direction.clone()));
+            commands.entity(entity).insert(roll_stats);
         }
     }
 }

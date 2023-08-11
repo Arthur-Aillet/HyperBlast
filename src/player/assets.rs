@@ -103,7 +103,7 @@ pub struct PlayerAssets {
         padding_x = 2.,
         padding_y = 2.,
         offset_x = 15.,
-        offset_y = 69.
+        offset_y = 96.
     ))]
     #[asset(path = "dodge.png")]
     pub dodge_side_back: Handle<TextureAtlas>,
@@ -115,7 +115,7 @@ pub struct PlayerAssets {
         padding_x = 2.,
         padding_y = 2.,
         offset_x = 15.,
-        offset_y = 96.
+        offset_y = 69.
     ))]
     #[asset(path = "dodge.png")]
     pub dodge_back: Handle<TextureAtlas>,

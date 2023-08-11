@@ -23,8 +23,8 @@ impl PlayerStats {
             max_health: 100.,
             damages_multiplier: 1.,
             damages_added: 0.,
-            roll_duration: Duration::from_secs(2),
-            roll_speed: 60.,
+            roll_duration: Duration::from_secs_f32(0.5),
+            roll_speed: 75.,
         }
     }
 }
