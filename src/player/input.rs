@@ -20,7 +20,6 @@ pub struct IsController;
 pub enum PlayerActions {
     ControllerMove,
     ControllerLook,
-    ControllerShoot,
     Left,
     Right,
     Up,
@@ -214,10 +213,7 @@ pub fn shooting_system(
                 }
 
                 gun_stats.timer.tick(time.delta());
-                if (player_actions.pressed(PlayerActions::Shoot) && controller.is_none())
-                    || (player_actions.pressed(PlayerActions::ControllerShoot)
-                        && controller.is_some())
-                {
+                if player_actions.pressed(PlayerActions::Shoot) {
                     (gun_stats.shoot)(
                         &mut commands,
                         &gun_assets,
@@ -233,21 +229,24 @@ pub fn shooting_system(
     }
 }
 
-pub fn player_input_setup() -> InputManagerBundle<PlayerActions> {
-    let mut input_map = InputMap::new([
-        (KeyCode::Q, PlayerActions::Left),
-        (KeyCode::D, PlayerActions::Right),
-        (KeyCode::Z, PlayerActions::Up),
-        (KeyCode::S, PlayerActions::Down),
-    ]);
-    input_map
-        .insert(DualAxis::left_stick(), PlayerActions::ControllerMove)
-        .insert(DualAxis::right_stick(), PlayerActions::ControllerLook)
-        .insert(MouseButton::Left, PlayerActions::Shoot)
-        .insert(
-            GamepadButtonType::RightTrigger2,
-            PlayerActions::ControllerShoot,
-        );
+pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActions> {
+    let mut input_map: InputMap<PlayerActions>;
+    if is_controller {
+        input_map = InputMap::new([
+            (GamepadButtonType::RightTrigger2, PlayerActions::Shoot)
+            ]);
+        input_map
+            .insert(DualAxis::left_stick(), PlayerActions::ControllerMove)
+            .insert(DualAxis::right_stick(), PlayerActions::ControllerLook);
+    } else {
+        input_map = InputMap::new([
+            (KeyCode::Q, PlayerActions::Left),
+            (KeyCode::D, PlayerActions::Right),
+            (KeyCode::Z, PlayerActions::Up),
+            (KeyCode::S, PlayerActions::Down),
+        ]);
+        input_map.insert(MouseButton::Left, PlayerActions::Shoot);
+    }
 
     InputManagerBundle::<PlayerActions> {
         action_state: ActionState::default(),

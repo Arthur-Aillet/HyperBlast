@@ -102,7 +102,7 @@ impl PlayerBundle {
             },
             state_machine,
             stats: PlayerStats::default(),
-            action: input::player_input_setup(),
+            action: input::player_input_setup(controller),
             offset: Offset(Vec2::new(17. / 2., 25. / 2. + 8.)),
             zindex: Zindex(25.),
             position: Position(Vec2::ZERO),
