@@ -9,7 +9,7 @@ use crate::{
 use super::{
     assets::GunAssets,
     stats::PlayerStats,
-    weapon::{GunEntity, GunStats},
+    weapon::{GunEntity, GunStats}, roll::RollStats,
 };
 
 #[derive(Component)]
@@ -89,7 +89,7 @@ pub fn detect_collision_bullets(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
     mut bullets: Query<&mut BulletStats>,
-    mut players: Query<(&GunEntity, &mut PlayerStats)>,
+    mut players: Query<(&GunEntity, &mut PlayerStats, Without<RollStats>)>,
     mut guns: Query<&mut GunStats>,
 ) {
     for collision_event in collision_events.iter() {
@@ -101,17 +101,17 @@ pub fn detect_collision_bullets(
             } else {
                 None
             };
-            let player = if let Ok(player_found) = players.get_mut(*entity1) {
-                Some((*entity1, player_found))
-            } else if let Ok(player_found) = players.get_mut(*entity2) {
-                Some((*entity2, player_found))
+            let player = if let Ok((gun, stats,_)) = players.get_mut(*entity1) {
+                Some((*entity1, (gun, stats)))
+            } else if let Ok((gun, stats,_)) = players.get_mut(*entity2) {
+                Some((*entity2, (gun, stats)))
             } else {
                 None
             };
 
             if let Some(bullet) = bullet {
                 if let Some(player) = player {
-                    let gun = guns.get_mut(player.1 .0 .0);
+                    let gun = guns.get_mut(player.1.0.0);
                     player_bullet_collision(
                         &mut commands,
                         player,

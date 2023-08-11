@@ -34,18 +34,17 @@ pub fn start_roll(
         &input::Direction,
         &mut AnimationState,
         &mut AnimationStateMachine,
-        &PlayerStats,
         Without<RollStats>
     )>
 ) {
-    for (entity, action_state, direction, mut state, mut machine, stats, _) in &mut query {
+    for (entity, action_state, direction, mut state, mut machine, _) in &mut query {
         if action_state.pressed(PlayerActions::Roll) { // Why Just Pressed work half of the time
             let roll_stats;
             *state = if direction.value == Vec2::ZERO {
                 roll_stats = RollStats::new(input::Direction { value: Vec2::NEG_Y });
                 AnimationState::new(&PlayerState::DodgeFront)
             } else {
-                roll_stats = RollStats::new(direction.clone());
+                roll_stats = RollStats::new(input::Direction { value: direction.value.normalize() } );
                 match direction.to_angle() {
                     n if (n < 30. + 60. * 0.) => AnimationState::new(&PlayerState::DodgeFront),
                     n if (n <= 30. + 60. * 1.) => AnimationState::new(&PlayerState::DodgeLeftFront),
