@@ -8,7 +8,7 @@ use crate::{
     rendering::{Angle, Flip, Position},
 };
 
-use super::{
+use crate::player::{
     stats::PlayerStats,
     weapon::{GunEntity, GunStats},
 };
@@ -25,6 +25,7 @@ pub enum PlayerActions {
     Up,
     Down,
     Shoot,
+    Roll,
 }
 
 #[derive(Component, Debug, Reflect, Default)]
@@ -37,6 +38,12 @@ pub enum PlayerState {
     RightBack,
     Front,
     Back,
+    DodgeLeftFront,
+    DodgeLeftBack,
+    DodgeRightFront,
+    DodgeRightBack,
+    DodgeFront,
+    DodgeBack,
 }
 
 pub fn update_gun_angle(
@@ -233,8 +240,9 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
     let mut input_map: InputMap<PlayerActions>;
     if is_controller {
         input_map = InputMap::new([
-            (GamepadButtonType::RightTrigger2, PlayerActions::Shoot)
-            ]);
+            (GamepadButtonType::RightTrigger2, PlayerActions::Shoot),
+            (GamepadButtonType::LeftTrigger2, PlayerActions::Roll)
+        ]);
         input_map
             .insert(DualAxis::left_stick(), PlayerActions::ControllerMove)
             .insert(DualAxis::right_stick(), PlayerActions::ControllerLook);
@@ -244,6 +252,7 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
             (KeyCode::D, PlayerActions::Right),
             (KeyCode::Z, PlayerActions::Up),
             (KeyCode::S, PlayerActions::Down),
+            (KeyCode::Space, PlayerActions::Roll),
         ]);
         input_map.insert(MouseButton::Left, PlayerActions::Shoot);
     }
@@ -288,6 +297,7 @@ pub fn move_players(time: Res<Time>, mut query: Query<PlayerEntity>) {
                 direction.y -= 1.;
             }
         }
+        let rolling = actions.pressed(PlayerActions::Roll);
 
         if direction == Vec2::ZERO {
             *state = AnimationState::new(&PlayerState::Idle);
@@ -296,18 +306,33 @@ pub fn move_players(time: Res<Time>, mut query: Query<PlayerEntity>) {
             if angle < 0. {
                 angle += 360.
             }
-            *state = match angle {
-                n if (n < 30. + 60. * 0.) => AnimationState::new(&PlayerState::Front),
-                n if (n <= 30. + 60. * 1.) => AnimationState::new(&PlayerState::LeftFront),
-                n if (n < 30. + 60. * 2.) => AnimationState::new(&PlayerState::LeftBack),
-                n if (n < 30. + 60. * 3.) => AnimationState::new(&PlayerState::Back),
-                n if (n < 30. + 60. * 4.) => AnimationState::new(&PlayerState::RightBack),
-                n if (n < 30. + 60. * 5.) => AnimationState::new(&PlayerState::RightFront),
-                n if (n < 30. + 60. * 6.) => AnimationState::new(&PlayerState::Front),
-                _ => {
-                    panic!("IMPOSSIBLE ANGLE!")
-                }
-            };
+            if !rolling {
+                *state = match angle {
+                    n if (n < 30. + 60. * 0.) => AnimationState::new(&PlayerState::Front),
+                    n if (n <= 30. + 60. * 1.) => AnimationState::new(&PlayerState::LeftFront),
+                    n if (n < 30. + 60. * 2.) => AnimationState::new(&PlayerState::LeftBack),
+                    n if (n < 30. + 60. * 3.) => AnimationState::new(&PlayerState::Back),
+                    n if (n < 30. + 60. * 4.) => AnimationState::new(&PlayerState::RightBack),
+                    n if (n <= 30. + 60. * 5.) => AnimationState::new(&PlayerState::RightFront),
+                    n if (n < 30. + 60. * 6.) => AnimationState::new(&PlayerState::Front),
+                    _ => {
+                        panic!("IMPOSSIBLE ANGLE!")
+                    }
+                };
+            } else {
+                *state = match angle {
+                    n if (n < 30. + 60. * 0.) => AnimationState::new(&PlayerState::DodgeFront),
+                    n if (n <= 30. + 60. * 1.) => AnimationState::new(&PlayerState::DodgeLeftFront),
+                    n if (n < 30. + 60. * 2.) => AnimationState::new(&PlayerState::DodgeLeftBack),
+                    n if (n < 30. + 60. * 3.) => AnimationState::new(&PlayerState::DodgeBack),
+                    n if (n < 30. + 60. * 4.) => AnimationState::new(&PlayerState::DodgeRightBack),
+                    n if (n <= 30. + 60. * 5.) => AnimationState::new(&PlayerState::DodgeRightFront),
+                    n if (n < 30. + 60. * 6.) => AnimationState::new(&PlayerState::DodgeFront),
+                    _ => {
+                        panic!("IMPOSSIBLE ANGLE!")
+                    }
+                };
+            }
             position.0 += direction.clamp_length(0., 1.) * stats.speed * time.delta_seconds();
         }
     }

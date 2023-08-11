@@ -56,7 +56,7 @@ impl PlayerBundle {
             ),
             (
                 PlayerState::RightFront,
-                assets.side_back.clone(),
+                assets.side_front.clone(),
                 AnimationIndices { first: 0, last: 5 },
                 AnimationFlip::False,
             ),
@@ -68,7 +68,7 @@ impl PlayerBundle {
             ),
             (
                 PlayerState::RightBack,
-                assets.back.clone(),
+                assets.side_back.clone(),
                 AnimationIndices { first: 0, last: 5 },
                 AnimationFlip::False,
             ),
@@ -82,6 +82,42 @@ impl PlayerBundle {
                 PlayerState::Back,
                 assets.back.clone(),
                 AnimationIndices { first: 0, last: 5 },
+                AnimationFlip::False,
+            ),
+            (
+                PlayerState::DodgeLeftFront,
+                assets.dodge_side_front.clone(),
+                AnimationIndices { first: 0, last: 8 },
+                AnimationFlip::XAxis,
+            ),
+            (
+                PlayerState::DodgeRightFront,
+                assets.dodge_side_front.clone(),
+                AnimationIndices { first: 0, last: 8 },
+                AnimationFlip::False,
+            ),
+            (
+                PlayerState::DodgeLeftBack,
+                assets.dodge_side_back.clone(),
+                AnimationIndices { first: 0, last: 8 },
+                AnimationFlip::XAxis,
+            ),
+            (
+                PlayerState::DodgeRightBack,
+                assets.dodge_side_back.clone(),
+                AnimationIndices { first: 0, last: 8 },
+                AnimationFlip::False,
+            ),
+            (
+                PlayerState::DodgeFront,
+                assets.dodge_front.clone(),
+                AnimationIndices { first: 0, last: 8 },
+                AnimationFlip::False,
+            ),
+            (
+                PlayerState::DodgeBack,
+                assets.dodge_back.clone(),
+                AnimationIndices { first: 0, last: 8 },
                 AnimationFlip::False,
             ),
         ]);

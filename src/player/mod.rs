@@ -4,6 +4,7 @@ pub mod input;
 pub mod setup;
 pub mod stats;
 pub mod weapon;
+pub mod roll;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 
@@ -26,6 +27,7 @@ impl Plugin for PlayerPlugin {
             .add_plugins(InputManagerPlugin::<input::PlayerActions>::default())
             .add_systems(Startup, setup_players)
             .add_systems(Update, input::move_players)
+            .add_systems(Update, roll::roll)
             .add_systems(Update, input::shooting_system)
             .add_systems(Update, bullets::move_bullets)
             .add_systems(Update, bullets::detect_collision_bullets)

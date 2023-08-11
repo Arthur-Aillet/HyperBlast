@@ -71,6 +71,54 @@ pub struct PlayerAssets {
     ))]
     #[asset(path = "run.png")]
     pub back: Handle<TextureAtlas>,
+    #[asset(texture_atlas(
+        tile_size_x = 21.,
+        tile_size_y = 25.,
+        columns = 9,
+        rows = 1,
+        padding_x = 2.,
+        padding_y = 2.,
+        offset_x = 15.,
+        offset_y = 15.
+    ))]
+    #[asset(path = "dodge.png")]
+    pub dodge_front: Handle<TextureAtlas>,
+    #[asset(texture_atlas(
+        tile_size_x = 21.,
+        tile_size_y = 25.,
+        columns = 9,
+        rows = 1,
+        padding_x = 2.,
+        padding_y = 2.,
+        offset_x = 15.,
+        offset_y = 42.
+    ))]
+    #[asset(path = "dodge.png")]
+    pub dodge_side_front: Handle<TextureAtlas>,
+    #[asset(texture_atlas(
+        tile_size_x = 21.,
+        tile_size_y = 25.,
+        columns = 9,
+        rows = 1,
+        padding_x = 2.,
+        padding_y = 2.,
+        offset_x = 15.,
+        offset_y = 69.
+    ))]
+    #[asset(path = "dodge.png")]
+    pub dodge_side_back: Handle<TextureAtlas>,
+    #[asset(texture_atlas(
+        tile_size_x = 21.,
+        tile_size_y = 25.,
+        columns = 9,
+        rows = 1,
+        padding_x = 2.,
+        padding_y = 2.,
+        offset_x = 15.,
+        offset_y = 96.
+    ))]
+    #[asset(path = "dodge.png")]
+    pub dodge_back: Handle<TextureAtlas>,
     #[asset(path = "collider.png")]
     pub collider: Handle<Image>,
 }
