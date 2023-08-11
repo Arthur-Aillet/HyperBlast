@@ -31,6 +31,7 @@ pub struct PlayerBundle {
     pub offset: Offset,
     pub current_gun: GunEntity,
     pub collider: TesselatedCollider,
+    pub direction: input::Direction,
 }
 
 impl PlayerBundle {
@@ -147,6 +148,7 @@ impl PlayerBundle {
                 texture: assets.collider.clone(),
                 offset: Vec2::ZERO,
             },
+            direction: input::Direction::default(),
         };
         if controller {
             commands.spawn(player).insert(IsController);

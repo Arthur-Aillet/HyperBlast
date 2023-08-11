@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 
 use super::weapon::GunEntity;
@@ -9,6 +11,8 @@ pub struct PlayerStats {
     pub max_health: f32,
     pub damages_multiplier: f32,
     pub damages_added: f32,
+    pub roll_duration: Duration,
+    pub roll_speed: f32,
 }
 
 impl PlayerStats {
@@ -19,6 +23,8 @@ impl PlayerStats {
             max_health: 100.,
             damages_multiplier: 1.,
             damages_added: 0.,
+            roll_duration: Duration::from_secs(2),
+            roll_speed: 60.,
         }
     }
 }

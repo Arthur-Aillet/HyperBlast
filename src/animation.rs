@@ -48,6 +48,8 @@ pub enum AnimationFlip {
 pub struct AnimationStateMachine {
     map: HashMap<String, (Handle<TextureAtlas>, AnimationIndices, AnimationFlip)>,
     last_state: AnimationState,
+    next: bool,
+    manual: bool
 }
 
 impl AnimationStateMachine {
@@ -55,6 +57,8 @@ impl AnimationStateMachine {
         AnimationStateMachine {
             map: HashMap::new(),
             last_state: AnimationState::new(&""),
+            next: false,
+            manual: false,
         }
     }
 
@@ -76,6 +80,14 @@ impl AnimationStateMachine {
         value: (Handle<TextureAtlas>, AnimationIndices, AnimationFlip),
     ) {
         self.map.insert(format!("{key:?}"), value);
+    }
+
+    pub fn set_manual(&mut self, state: bool) {
+        self.manual = state;
+    }
+
+    pub fn next(&mut self) {
+        self.next = true;
     }
 }
 
@@ -103,6 +115,12 @@ pub fn animate_sprites(
     timer.tick(time.delta());
     for (state, mut current_handle, mut machine, mut current_sprite) in &mut query {
         if timer.just_finished() {
+            if machine.manual && !machine.next {
+                continue;
+            }
+            if machine.manual && machine.next {
+                machine.next = false;
+            }
             if let Some((sprite, indices, flip)) = machine.map.get(&state.id) {
                 current_sprite.flip_x =
                     *flip == AnimationFlip::XAxis || *flip == AnimationFlip::XYAxis;
