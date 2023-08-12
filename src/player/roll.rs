@@ -7,17 +7,17 @@ use crate::animation::{AnimationState, AnimationStateMachine};
 use crate::player::input::{PlayerState, PlayerActions};
 use crate::player::stats::PlayerStats;
 
-use crate::player::input;
+use crate::player::direction::MoveDirection;
 
 #[derive(Component)]
 pub struct RollStats {
     since: Stopwatch,
     current_frame: u8,
-    start_direction: input::Direction,
+    start_direction: MoveDirection,
 }
 
 impl RollStats {
-    pub fn new(start_direction: input::Direction) -> Self {
+    pub fn new(start_direction: MoveDirection) -> Self {
         RollStats {
             since: Stopwatch::new(),
             start_direction,
@@ -31,7 +31,7 @@ pub fn start_roll(
     mut query: Query<(
         Entity,
         &ActionState<PlayerActions>,
-        &input::Direction,
+        &MoveDirection,
         &mut AnimationState,
         &mut AnimationStateMachine,
         Without<RollStats>
@@ -41,10 +41,10 @@ pub fn start_roll(
         if action_state.pressed(PlayerActions::Roll) { // Why Just Pressed work half of the time
             let roll_stats;
             *state = if direction.value == Vec2::ZERO {
-                roll_stats = RollStats::new(input::Direction { value: Vec2::NEG_Y });
+                roll_stats = RollStats::new(MoveDirection { value: Vec2::NEG_Y });
                 AnimationState::new(&PlayerState::DodgeFront)
             } else {
-                roll_stats = RollStats::new(input::Direction { value: direction.value.normalize() } );
+                roll_stats = RollStats::new(MoveDirection { value: direction.value.normalize() } );
                 match direction.to_angle() {
                     n if (n < 30. + 60. * 0.) => AnimationState::new(&PlayerState::DodgeFront),
                     n if (n <= 30. + 60. * 1.) => AnimationState::new(&PlayerState::DodgeLeftFront),

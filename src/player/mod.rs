@@ -5,6 +5,7 @@ pub mod setup;
 pub mod stats;
 pub mod weapon;
 pub mod roll;
+pub mod direction;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 
@@ -26,8 +27,9 @@ impl Plugin for PlayerPlugin {
             .init_collection::<assets::GunAssets>()
             .add_plugins(InputManagerPlugin::<input::PlayerActions>::default())
             .add_systems(Startup, setup_players)
-            .add_systems(PreUpdate, input::calculate_players_direction)
-            .add_systems(PreUpdate, roll::start_roll.after(input::calculate_players_direction))
+            .add_systems(First, direction::calculate_players_cursors)
+            .add_systems(First, direction::calculate_players_move_direction)
+            .add_systems(PreUpdate, roll::start_roll)
             .add_systems(Update, input::move_players)
             .add_systems(Update, roll::rolling)
             .add_systems(Update, input::shooting_system)
