@@ -19,9 +19,16 @@ pub struct GunStats {
     pub barrel_length: f32,
     pub barrel_height: f32,
     pub spread: f32,
+    pub salve: i32,
     pub shoot: ShootFn,
     pub timer: Stopwatch,
     pub damage: f32,
+    pub ammo: i32,
+    pub max_ammo: i32,
+    pub mag_ammo: i32,
+    pub mag_size: i32,
+    pub reload_time: f32,
+    pub fire_rate: f32,
 }
 
 #[derive(Bundle)]
@@ -50,6 +57,13 @@ impl GunBundle {
             shoot: basic_shoot_fn,
             damage: 20.,
             spread: (10_f32).to_radians(),
+            salve: 1,
+            ammo: 100,
+            max_ammo: 100,
+            mag_ammo: 10,
+            mag_size: 10,
+            reload_time: 2.5,
+            fire_rate: 4.,
         };
         stats.timer.set_elapsed(Duration::new(1, 0));
         GunBundle {
@@ -82,15 +96,30 @@ pub fn basic_shoot_fn(
     angle: f32,
     owner: Entity,
 ) {
-    if stats.timer.elapsed_secs() >= 1. {
-        stats.timer.reset();
-        let mut rng = rand::thread_rng();
+    if stats.mag_ammo > 0 {
+        if stats.timer.elapsed_secs() >= 1. / stats.fire_rate {
+            stats.timer.reset();
+            let mut rng = rand::thread_rng();
+            let to_fire = if stats.salve > stats.mag_ammo {stats.mag_ammo} else {stats.salve};
 
-        commands.spawn(BulletBundle::marine_bullet(
-            assets,
-            barrel_end,
-            angle + rng.gen_range((stats.spread * -1.)..stats.spread),
-            owner,
-        ));
-    }
+            for _ in 0..to_fire {
+                commands.spawn(BulletBundle::marine_bullet(
+                    assets,
+                    barrel_end,
+                    angle + rng.gen_range((stats.spread * -1.)..stats.spread),
+                    owner,
+                ));
+            }
+            stats.mag_ammo -= to_fire;
+        }
+    } else if stats.timer.elapsed_secs() >= stats.reload_time {
+            stats.timer.reset();
+            if stats.ammo < stats.mag_size {
+                stats.mag_ammo = stats.ammo;
+                stats.ammo = 0;
+            } else {
+                stats.mag_ammo = stats.mag_size;
+                stats.ammo -= stats.mag_size;
+            }
+        }
 }
