@@ -3,13 +3,13 @@
 - [x] Dispertion
 - [x] Ui hp
 - [x] Editor_pls activable with flag
+- [ ] Augment system
 - [ ] Map, mur et colliders
 - [ ] YOLE
 - [ ] Tourner le joueur dans la direction de l'aim
 - [ ] player in plugin
 - [ ] Reload
 - [ ] Dodge
-- [ ] Augment system
 - [ ] Reload ui
 - [ ] player spawning
 - [ ] refactor shooting system
@@ -17,5 +17,6 @@
 - [ ] Light sources + bloom!
 - [ ] Plusieurs armes
 - [ ] Drop et pickup des armes
+- [ ] Roll animation décalée
 - [~] Fix le bug des balles en 0/0
 - [ ] Pixel Perfect shader

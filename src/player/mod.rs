@@ -6,6 +6,7 @@ pub mod stats;
 pub mod weapon;
 pub mod roll;
 pub mod direction;
+pub mod inventory;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 
