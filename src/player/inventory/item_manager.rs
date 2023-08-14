@@ -32,7 +32,7 @@ pub trait ItemTrait: Component<Storage = SparseStorage> + Debug {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum Items {
     Null,
 }
