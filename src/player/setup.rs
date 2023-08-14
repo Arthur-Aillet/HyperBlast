@@ -17,7 +17,7 @@ use super::{
     stats::PlayerStats,
     weapon::{GunBundle, GunEntity},
     direction::MoveDirection,
-    direction::CursorPosition,
+    direction::CursorPosition, inventory::Inventory,
 };
 
 #[derive(Bundle)]
@@ -35,6 +35,7 @@ pub struct PlayerBundle {
     pub collider: TesselatedCollider,
     pub direction: MoveDirection,
     pub cursor: CursorPosition,
+    pub inventory: Inventory,
 }
 
 impl PlayerBundle {
@@ -153,6 +154,7 @@ impl PlayerBundle {
             },
             direction: MoveDirection::default(),
             cursor: CursorPosition::default(),
+            inventory: Inventory::new(),
         };
         if controller {
             commands.spawn(player).insert(IsController);

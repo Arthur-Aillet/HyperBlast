@@ -29,6 +29,7 @@ pub enum PlayerActions {
     Down,
     Shoot,
     Roll,
+    Pickup,
 }
 
 #[derive(Component, Debug, Reflect, Default)]
@@ -179,7 +180,8 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
     if is_controller {
         input_map = InputMap::new([
             (GamepadButtonType::RightTrigger2, PlayerActions::Shoot),
-            (GamepadButtonType::LeftTrigger2, PlayerActions::Roll)
+            (GamepadButtonType::LeftTrigger2, PlayerActions::Roll),
+            (GamepadButtonType::South, PlayerActions::Pickup)
         ]);
         input_map
             .insert(DualAxis::left_stick(), PlayerActions::ControllerMove)
@@ -191,6 +193,7 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
             (KeyCode::Z, PlayerActions::Up),
             (KeyCode::S, PlayerActions::Down),
             (KeyCode::Space, PlayerActions::Roll),
+            (KeyCode::A, PlayerActions::Pickup),
         ]);
         input_map.insert(MouseButton::Left, PlayerActions::Shoot);
     }
