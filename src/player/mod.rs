@@ -27,6 +27,7 @@ impl Plugin for PlayerPlugin {
             .init_collection::<assets::PlayerAssets>()
             .init_collection::<assets::GunAssets>()
             .add_plugins(InputManagerPlugin::<input::PlayerActions>::default())
+            .add_plugins(inventory::ItemsPlugin)
             .add_systems(Startup, setup_players)
             .add_systems(First, direction::calculate_players_cursors)
             .add_systems(First, direction::calculate_players_move_direction)

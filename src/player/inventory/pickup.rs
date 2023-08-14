@@ -5,31 +5,13 @@ use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use leafwing_input_manager::prelude::ActionState;
 use rand::Rng;
 
-use crate::{rendering::{Zindex, Position}, outline::Outline, player::{stats::PlayerStats, input::PlayerActions, inventory::{Inventory, Items}}};
+use crate::{rendering::{Zindex, Position}, outline::Outline, player::{stats::PlayerStats, input::PlayerActions, inventory::{inventory_manager::Inventory, item_manager::Items}}};
+
+use super::assets::ItemsAssets;
 
 const PICKUP_RANGE: f32 = 25. * 1.5;
 
-#[derive(AssetCollection, Resource)]
-pub struct ItemsAssets {
-    #[asset(path = "items/Item__65.png")]
-    pub cheese: Handle<Image>,
-    #[asset(path = "items/Item__64.png")]
-    pub apple: Handle<Image>,
-    #[asset(path = "items/Item__63.png")]
-    pub item: Handle<Image>,
-}
-
-pub struct ItemsPlugin;
-
-impl Plugin for ItemsPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_collection::<ItemsAssets>()
-            .add_systems(Startup, setup_item)
-            .add_systems(Update, update_pickup);
-    }
-}
-
-fn update_pickup(
+pub fn update_pickup(
     time: Res<Time>,
     mut commands: Commands,
     mut materials: ResMut<Assets<Outline>>,
@@ -74,7 +56,7 @@ fn update_pickup(
     }
 }
 
-fn setup_item(
+pub fn setup_item(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Outline>>,

@@ -8,7 +8,7 @@ mod physics;
 mod player;
 mod rendering;
 mod ui;
-mod items;
+mod pickup;
 mod outline;
 
 use leafwing_input_manager::plugin::InputManagerSystem;
@@ -24,7 +24,6 @@ fn main() {
         .add_plugins(ui::UiPlugin)
         .add_plugins(camera::CameraPlugin)
         .add_plugins(player::PlayerPlugin)
-        .add_plugins(items::ItemsPlugin)
         .add_systems(Startup, setup)
         .add_systems(
             Update,

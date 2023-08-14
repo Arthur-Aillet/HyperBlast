@@ -17,7 +17,7 @@ use super::{
     stats::PlayerStats,
     weapon::{GunBundle, GunEntity},
     direction::MoveDirection,
-    direction::CursorPosition, inventory::Inventory,
+    direction::CursorPosition, inventory::inventory_manager::Inventory,
 };
 
 #[derive(Bundle)]
