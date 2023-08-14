@@ -9,6 +9,7 @@ mod player;
 mod rendering;
 mod ui;
 mod items;
+mod outline;
 
 use leafwing_input_manager::plugin::InputManagerSystem;
 
