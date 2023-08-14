@@ -56,51 +56,13 @@ pub fn update_pickup(
     }
 }
 
-pub fn setup_item(
+pub fn spawn_items(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Outline>>,
     assets: Res<ItemsAssets>
 ) {
-    let mut rng = rand::thread_rng();
-    let cheese_rng = rng.gen::<f32>() * 100.;
-    let apple_rng = rng.gen::<f32>() * 100.;
-
-    commands.spawn(PickupBundle {
-        name: bevy::core::Name::new("Cheese"),
-        material: MaterialMesh2dBundle {
-            transform: Transform::default().with_scale(Vec3::splat(16.)),
-            mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::splat(2.)))).into(),
-            material: materials.add(Outline {
-                color: Color::WHITE,
-                size: Vec2::new(16., 16.),
-                thickness: 1.,
-                color_texture: assets.cheese.clone(),
-            }),
-            ..default()
-        },
-        zindex: Zindex(0.),
-        position: Position(Vec2::new(40., 40.)),
-        pickup: Pickup { anim_offset: cheese_rng, pickup_type: PickupType::Weapon }
-    });
-
-    commands.spawn(PickupBundle {
-        name: bevy::core::Name::new("Apple"),
-        material: MaterialMesh2dBundle {
-            transform: Transform::default().with_scale(Vec3::splat(16.)),
-            mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::splat(2.)))).into(),
-            material: materials.add(Outline {
-                color: Color::WHITE,
-                size: Vec2::new(16., 16.),
-                thickness: 1.,
-                color_texture: assets.apple.clone(),
-            }),
-            ..default()
-        },
-        zindex: Zindex(2.),
-        position: Position(Vec2::new(-40., 40.)),
-        pickup: Pickup { anim_offset: apple_rng, pickup_type: PickupType::Item(Items::Null) },
-    });
+    commands.spawn(Items::Null.to_pickup(Vec2::new(40., 40.), &mut meshes, &mut materials, &assets));
 }
 
 pub enum PickupType {
@@ -121,4 +83,36 @@ pub struct PickupBundle {
     pub zindex: Zindex,
     pub position: Position,
     pub pickup: Pickup,
+}
+
+impl PickupBundle {
+    pub fn create(
+        meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<Outline>>,
+        sprite: Handle<Image>,
+        size: Vec2,
+        name: String,
+        pos: Vec2,
+    ) -> PickupBundle {
+        let mut rng = rand::thread_rng();
+        let place_rng = rng.gen::<f32>() * 100.;
+
+        PickupBundle {
+            name: bevy::core::Name::new(name),
+            material: MaterialMesh2dBundle {
+                transform: Transform::default().with_scale(size.extend(0.)),
+                mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::splat(2.)))).into(),
+                material: materials.add(Outline {
+                    color: Color::WHITE,
+                    size,
+                    thickness: 1.,
+                    color_texture: sprite,
+                }),
+                ..default()
+            },
+            zindex: Zindex(0.),
+            position: Position(pos),
+            pickup: Pickup { anim_offset: place_rng, pickup_type: PickupType::Item(Items::Null) },
+        }
+    }
 }

@@ -15,7 +15,7 @@ impl Inventory {
     }
 
     pub fn add(&mut self, name: &Items) {
-        self.content.push(name.to_trait())
+        self.content.push(name.to_item())
     }
 
     pub fn get_all_shooting_function(&self) -> Vec<ShootUpgradeFn> {

@@ -1,10 +1,11 @@
 
 use bevy::ecs::component::SparseStorage;
+use bevy::prelude::*;
 
 use std::fmt::Debug;
 
-use crate::{Component, player::stats::PlayerStats};
-use super::items::null::Null;
+use crate::{Component, player::stats::PlayerStats, outline::Outline};
+use super::{pickup::PickupBundle, items, assets::ItemsAssets};
 
 pub type ShootUpgradeFn = fn() -> ();
 pub type MoveUpgradeFn = fn() -> ();
@@ -37,9 +38,20 @@ pub enum Items {
 }
 
 impl Items {
-    pub fn to_trait(&self) -> Box<dyn ItemTrait> {
-        Box::new(match self {
-            Items::Null => Null{},
-        })
+    pub fn to_item(&self) -> Box<dyn ItemTrait> {
+        match self {
+            Items::Null => items::null::create_null_item(),
+        }
+    }
+
+    pub fn to_pickup(&self,
+        pos: Vec2,
+        meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<Outline>>,
+        sprites: &Res<ItemsAssets>
+    ) -> PickupBundle {
+        match self {
+            Items::Null => items::null::create_null_pickup(pos, meshes, materials, sprites),
+        }
     }
 }
