@@ -17,6 +17,10 @@ pub struct Outline {
     // its shader-compatible equivalent. Most core math types already implement `ShaderType`.
     #[uniform(0)]
     color: Color,
+    #[uniform(0)]
+    size: Vec2,
+    #[uniform(0)]
+    thickness: f32,
     // Images can be bound as textures in shaders. If the Image's sampler is also needed, just
     // add the sampler attribute with a different binding index.
     #[texture(1)]
@@ -48,10 +52,12 @@ fn setup_item(
     commands.spawn(Pickup {
         name: bevy::core::Name::new("Cheese"),
         material: MaterialMesh2dBundle {
-            transform: Transform::default().with_scale(Vec3::splat(16.)),
+            transform: Transform::default().with_scale(Vec3::splat(16.)).with_translation(Vec3::splat(40.)),
             mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::splat(2.)))).into(),
             material: materials.add(Outline {
                 color: Color::WHITE,
+                size: Vec2::new(16., 16.),
+                thickness: 1.,
                 color_texture: asset_server.load("items/Item__65.png"),
             }),
             ..default()
