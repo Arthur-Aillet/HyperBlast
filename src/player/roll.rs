@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
-use leafwing_input_manager::prelude::ActionState;
+use leafwing_input_manager::prelude::*;
 
 use crate::animation::{AnimationState, AnimationStateMachine};
 

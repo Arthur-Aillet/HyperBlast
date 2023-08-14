@@ -6,12 +6,18 @@ use rand::Rng;
 use crate::{
     player::bullets::BulletBundle,
     rendering::{Angle, Flip, Offset, Position, Size, Zindex},
+    player::reload::ReloadStats,
+    player::roll::RollStats,
 };
+
 
 use super::{assets::GunAssets, stats::PlayerStats};
 
 type ShootFn =
     fn(&mut Commands, &Res<GunAssets>, &mut GunStats, &mut PlayerStats, Vec2, f32, Entity);
+
+pub type ReloadFn =
+    fn(&Res<Time>, &mut Commands, &Res<GunAssets>, Mut<'_, GunStats>, Mut<'_, PlayerStats>, Mut<'_, ReloadStats>, Option<&RollStats>, Entity);
 
 #[derive(Component)]
 pub struct GunStats {
@@ -21,6 +27,7 @@ pub struct GunStats {
     pub spread: f32,
     pub salve: i32,
     pub shoot: ShootFn,
+    pub reload: ReloadFn,
     pub timer: Stopwatch,
     pub damage: f32,
     pub ammo: i32,
@@ -44,7 +51,7 @@ pub struct GunBundle {
     pub size: Size,
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct GunEntity(pub Entity);
 
 impl GunBundle {
@@ -55,9 +62,10 @@ impl GunBundle {
             barrel_height: 5.5,
             timer: Stopwatch::new(),
             shoot: basic_shoot_fn,
+            reload: basic_reload_fn,
             damage: 20.,
             spread: (10_f32).to_radians(),
-            salve: 1,
+            salve: 4,
             ammo: 100,
             max_ammo: 100,
             mag_ammo: 10,
@@ -87,6 +95,29 @@ impl GunBundle {
     }
 }
 
+pub fn basic_reload_fn(
+    time: &Res<Time>,
+    commands: &mut Commands,
+    assets: &Res<GunAssets>,
+    mut stats: Mut<'_, GunStats>,
+    _player: Mut<'_, PlayerStats>,
+    mut reload_stats: Mut<'_, ReloadStats>,
+    roll: Option<&RollStats>,
+    owner: Entity,
+) {
+    reload_stats.since.tick(time.delta());
+    if reload_stats.since.elapsed_secs() >= stats.reload_time {
+        if stats.ammo < stats.mag_size {
+            stats.mag_ammo = stats.ammo;
+            stats.ammo = 0;
+        } else {
+            stats.mag_ammo = stats.mag_size;
+            stats.ammo -= stats.mag_size;
+        }
+    commands.entity(owner).remove::<ReloadStats>();
+    }
+}
+
 pub fn basic_shoot_fn(
     commands: &mut Commands,
     assets: &Res<GunAssets>,
@@ -110,16 +141,7 @@ pub fn basic_shoot_fn(
                     owner,
                 ));
             }
-            stats.mag_ammo -= to_fire;
+            stats.mag_ammo -= 1;
         }
-    } else if stats.timer.elapsed_secs() >= stats.reload_time {
-            stats.timer.reset();
-            if stats.ammo < stats.mag_size {
-                stats.mag_ammo = stats.ammo;
-                stats.ammo = 0;
-            } else {
-                stats.mag_ammo = stats.mag_size;
-                stats.ammo -= stats.mag_size;
-            }
-        }
+    }
 }

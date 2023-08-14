@@ -29,6 +29,7 @@ pub enum PlayerActions {
     Down,
     Shoot,
     Roll,
+    Reload,
 }
 
 #[derive(Component, Debug, Reflect, Default)]
@@ -103,7 +104,7 @@ pub fn shooting_system(
         &CursorPosition,
         Option<&RollStats>
     )>,
-    mut gun: Query<(
+    mut guns: Query<(
         &mut Position,
         &mut Angle,
         &mut Flip,
@@ -120,7 +121,7 @@ pub fn shooting_system(
         &mut players
     {
         if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _)) =
-            gun.get_mut(gun_id.0)
+            guns.get_mut(gun_id.0)
         {
             gun_pos.0 = *player_pos;
             gun_pos.0.x += 6.;
@@ -179,7 +180,8 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
     if is_controller {
         input_map = InputMap::new([
             (GamepadButtonType::RightTrigger2, PlayerActions::Shoot),
-            (GamepadButtonType::LeftTrigger2, PlayerActions::Roll)
+            (GamepadButtonType::LeftTrigger2, PlayerActions::Roll),
+            (GamepadButtonType::South, PlayerActions::Reload),
         ]);
         input_map
             .insert(DualAxis::left_stick(), PlayerActions::ControllerMove)
@@ -191,6 +193,7 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
             (KeyCode::Z, PlayerActions::Up),
             (KeyCode::S, PlayerActions::Down),
             (KeyCode::Space, PlayerActions::Roll),
+            (KeyCode::R, PlayerActions::Reload),
         ]);
         input_map.insert(MouseButton::Left, PlayerActions::Shoot);
     }
