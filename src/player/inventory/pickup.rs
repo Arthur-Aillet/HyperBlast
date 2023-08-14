@@ -1,6 +1,5 @@
-use std::f32::NEG_INFINITY;
+use std::f32::INFINITY;
 
-use bevy_asset_loader::prelude::{AssetCollection, AssetCollectionApp};
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use leafwing_input_manager::prelude::ActionState;
 use rand::Rng;
@@ -15,11 +14,13 @@ pub fn update_pickup(
     time: Res<Time>,
     mut commands: Commands,
     mut materials: ResMut<Assets<Outline>>,
-    mut pickups: Query<(Entity, &Handle<Outline>, &mut Position, &mut Pickup, Without<PlayerStats>)>,
+    mut pickups: Query<(Entity, &Handle<Outline>, &mut Position, &mut Pickup, &mut Zindex, Without<PlayerStats>)>,
     mut players: Query<(&mut Position, &mut Inventory, &ActionState<PlayerActions>, With<PlayerStats>)>,
 ) {
-    for (_, outline, mut pos, pickup, _) in &mut pickups {
-        pos.0.y += ((time.elapsed_seconds() + pickup.anim_offset) * 3.).sin() / 10.;
+    for (_, outline, mut pos, pickup, mut zindex, _) in &mut pickups {
+        let float = ((time.elapsed_seconds() + pickup.anim_offset) * 3.).sin() / 10.;
+        pos.0.y += float;
+        zindex.0 = float + 5.;
 
         if let Some(material) = materials.get_mut(outline) {
             material.color = Color::WHITE.with_a(0.);
@@ -28,19 +29,19 @@ pub fn update_pickup(
 
     for (player_pos, mut inventory, actions, _) in &mut players {
         let mut nearest: Option<Entity> = None;
-        let mut distance: f32 = NEG_INFINITY;
+        let mut distance: f32 = INFINITY;
 
-        for (entity, _, pos, _, _) in &mut pickups {
+        for (entity, _, pos, _, _, _) in &mut pickups {
             let current_distance = pos.0.distance(player_pos.0);
 
-            if current_distance > distance && current_distance < PICKUP_RANGE {
+            if current_distance < distance && current_distance < PICKUP_RANGE {
                 distance = current_distance;
                 nearest = Some(entity);
             }
         }
 
         if let Some(valid_pickup) = nearest {
-            if let Ok((_, outline, _, pickup, _)) = pickups.get(valid_pickup) {
+            if let Ok((_, outline, _, pickup, _, _)) = pickups.get(valid_pickup) {
                 if let Some(material) = materials.get_mut(outline) {
                     material.color = Color::WHITE;
                 }
@@ -62,6 +63,7 @@ pub fn spawn_items(
     mut materials: ResMut<Assets<Outline>>,
     assets: Res<ItemsAssets>
 ) {
+    commands.spawn(Items::Null.to_pickup(Vec2::new(45., 40.), &mut meshes, &mut materials, &assets));
     commands.spawn(Items::Null.to_pickup(Vec2::new(40., 40.), &mut meshes, &mut materials, &assets));
 }
 
