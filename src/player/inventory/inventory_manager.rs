@@ -44,7 +44,7 @@ impl Inventory {
     pub fn get_all_shooting_function(&self) -> Vec<ShootUpgradeFn> {
         let mut functions = Vec::new();
 
-        for (name, function) in &self.content {
+        for (_, function) in &self.content {
             if let Some(function) = function.get_shoot_function() {
                 functions.push(function);
             }

@@ -102,7 +102,7 @@ impl PickupBundle {
         PickupBundle {
             name: bevy::core::Name::new(name),
             material: MaterialMesh2dBundle {
-                transform: Transform::default().with_scale(size.extend(0.)),
+                transform: Transform::default().with_scale(size.extend(0.)).with_translation(pos.floor().extend(0.)),
                 mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::splat(2.)))).into(),
                 material: materials.add(Outline {
                     color: Color::WHITE,
