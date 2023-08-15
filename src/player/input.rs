@@ -14,7 +14,7 @@ use crate::player::{
 
 use crate::player::roll::RollStats;
 
-use super::direction::{MoveDirection, CursorPosition};
+use super::{direction::{MoveDirection, CursorPosition}, inventory::inventory_manager::Inventory};
 
 #[derive(Component)]
 pub struct IsController;
@@ -208,15 +208,16 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
 }
 
 type PlayerEntity<'a> = (
+    &'a Inventory,
     &'a MoveDirection,
-    &'a PlayerStats,
+    &'a mut PlayerStats,
     &'a mut Position,
     &'a mut AnimationState,
     Without<RollStats>
 );
 
 pub fn move_players(time: Res<Time>, mut query: Query<PlayerEntity>) {
-    for (direction, stats, mut position, mut state, _) in &mut query {
+    for (inv, direction, mut stats, mut position, mut state, _) in &mut query {
         if direction.value == Vec2::ZERO {
             *state = AnimationState::new(&PlayerState::Idle);
         } else {

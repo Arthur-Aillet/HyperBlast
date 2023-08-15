@@ -6,16 +6,17 @@ use rand::Rng;
 
 use crate::{rendering::{Zindex, Position}, outline::Outline, player::{stats::PlayerStats, input::PlayerActions, inventory::{inventory_manager::Inventory, item_manager::Items}}};
 
-use super::assets::ItemsAssets;
+use super::{assets::ItemsAssets, PickupEvent};
 
 const PICKUP_RANGE: f32 = 25. * 1.5;
 
 pub fn update_pickup(
     time: Res<Time>,
+    mut ev_pickup: EventWriter<PickupEvent>,
     mut commands: Commands,
     mut materials: ResMut<Assets<Outline>>,
     mut pickups: Query<(Entity, &Handle<Outline>, &mut Position, &mut Pickup, &mut Zindex, Without<PlayerStats>)>,
-    mut players: Query<(&mut Position, &mut Inventory, &ActionState<PlayerActions>, With<PlayerStats>)>,
+    mut players: Query<(Entity, &mut Position, &mut Inventory, &ActionState<PlayerActions>, With<PlayerStats>)>,
 ) {
     for (_, outline, mut pos, pickup, mut zindex, _) in &mut pickups {
         let float = ((time.elapsed_seconds() + pickup.anim_offset) * 3.).sin() / 10.;
@@ -27,7 +28,7 @@ pub fn update_pickup(
         }
     }
 
-    for (player_pos, mut inventory, actions, _) in &mut players {
+    for (entity, player_pos, mut inventory, actions,_) in &mut players {
         let mut nearest: Option<Entity> = None;
         let mut distance: f32 = INFINITY;
 
@@ -48,7 +49,10 @@ pub fn update_pickup(
                 if actions.just_pressed(PlayerActions::Pickup) {
                     match &pickup.pickup_type {
                         PickupType::Weapon => todo!(),
-                        PickupType::Item(item) => inventory.add(item),
+                        PickupType::Item(item) => {
+                            ev_pickup.send(PickupEvent(*item, entity));
+                            inventory.add(*item);
+                        },
                     }
                     commands.entity(valid_pickup).despawn_recursive();
                 }
@@ -63,8 +67,8 @@ pub fn spawn_items(
     mut materials: ResMut<Assets<Outline>>,
     assets: Res<ItemsAssets>
 ) {
-    commands.spawn(Items::Null.to_pickup(Vec2::new(45., 40.), &mut meshes, &mut materials, &assets));
-    commands.spawn(Items::Null.to_pickup(Vec2::new(40., 40.), &mut meshes, &mut materials, &assets));
+    commands.spawn(Items::HealthApple.to_pickup(Vec2::new(45., 40.), &mut meshes, &mut materials, &assets));
+    commands.spawn(Items::HealthApple.to_pickup(Vec2::new(40., 40.), &mut meshes, &mut materials, &assets));
 }
 
 pub enum PickupType {
@@ -95,6 +99,7 @@ impl PickupBundle {
         size: Vec2,
         name: String,
         pos: Vec2,
+        item_type: Items
     ) -> PickupBundle {
         let mut rng = rand::thread_rng();
         let place_rng = rng.gen::<f32>() * 100.;
@@ -114,7 +119,7 @@ impl PickupBundle {
             },
             zindex: Zindex(0.),
             position: Position(pos),
-            pickup: Pickup { anim_offset: place_rng, pickup_type: PickupType::Item(Items::Null) },
+            pickup: Pickup { anim_offset: place_rng, pickup_type: PickupType::Item(item_type) },
         }
     }
 }

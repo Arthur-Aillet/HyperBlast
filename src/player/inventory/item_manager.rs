@@ -1,49 +1,17 @@
 
-use bevy::ecs::component::SparseStorage;
 use bevy::prelude::*;
 
 use std::fmt::Debug;
 
-use crate::{Component, player::stats::PlayerStats, outline::Outline};
-use super::{pickup::PickupBundle, items, assets::ItemsAssets};
+use crate::outline::Outline;
+use super::{pickup::PickupBundle, assets::ItemsAssets};
 
-pub type ShootUpgradeFn = fn() -> ();
-pub type MoveUpgradeFn = fn() -> ();
-
-pub trait ItemTrait: Component<Storage = SparseStorage> + Debug {
-    fn get_shoot_function(&self) -> Option<ShootUpgradeFn> {
-        None
-    }
-
-    fn get_move_function(&self) -> Option<MoveUpgradeFn> {
-        None
-    }
-
-    fn get_modify_player_stats_function(&self) -> Option<fn(&mut PlayerStats)> {
-        None
-    }
-
-    fn get_revert_player_stats_function(&self) -> Option<fn(&mut PlayerStats)>{
-        None
-    }
-
-    fn get_value(&self) -> Option<f32>{
-        None
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum Items {
-    Null,
+    HealthApple,
 }
 
 impl Items {
-    pub fn to_item(&self) -> Box<dyn ItemTrait> {
-        match self {
-            Items::Null => items::null::create_null_item(),
-        }
-    }
-
     pub fn to_pickup(&self,
         pos: Vec2,
         meshes: &mut ResMut<Assets<Mesh>>,
@@ -51,7 +19,22 @@ impl Items {
         sprites: &Res<ItemsAssets>
     ) -> PickupBundle {
         match self {
-            Items::Null => items::null::create_null_pickup(pos, meshes, materials, sprites),
+            Items::HealthApple => create_health_apple_pickup(pos, meshes, materials, sprites),
         }
     }
+}
+
+pub fn create_health_apple_pickup(
+    pos: Vec2,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<Outline>>,
+    sprites: &Res<ItemsAssets>
+) -> PickupBundle {
+    PickupBundle::create(meshes, materials,
+        sprites.apple.clone(),
+        Vec2::new(16., 16.),
+        "apple".to_string(),
+        pos,
+        Items::HealthApple
+    )
 }

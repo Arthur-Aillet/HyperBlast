@@ -27,10 +27,17 @@ impl PlayerStats {
             roll_speed: 75.,
         }
     }
+
+    pub fn reset_without_health(&mut self) {
+        let remove = self.max_health - self.current_health;
+        *self = PlayerStats::default();
+        self.current_health -= remove;
+    }
 }
 
 pub fn player_death(mut commands: Commands, players: Query<(Entity, &GunEntity, &PlayerStats)>) {
     for (entity, gun, stats) in &players {
+        println!("{}/{}", stats.current_health, stats.max_health);
         if stats.current_health <= 0. {
             commands.entity(entity).despawn_recursive();
             commands.entity(gun.0).despawn_recursive();

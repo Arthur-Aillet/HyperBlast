@@ -3,6 +3,8 @@ use leafwing_input_manager::prelude::ActionState;
 
 use crate::{player::input::{IsController, PlayerActions}, mouse::Mouse, rendering::Position, debug::DebugLevel};
 
+use super::inventory::inventory_manager::Inventory;
+
 #[derive(Component, Default, Clone)]
 pub struct CursorPosition {
     pub value: Vec2,
