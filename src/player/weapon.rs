@@ -86,7 +86,7 @@ pub fn shotgun_stats() -> GunStats {
         barrel_height: 5.5,
         timer: Stopwatch::new(),
         shoot: basic_shoot_fn,
-        reload: basic_reload_fn,
+        reload: shotgun_reload_fn,
         damage: 6.,
         spread: (20_f32).to_radians(),
         speed: 190.,
@@ -127,7 +127,7 @@ pub fn sniper_stats() -> GunStats {
     }
 }
 
-pub fn automatic_stats() -> GunStats {
+pub fn semi_automatic_stats() -> GunStats {
     GunStats {
         handle_position: Vec2::new(2., 2.),
         barrel_length: 12.,
@@ -180,7 +180,7 @@ pub struct GunEntity(pub Entity);
 
 impl GunBundle {
     pub fn setup(guns: &Res<GunAssets>) -> Self {
-        let mut stats = revolver_stats();
+        let mut stats = shotgun_stats();
         stats.timer.set_elapsed(Duration::new(1, 0));
         GunBundle {
             name: Name::new("Gun"),
@@ -225,6 +225,32 @@ pub fn basic_reload_fn(
         } else {
             stats.ammo -= stats.mag_size - stats.mag_ammo;
             stats.mag_ammo = stats.mag_size;
+        }
+    commands.entity(owner).remove::<ReloadStats>();
+    } else {
+        angle.0 += reload_stats.since.elapsed_secs() / stats.reload_time * 12.;
+    }
+}
+
+pub fn shotgun_reload_fn(
+    time: &Res<Time>,
+    commands: &mut Commands,
+    mut angle: Mut<'_, Angle>,
+    mut stats: Mut<'_, GunStats>,
+    _player: Mut<'_, PlayerStats>,
+    mut reload_stats: Mut<'_, ReloadStats>,
+    roll: Option<&RollStats>,
+    owner: Entity,
+) {
+    if roll.is_some() && !reload_stats.since.paused() { reload_stats.since.pause(); }
+    if roll.is_none() && reload_stats.since.paused() { reload_stats.since.unpause(); }
+    reload_stats.since.tick(time.delta());
+    if reload_stats.since.elapsed_secs() >= stats.reload_time {
+        if stats.infinite {
+            stats.mag_ammo += 1;
+        } else {
+            stats.ammo -= 1;
+            stats.mag_ammo += 1;
         }
     commands.entity(owner).remove::<ReloadStats>();
     } else {

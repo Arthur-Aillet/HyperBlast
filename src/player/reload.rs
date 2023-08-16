@@ -41,7 +41,7 @@ pub fn start_reload (
     for (entity, gun_entity, player_actions, _) in &players {
         if let Ok((gunstats, _)) = guns.get(gun_entity.0) {
             if player_actions.pressed(PlayerActions::Reload) || (
-            player_actions.pressed(PlayerActions::Shoot) && gunstats.mag_ammo == 0) {
+            player_actions.just_pressed(PlayerActions::Shoot) && gunstats.mag_ammo == 0) {
                 if gunstats.mag_ammo < gunstats.mag_size && (gunstats.ammo > 0 || gunstats.infinite) {
                     let relaod_stats = ReloadStats::new(gun_entity.clone());
                     commands.entity(entity).insert(relaod_stats);
