@@ -4,12 +4,12 @@ mod animation;
 mod camera;
 mod debug;
 mod mouse;
+mod outline;
 mod physics;
+mod pickup;
 mod player;
 mod rendering;
 mod ui;
-mod pickup;
-mod outline;
 
 use leafwing_input_manager::plugin::InputManagerSystem;
 

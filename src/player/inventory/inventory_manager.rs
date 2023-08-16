@@ -1,11 +1,15 @@
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
-use crate::{player::{inventory::item_manager::Items, input::PlayerActions}, rendering::Position, outline::Outline};
+use crate::{
+    outline::Outline,
+    player::{input::PlayerActions, inventory::item_manager::Items},
+    rendering::Position,
+};
 
 use super::{assets::ItemsAssets, DroppedEvent};
 
-pub fn drop_item (
+pub fn drop_item(
     mut commands: Commands,
     mut ev_drop: EventWriter<DroppedEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -16,9 +20,9 @@ pub fn drop_item (
         &ActionState<PlayerActions>,
         &Position,
         &mut Inventory,
-    )>
+    )>,
 ) {
-    for (entity, action,pos, mut inventory) in &mut query {
+    for (entity, action, pos, mut inventory) in &mut query {
         if action.just_pressed(PlayerActions::Drop) {
             if let Some(item) = inventory.content.pop() {
                 ev_drop.send(DroppedEvent(item, entity));

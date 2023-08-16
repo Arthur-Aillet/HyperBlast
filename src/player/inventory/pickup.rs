@@ -3,8 +3,17 @@ use std::f32::INFINITY;
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use leafwing_input_manager::prelude::ActionState;
 use rand::Rng;
+use strum::IntoEnumIterator;
 
-use crate::{rendering::{Zindex, Position}, outline::Outline, player::{stats::PlayerStats, input::PlayerActions, inventory::{inventory_manager::Inventory, item_manager::Items}}};
+use crate::{
+    outline::Outline,
+    player::{
+        input::PlayerActions,
+        inventory::{inventory_manager::Inventory, item_manager::Items},
+        stats::PlayerStats,
+    },
+    rendering::{Position, Zindex},
+};
 
 use super::{assets::ItemsAssets, PickupEvent};
 
@@ -15,8 +24,21 @@ pub fn update_pickup(
     mut ev_pickup: EventWriter<PickupEvent>,
     mut commands: Commands,
     mut materials: ResMut<Assets<Outline>>,
-    mut pickups: Query<(Entity, &Handle<Outline>, &mut Position, &mut Pickup, &mut Zindex, Without<PlayerStats>)>,
-    mut players: Query<(Entity, &mut Position, &mut Inventory, &ActionState<PlayerActions>, With<PlayerStats>)>,
+    mut pickups: Query<(
+        Entity,
+        &Handle<Outline>,
+        &mut Position,
+        &mut Pickup,
+        &mut Zindex,
+        Without<PlayerStats>,
+    )>,
+    mut players: Query<(
+        Entity,
+        &mut Position,
+        &mut Inventory,
+        &ActionState<PlayerActions>,
+        With<PlayerStats>,
+    )>,
 ) {
     for (_, outline, mut pos, pickup, mut zindex, _) in &mut pickups {
         let float = ((time.elapsed_seconds() + pickup.anim_offset) * 3.).sin() / 10.;
@@ -28,7 +50,7 @@ pub fn update_pickup(
         }
     }
 
-    for (entity, player_pos, mut inventory, actions,_) in &mut players {
+    for (entity, player_pos, mut inventory, actions, _) in &mut players {
         let mut nearest: Option<Entity> = None;
         let mut distance: f32 = INFINITY;
 
@@ -52,7 +74,7 @@ pub fn update_pickup(
                         PickupType::Item(item) => {
                             ev_pickup.send(PickupEvent(*item, entity));
                             inventory.add(*item);
-                        },
+                        }
                     }
                     commands.entity(valid_pickup).despawn_recursive();
                 }
@@ -65,10 +87,19 @@ pub fn spawn_items(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Outline>>,
-    assets: Res<ItemsAssets>
+    assets: Res<ItemsAssets>,
 ) {
-    commands.spawn(Items::Mercury.to_pickup(Vec2::new(45., 40.), &mut meshes, &mut materials, &assets));
-    commands.spawn(Items::Mercury.to_pickup(Vec2::new(40., 40.), &mut meshes, &mut materials, &assets));
+    let len = Items::iter().count();
+    for (x, item) in Items::iter().enumerate() {
+        for _ in 0..10 {
+            commands.spawn(item.to_pickup(
+                Vec2::new(-(len as f32 * 30.) / 2. + x as f32 * 30. + 15., 80.),
+                &mut meshes,
+                &mut materials,
+                &assets,
+            ));
+        }
+    }
 }
 
 pub enum PickupType {
@@ -99,7 +130,7 @@ impl PickupBundle {
         size: Vec2,
         name: String,
         pos: Vec2,
-        item_type: Items
+        item_type: Items,
     ) -> PickupBundle {
         let mut rng = rand::thread_rng();
         let place_rng = rng.gen::<f32>() * 100.;
@@ -107,8 +138,12 @@ impl PickupBundle {
         PickupBundle {
             name: bevy::core::Name::new(name),
             material: MaterialMesh2dBundle {
-                transform: Transform::default().with_scale(size.extend(0.)).with_translation(pos.floor().extend(0.)),
-                mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::splat(2.)))).into(),
+                transform: Transform::default()
+                    .with_scale(size.extend(0.))
+                    .with_translation(pos.floor().extend(0.)),
+                mesh: meshes
+                    .add(Mesh::from(shape::Quad::new(Vec2::splat(2.))))
+                    .into(),
                 material: materials.add(Outline {
                     color: Color::WHITE,
                     size,
@@ -119,8 +154,10 @@ impl PickupBundle {
             },
             zindex: Zindex(0.),
             position: Position(pos),
-            pickup: Pickup { anim_offset: place_rng, pickup_type: PickupType::Item(item_type) },
+            pickup: Pickup {
+                anim_offset: place_rng,
+                pickup_type: PickupType::Item(item_type),
+            },
         }
     }
 }
-

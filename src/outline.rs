@@ -1,8 +1,8 @@
-use bevy_asset_loader::prelude::{AssetCollection, AssetCollectionApp};
 use bevy::{
     prelude::*,
     reflect::{TypePath, TypeUuid},
-    render::render_resource::{AsBindGroup, ShaderRef}, sprite::{Material2d, Material2dPlugin},
+    render::render_resource::{AsBindGroup, ShaderRef},
+    sprite::{Material2d, Material2dPlugin},
 };
 
 pub struct OutlinePlugin;

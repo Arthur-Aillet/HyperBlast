@@ -13,11 +13,12 @@ use input::PlayerActions;
 
 use super::{
     assets::{GunAssets, PlayerAssets},
+    direction::CursorPosition,
+    direction::MoveDirection,
     input::{self, IsController, PlayerState},
+    inventory::inventory_manager::Inventory,
     stats::PlayerStats,
     weapon::{GunBundle, GunEntity},
-    direction::MoveDirection,
-    direction::CursorPosition, inventory::inventory_manager::Inventory,
 };
 
 #[derive(Bundle)]

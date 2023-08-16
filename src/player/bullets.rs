@@ -1,17 +1,16 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{
-    physics::TesselatedCollider,
-    rendering::{Offset, Position, Size, Zindex},
-};
+use crate::rendering::{Offset, Position, Size, Zindex};
 
 use crate::player::inventory::item_manager::Items;
 
 use super::{
     assets::GunAssets,
+    inventory::inventory_manager::Inventory,
+    roll::RollStats,
     stats::PlayerStats,
-    weapon::{GunEntity, GunStats}, roll::RollStats, inventory::inventory_manager::Inventory,
+    weapon::{GunEntity, GunStats},
 };
 
 #[derive(Component)]
@@ -126,9 +125,9 @@ pub fn detect_collision_bullets(
             } else {
                 None
             };
-            let player = if let Ok((gun, stats,_)) = players.get_mut(*entity1) {
+            let player = if let Ok((gun, stats, _)) = players.get_mut(*entity1) {
                 Some((*entity1, (gun, stats)))
-            } else if let Ok((gun, stats,_)) = players.get_mut(*entity2) {
+            } else if let Ok((gun, stats, _)) = players.get_mut(*entity2) {
                 Some((*entity2, (gun, stats)))
             } else {
                 None
@@ -136,7 +135,7 @@ pub fn detect_collision_bullets(
 
             if let Some(bullet) = bullet {
                 if let Some(player) = player {
-                    let gun = guns.get_mut(player.1.0.0);
+                    let gun = guns.get_mut(player.1 .0 .0);
                     player_bullet_collision(
                         &mut commands,
                         player,

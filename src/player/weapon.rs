@@ -8,10 +8,18 @@ use crate::{
     rendering::{Angle, Flip, Offset, Position, Size, Zindex},
 };
 
-use super::{assets::GunAssets, stats::PlayerStats, inventory::inventory_manager::Inventory};
+use super::{assets::GunAssets, inventory::inventory_manager::Inventory, stats::PlayerStats};
 
-type ShootFn =
-    fn(&mut Commands, &Res<GunAssets>, &mut GunStats, &mut PlayerStats, &Inventory, Vec2, f32, Entity);
+type ShootFn = fn(
+    &mut Commands,
+    &Res<GunAssets>,
+    &mut GunStats,
+    &mut PlayerStats,
+    &Inventory,
+    Vec2,
+    f32,
+    Entity,
+);
 
 #[derive(Component)]
 pub struct GunStats {
@@ -57,11 +65,11 @@ impl GunBundle {
             shoot: basic_shoot_fn,
             damage: 20.,
             spread: (10_f32).to_radians(),
-            salve: 30,
-            ammo: 1000000,
-            max_ammo: 1000000,
-            mag_ammo: 1000000,
-            mag_size: 1000000,
+            salve: 1,
+            ammo: 100,
+            max_ammo: 100,
+            mag_ammo: 10,
+            mag_size: 10,
             reload_time: 2.5,
             fire_rate: 40.,
         };
@@ -101,7 +109,11 @@ pub fn basic_shoot_fn(
         if stats.timer.elapsed_secs() >= 1. / stats.fire_rate {
             stats.timer.reset();
             let mut rng = rand::thread_rng();
-            let to_fire = if stats.salve > stats.mag_ammo {stats.mag_ammo} else {stats.salve};
+            let to_fire = if stats.salve > stats.mag_ammo {
+                stats.mag_ammo
+            } else {
+                stats.salve
+            };
 
             for _ in 0..to_fire {
                 commands.spawn(BulletBundle::marine_bullet(
@@ -115,13 +127,13 @@ pub fn basic_shoot_fn(
             stats.mag_ammo -= to_fire;
         }
     } else if stats.timer.elapsed_secs() >= stats.reload_time {
-            stats.timer.reset();
-            if stats.ammo < stats.mag_size {
-                stats.mag_ammo = stats.ammo;
-                stats.ammo = 0;
-            } else {
-                stats.mag_ammo = stats.mag_size;
-                stats.ammo -= stats.mag_size;
-            }
+        stats.timer.reset();
+        if stats.ammo < stats.mag_size {
+            stats.mag_ammo = stats.ammo;
+            stats.ammo = 0;
+        } else {
+            stats.mag_ammo = stats.mag_size;
+            stats.ammo -= stats.mag_size;
         }
+    }
 }

@@ -1,9 +1,12 @@
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
-use crate::{player::input::{IsController, PlayerActions}, mouse::Mouse, rendering::Position, debug::DebugLevel};
-
-use super::inventory::inventory_manager::Inventory;
+use crate::{
+    debug::DebugLevel,
+    mouse::Mouse,
+    player::input::{IsController, PlayerActions},
+    rendering::Position,
+};
 
 #[derive(Component, Default, Clone)]
 pub struct CursorPosition {
@@ -53,7 +56,7 @@ pub fn calculate_cursor_position(
     None
 }
 
-pub fn calculate_players_cursors (
+pub fn calculate_players_cursors(
     mut players: Query<(
         Option<&IsController>,
         &Position,
@@ -66,7 +69,8 @@ pub fn calculate_players_cursors (
     debug_level: Res<crate::debug::DebugLevel>,
 ) {
     if let Some((camera, camera_transform)) =
-        camera.into_iter().find(|(camera, _)| camera.is_active) {
+        camera.into_iter().find(|(camera, _)| camera.is_active)
+    {
         for (controller, Position(player_pos), player_actions, mut cursor) in &mut players {
             let mouse_maybe = mouse.get_single();
             if let Some(pos) = calculate_cursor_position(
@@ -80,12 +84,7 @@ pub fn calculate_players_cursors (
                 cursor.relative = pos - *player_pos;
                 cursor.value = pos;
                 if *debug_level == DebugLevel::Basic {
-                    lines.line_colored(
-                        Vec3::ZERO,
-                        (cursor.relative).extend(0.),
-                        0.0,
-                        Color::RED,
-                    );
+                    lines.line_colored(Vec3::ZERO, (cursor.relative).extend(0.), 0.0, Color::RED);
                     lines.line_colored(
                         (player_pos).extend(0.),
                         (pos).extend(0.),
@@ -108,12 +107,13 @@ pub fn calculate_players_cursors (
     }
 }
 
-
-pub fn calculate_players_move_direction(mut query: Query<(
-    Option<&IsController>,
-    &ActionState<PlayerActions>,
-    &mut MoveDirection,
-)>) {
+pub fn calculate_players_move_direction(
+    mut query: Query<(
+        Option<&IsController>,
+        &ActionState<PlayerActions>,
+        &mut MoveDirection,
+    )>,
+) {
     for (controller, actions, mut direction) in &mut query {
         direction.value = Vec2::ZERO;
 

@@ -49,7 +49,7 @@ pub struct AnimationStateMachine {
     map: HashMap<String, (Handle<TextureAtlas>, AnimationIndices, AnimationFlip)>,
     last_state: AnimationState,
     next: bool,
-    manual: bool
+    manual: bool,
 }
 
 impl AnimationStateMachine {

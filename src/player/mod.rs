@@ -1,12 +1,12 @@
 pub mod assets;
 pub mod bullets;
+pub mod direction;
 pub mod input;
+pub mod inventory;
+pub mod roll;
 pub mod setup;
 pub mod stats;
 pub mod weapon;
-pub mod roll;
-pub mod direction;
-pub mod inventory;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 

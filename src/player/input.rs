@@ -14,7 +14,10 @@ use crate::player::{
 
 use crate::player::roll::RollStats;
 
-use super::{direction::{MoveDirection, CursorPosition}, inventory::inventory_manager::Inventory};
+use super::{
+    direction::{CursorPosition, MoveDirection},
+    inventory::inventory_manager::Inventory,
+};
 
 #[derive(Component)]
 pub struct IsController;
@@ -104,7 +107,7 @@ pub fn shooting_system(
         &mut PlayerStats,
         &Inventory,
         &CursorPosition,
-        Option<&RollStats>
+        Option<&RollStats>,
     )>,
     mut gun: Query<(
         &mut Position,
@@ -118,12 +121,18 @@ pub fn shooting_system(
     mut commands: Commands,
     gun_assets: Res<super::assets::GunAssets>,
 ) {
-
-    for (entity, Position(player_pos), gun_id, player_actions, mut stats, inv, cursor_position, roll) in
-        &mut players
+    for (
+        entity,
+        Position(player_pos),
+        gun_id,
+        player_actions,
+        mut stats,
+        inv,
+        cursor_position,
+        roll,
+    ) in &mut players
     {
-        if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _)) =
-            gun.get_mut(gun_id.0)
+        if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _)) = gun.get_mut(gun_id.0)
         {
             gun_pos.0 = *player_pos;
             gun_pos.0.x += 6.;
@@ -144,8 +153,7 @@ pub fn shooting_system(
             } else {
                 gun_pos.0 + direction.perp() * -gun_stats.barrel_height
             };
-            let barrel_end =
-                barrel_position + Vec2::from_angle(angle) * gun_stats.barrel_length;
+            let barrel_end = barrel_position + Vec2::from_angle(angle) * gun_stats.barrel_length;
             if *debug_level == DebugLevel::Basic {
                 lines.line_colored(
                     (barrel_end).extend(0.),
@@ -185,7 +193,7 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
             (GamepadButtonType::RightTrigger2, PlayerActions::Shoot),
             (GamepadButtonType::LeftTrigger2, PlayerActions::Roll),
             (GamepadButtonType::South, PlayerActions::Pickup),
-            (GamepadButtonType::Start, PlayerActions::Drop)
+            (GamepadButtonType::Start, PlayerActions::Drop),
         ]);
         input_map
             .insert(DualAxis::left_stick(), PlayerActions::ControllerMove)
@@ -214,7 +222,7 @@ type PlayerEntity<'a> = (
     &'a PlayerStats,
     &'a mut Position,
     &'a mut AnimationState,
-    Without<RollStats>
+    Without<RollStats>,
 );
 
 pub fn move_players(time: Res<Time>, mut query: Query<PlayerEntity>) {
