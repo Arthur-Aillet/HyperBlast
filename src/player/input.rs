@@ -161,17 +161,18 @@ pub fn shooting_system(
             }
 
             gun_stats.timer.tick(time.delta());
-            if player_actions.pressed(PlayerActions::Shoot) && roll.is_none() && reload.is_none() {
-                (gun_stats.shoot)(
-                    &mut commands,
-                    &gun_assets,
-                    &mut gun_stats,
-                    &mut stats,
-                    barrel_end,
-                    angle,
-                    entity,
-                );
-            }
+            (gun_stats.shoot)(
+                &mut commands,
+                &gun_assets,
+                &mut gun_stats,
+                &mut stats,
+                barrel_end,
+                angle,
+                entity,
+                player_actions,
+                roll,
+                reload,
+            );
         }
     }
 }
