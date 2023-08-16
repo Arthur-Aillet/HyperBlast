@@ -8,10 +8,10 @@ use crate::{
     rendering::{Angle, Flip, Offset, Position, Size, Zindex},
 };
 
-use super::{assets::GunAssets, stats::PlayerStats};
+use super::{assets::GunAssets, stats::PlayerStats, inventory::inventory_manager::Inventory};
 
 type ShootFn =
-    fn(&mut Commands, &Res<GunAssets>, &mut GunStats, &mut PlayerStats, Vec2, f32, Entity);
+    fn(&mut Commands, &Res<GunAssets>, &mut GunStats, &mut PlayerStats, &Inventory, Vec2, f32, Entity);
 
 #[derive(Component)]
 pub struct GunStats {
@@ -92,6 +92,7 @@ pub fn basic_shoot_fn(
     assets: &Res<GunAssets>,
     stats: &mut GunStats,
     _player: &mut PlayerStats,
+    inventory: &Inventory,
     barrel_end: Vec2,
     angle: f32,
     owner: Entity,
@@ -107,6 +108,7 @@ pub fn basic_shoot_fn(
                     assets,
                     barrel_end,
                     angle + rng.gen_range((stats.spread * -1.)..stats.spread),
+                    inventory,
                     owner,
                 ));
             }

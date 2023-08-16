@@ -9,6 +9,7 @@ use super::{pickup::PickupBundle, assets::ItemsAssets};
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum Items {
     HealthApple,
+    Mercury,
 }
 
 impl Items {
@@ -20,8 +21,24 @@ impl Items {
     ) -> PickupBundle {
         match self {
             Items::HealthApple => create_health_apple_pickup(pos, meshes, materials, sprites),
+            Items::Mercury => create_mercury_pickup(pos, meshes, materials, sprites),
         }
     }
+}
+
+pub fn create_mercury_pickup(
+    pos: Vec2,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<Outline>>,
+    sprites: &Res<ItemsAssets>
+) -> PickupBundle {
+    PickupBundle::create(meshes, materials,
+        sprites.mercury.clone(),
+        Vec2::new(16., 16.),
+        "mercury".to_string(),
+        pos,
+        Items::Mercury
+    )
 }
 
 pub fn create_health_apple_pickup(

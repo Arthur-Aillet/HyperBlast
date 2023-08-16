@@ -6,10 +6,12 @@ use crate::{
     rendering::{Offset, Position, Size, Zindex},
 };
 
+use crate::player::inventory::item_manager::Items;
+
 use super::{
     assets::GunAssets,
     stats::PlayerStats,
-    weapon::{GunEntity, GunStats}, roll::RollStats,
+    weapon::{GunEntity, GunStats}, roll::RollStats, inventory::inventory_manager::Inventory,
 };
 
 #[derive(Component)]
@@ -19,6 +21,7 @@ pub struct BulletStats {
     pub distance: f32,
     pub distance_traveled: f32,
     pub speed: f32,
+    pub mercury_amount: usize,
     pub owner: Entity,
 }
 
@@ -39,6 +42,7 @@ impl BulletBundle {
         assets: &Res<GunAssets>,
         barrel_end: Vec2,
         angle: f32,
+        inventory: &Inventory,
         player: Entity,
     ) -> Self {
         BulletBundle {
@@ -53,7 +57,8 @@ impl BulletBundle {
                 angle,
                 spread: 0.5,
                 distance: 20. * 8.,
-                speed: 90.,
+                speed: 90. / (inventory.amount(Items::Mercury) as f32 * 3.),
+                mercury_amount: inventory.amount(Items::Mercury),
             },
             sprite: SpriteBundle {
                 texture: assets.marine_bullet.clone(),
@@ -130,6 +135,9 @@ pub fn move_bullets(
     mut query: Query<(Entity, &mut BulletStats, &mut Position)>,
 ) {
     for (entity, mut stats, mut position) in &mut query {
+        for _ in 0..stats.mercury_amount {
+            stats.speed += time.delta_seconds() * 70.;
+        }
         position.0 += Vec2::from_angle(stats.angle) * stats.speed * time.delta_seconds();
         stats.distance_traveled += stats.speed * time.delta_seconds();
         if stats.distance_traveled > stats.distance {

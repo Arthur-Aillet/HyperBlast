@@ -16,6 +16,7 @@ pub fn pickup_events(
                     stats.max_health += 50.;
                     stats.current_health += 50.
                 },
+                Items::Mercury => {},
             }
         }
     }
@@ -32,6 +33,7 @@ pub fn drop_events(
                     stats.max_health -= 50.;
                     stats.current_health -= 50.
                 },
+                Items::Mercury => {},
             }
         }
     }

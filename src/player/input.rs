@@ -102,6 +102,7 @@ pub fn shooting_system(
         &GunEntity,
         &ActionState<PlayerActions>,
         &mut PlayerStats,
+        &Inventory,
         &CursorPosition,
         Option<&RollStats>
     )>,
@@ -118,7 +119,7 @@ pub fn shooting_system(
     gun_assets: Res<super::assets::GunAssets>,
 ) {
 
-    for (entity, Position(player_pos), gun_id, player_actions, mut stats, cursor_position, roll) in
+    for (entity, Position(player_pos), gun_id, player_actions, mut stats, inv, cursor_position, roll) in
         &mut players
     {
         if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _)) =
@@ -167,6 +168,7 @@ pub fn shooting_system(
                     &gun_assets,
                     &mut gun_stats,
                     &mut stats,
+                    inv,
                     barrel_end,
                     angle,
                     entity,
@@ -208,16 +210,15 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
 }
 
 type PlayerEntity<'a> = (
-    &'a Inventory,
     &'a MoveDirection,
-    &'a mut PlayerStats,
+    &'a PlayerStats,
     &'a mut Position,
     &'a mut AnimationState,
     Without<RollStats>
 );
 
 pub fn move_players(time: Res<Time>, mut query: Query<PlayerEntity>) {
-    for (inv, direction, mut stats, mut position, mut state, _) in &mut query {
+    for (direction, stats, mut position, mut state, _) in &mut query {
         if direction.value == Vec2::ZERO {
             *state = AnimationState::new(&PlayerState::Idle);
         } else {

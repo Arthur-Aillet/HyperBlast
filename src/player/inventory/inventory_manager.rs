@@ -1,7 +1,7 @@
-use bevy::{prelude::*, utils::HashMap};
+use bevy::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
-use crate::{player::{inventory::item_manager::Items, input::PlayerActions, stats::PlayerStats}, rendering::Position, outline::Outline};
+use crate::{player::{inventory::item_manager::Items, input::PlayerActions}, rendering::Position, outline::Outline};
 
 use super::{assets::ItemsAssets, DroppedEvent};
 
@@ -15,11 +15,10 @@ pub fn drop_item (
         Entity,
         &ActionState<PlayerActions>,
         &Position,
-        &mut PlayerStats,
         &mut Inventory,
     )>
 ) {
-    for (entity, action,pos, mut stats, mut inventory) in &mut query {
+    for (entity, action,pos, mut inventory) in &mut query {
         if action.just_pressed(PlayerActions::Drop) {
             if let Some(item) = inventory.content.pop() {
                 ev_drop.send(DroppedEvent(item, entity));
@@ -45,7 +44,7 @@ impl Inventory {
         self.content.push(name);
     }
 
-    pub fn amount(&mut self, name: Items) -> usize {
+    pub fn amount(&self, name: Items) -> usize {
         self.content.iter().filter(|&n| *n == name).count()
     }
 }

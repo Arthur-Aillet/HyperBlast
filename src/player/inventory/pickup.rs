@@ -67,8 +67,8 @@ pub fn spawn_items(
     mut materials: ResMut<Assets<Outline>>,
     assets: Res<ItemsAssets>
 ) {
-    commands.spawn(Items::HealthApple.to_pickup(Vec2::new(45., 40.), &mut meshes, &mut materials, &assets));
-    commands.spawn(Items::HealthApple.to_pickup(Vec2::new(40., 40.), &mut meshes, &mut materials, &assets));
+    commands.spawn(Items::Mercury.to_pickup(Vec2::new(45., 40.), &mut meshes, &mut materials, &assets));
+    commands.spawn(Items::Mercury.to_pickup(Vec2::new(40., 40.), &mut meshes, &mut materials, &assets));
 }
 
 pub enum PickupType {
