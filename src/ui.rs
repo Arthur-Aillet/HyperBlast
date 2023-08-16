@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
-use crate::player::stats::PlayerStats;
+use crate::player::{stats::PlayerStats, weapon::{GunEntity, GunStats}};
 
 pub struct UiPlugin;
 
@@ -9,13 +9,17 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.init_collection::<UiAssets>()
             .add_systems(Startup, setup_ui)
-            .add_systems(Update, spawn_health_bars)
-            .add_systems(PostUpdate, manage_health_bars);
+            .add_systems(Update, spawn_player_ui);
     }
 }
 
 #[derive(Component)]
 pub struct UiRoot;
+
+#[derive(Component)]
+pub struct PlayerUI {
+    player_id: Entity
+}
 
 #[derive(Component)]
 pub struct HealthBarFg;
@@ -31,10 +35,106 @@ pub struct HealthBar {
     pub health_bar_fg: Handle<TextureAtlas>,
 }
 
+#[derive(Component)]
+pub struct AmmoCounter {
+    pub player_id: Entity,
+}
+
 #[derive(AssetCollection, Resource)]
 pub struct UiAssets {
     #[asset(path = "ui/healthbar_bg.png")]
     pub health_bar_bg: Handle<Image>,
+}
+
+#[derive(Component)]
+pub struct PlayerUiAccess {
+    pub health_bar_id: Entity,
+    pub ammo_counter_id: Entity,
+}
+
+fn spawn_player_ui(
+    mut commands: Commands,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    ui_assets: Res<UiAssets>,
+    asset_server: Res<AssetServer>,
+    ui_root: Query<(Entity, With<UiRoot>)>,
+    players_query: Query<(Entity, (Without<PlayerUiAccess>, With<PlayerStats>))>,
+) {
+    for (id, _) in &players_query {
+        // Create healthbar:
+        let fg_handle = asset_server.load("ui/healthbar_fg.png");
+        let fg_atlas = TextureAtlas::from_grid(
+            fg_handle,
+            Vec2::new(100.0, 10.0),
+            1,
+            1,
+            None,
+            None,
+        );
+        let fg_atlas_handle = texture_atlases.add(fg_atlas);
+        let hb_id = commands.spawn((
+            HealthBar {player_id: id, health_bar_fg: fg_atlas_handle.clone()},
+            NodeBundle {
+                style: Style {
+                    width: Val::Px(108. * 3.),
+                    height: Val::Px(10. * 3.),
+                    margin: UiRect::all(Val::VMin(2.)),
+                    padding: UiRect::left(Val::Px(8. * 3.)),
+                    ..default()
+                },
+                background_color: Color::WHITE.into(),
+                ..default()
+            },
+            UiImage::new(ui_assets.health_bar_bg.clone()),
+        ))
+            .with_children(|healthbar_bg| {
+                healthbar_bg.spawn((AtlasImageBundle {
+                    style: Style {
+                        width: Val::Px(100. * 3.),
+                        height: Val::Px(10. * 3.),
+                        ..default()
+                    },
+                    texture_atlas: fg_atlas_handle.clone(),
+                    texture_atlas_image: UiTextureAtlasImage::default(),
+                    ..default()
+                },
+                HealthBarFg,
+            ));
+        }).id();
+        // Create Ammo count:
+        let count_id = commands.spawn((
+            TextBundle::from_sections([
+                TextSection::from_style(TextStyle {
+                    font: asset_server.load("fonts/Extended_font.ttf"),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                    ..default()
+                }),
+                TextSection::from_style(TextStyle {
+                    font: asset_server.load("fonts/Extended_font.ttf"),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                    ..default()
+                }),
+                TextSection::from_style(TextStyle {
+                    font: asset_server.load("fonts/Extended_font.ttf"),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                    ..default()
+                }),
+                TextSection::from_style(TextStyle {
+                    font: asset_server.load("fonts/Extended_font.ttf"),
+                    font_size: 15.0,
+                    color: Color::WHITE,
+                    ..default()
+                }),
+            ]), AmmoCounter {player_id: id},
+        )).id();
+        commands.entity(ui_root.single().0)
+            .add_child(hb_id)
+            .add_child(count_id);
+        commands.entity(id).insert(PlayerUiAccess { health_bar_id: hb_id, ammo_counter_id: count_id });
+    }
 }
 
 fn spawn_health_bars(
@@ -42,12 +142,17 @@ fn spawn_health_bars(
     ui_assets: Res<UiAssets>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-    root_query: Query<(Entity, With<UiRoot>)>,
+    player_ui_querry: Query<(Entity, &PlayerUI)>,
     players_query: Query<(Entity,(Without<HasHealthBar>, With<PlayerStats>))>,
 ) {
-
-    let root = root_query.single().0;
     for (player, _) in &players_query {
+        let mut player_ui_option = None;
+        for (ui_entity, ui) in &player_ui_querry {
+            println!("Here :D!");
+            if ui.player_id == player {
+                player_ui_option = Some(ui_entity);
+            }
+        }
         let fg_handle = asset_server.load("ui/healthbar_fg.png");
         let fg_atlas = TextureAtlas::from_grid(
             fg_handle,
@@ -89,7 +194,9 @@ fn spawn_health_bars(
             ));
         }).id();
         commands.get_entity(player).unwrap().insert(HasHealthBar{id: health_bar});
-        commands.get_entity(root).unwrap().add_child(health_bar);
+        if let Some(player_ui) = player_ui_option {
+            commands.get_entity(player_ui).unwrap().add_child(health_bar);
+        }
     }
 }
 
@@ -118,9 +225,90 @@ fn manage_health_bars(
     }
 }
 
-pub fn setup_ui(mut commands: Commands) {
-    commands
-        .spawn(NodeBundle {
+fn spawn_ammo_count(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    player_ui_querry: Query<(Entity, &PlayerUI)>,
+    players_query: Query<(Entity, (Without<AmmoCounter>, With<PlayerStats>))>,
+) {
+    for (player, _) in &players_query {
+        let mut player_ui_option = None;
+        for (ui_entity, ui) in &player_ui_querry {
+            print!("a\n");
+            if ui.player_id == player {
+                player_ui_option = Some(ui_entity);
+            }
+        }
+        let count = commands.spawn((
+            TextBundle::from_sections([
+                TextSection::from_style(TextStyle {
+                    font: asset_server.load("fonts/Extended_font.ttf"),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                    ..default()
+                }),
+                TextSection::from_style(TextStyle {
+                    font: asset_server.load("fonts/Extended_font.ttf"),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                    ..default()
+                }),
+                TextSection::from_style(TextStyle {
+                    font: asset_server.load("fonts/Extended_font.ttf"),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                    ..default()
+                }),
+                TextSection::from_style(TextStyle {
+                    font: asset_server.load("fonts/Extended_font.ttf"),
+                    font_size: 15.0,
+                    color: Color::WHITE,
+                    ..default()
+                }),
+            ]), AmmoCounter {player_id: player},
+        )).id();
+        commands.entity(player).insert(AmmoCounter{player_id: player});
+        if let Some(player_ui) = player_ui_option {
+            commands.get_entity(player_ui).unwrap().add_child(count);
+        }
+    }
+}
+
+fn manage_ammo_count(
+    players: Query<(&PlayerStats, &GunEntity, (With<AmmoCounter>, Without<UiRoot>))>,
+    guns: Query<&GunStats, Without<PlayerStats>>,
+    mut texts: Query<( &mut Text, &mut AmmoCounter)>
+) {
+    for (mut text, count) in &mut texts {
+        if let Ok((_, gunentity, (_, _))) =players.get(count.player_id) {
+            if let Ok(gunstats) = guns.get(gunentity.0) {
+                text.sections[0].value = format!("ammo: ");
+                text.sections[1].value = format!("{}", gunstats.mag_ammo);
+                text.sections[1].style.color =
+                    if (gunstats.mag_ammo as f32) / (gunstats.mag_size as f32) > 1./3. { Color::WHITE
+                } else if (gunstats.mag_ammo as f32) / (gunstats.mag_size as f32) > 1./5. { Color::YELLOW}
+                else {Color::RED};
+                text.sections[2].value = format!("/{}\n", gunstats.mag_size);
+                if !gunstats.infinite {
+                    text.sections[3].value = format!("{}", gunstats.ammo);
+                    text.sections[3].style.color =
+                        if (gunstats.ammo as f32) / (gunstats.max_ammo as f32) > 1./3. { Color::WHITE
+                    } else if (gunstats.ammo as f32) / (gunstats.max_ammo as f32) > 1./5. { Color::YELLOW}
+                    else {Color::RED};
+                } else {
+                    text.sections[3].value = format!("\u{ec}");
+                    text.sections[3].style.color = Color::WHITE;
+                }
+            }
+        }
+    }
+}
+
+pub fn setup_ui(
+    mut commands: Commands,
+    players_query: Query<(Entity, With<PlayerStats>)>,
+) {
+    commands.spawn(NodeBundle {
             style: Style {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
@@ -128,7 +316,21 @@ pub fn setup_ui(mut commands: Commands) {
                 ..default()
             },
             ..default()
-        })
+    })
         .insert(Name::new("UI Root"))
-        .insert(UiRoot);
+        .insert(UiRoot)
+        .with_children(|parent| {
+            for player in &players_query {
+                parent.spawn(NodeBundle{
+                    style: Style {
+                        width: Val::Px(50.),
+                        height: Val::Px(50.),
+                        justify_items: JustifyItems::Center,
+                        ..default()
+                    },
+                    ..default()
+                }).insert(Name::new("player ui"))
+                .insert(PlayerUI {player_id: player.0});
+            }
+        });
 }

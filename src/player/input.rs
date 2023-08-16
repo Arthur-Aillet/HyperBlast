@@ -14,7 +14,7 @@ use crate::player::{
 
 use crate::player::roll::RollStats;
 
-use super::direction::{MoveDirection, CursorPosition};
+use super::{direction::{MoveDirection, CursorPosition}, reload::ReloadStats};
 
 #[derive(Component)]
 pub struct IsController;
@@ -102,7 +102,8 @@ pub fn shooting_system(
         &ActionState<PlayerActions>,
         &mut PlayerStats,
         &CursorPosition,
-        Option<&RollStats>
+        Option<&RollStats>,
+        Option<&ReloadStats>,
     )>,
     mut guns: Query<(
         &mut Position,
@@ -117,7 +118,7 @@ pub fn shooting_system(
     gun_assets: Res<super::assets::GunAssets>,
 ) {
 
-    for (entity, Position(player_pos), gun_id, player_actions, mut stats, cursor_position, roll) in
+    for (entity, Position(player_pos), gun_id, player_actions, mut stats, cursor_position, roll, reload) in
         &mut players
     {
         if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _)) =
@@ -160,7 +161,7 @@ pub fn shooting_system(
             }
 
             gun_stats.timer.tick(time.delta());
-            if player_actions.pressed(PlayerActions::Shoot) && roll.is_none() {
+            if player_actions.pressed(PlayerActions::Shoot) && roll.is_none() && reload.is_none() {
                 (gun_stats.shoot)(
                     &mut commands,
                     &gun_assets,

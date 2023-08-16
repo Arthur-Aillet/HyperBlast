@@ -15,7 +15,6 @@ use super::{
 #[derive(Component)]
 pub struct BulletStats {
     pub angle: f32,
-    pub spread: f32,
     pub distance: f32,
     pub distance_traveled: f32,
     pub speed: f32,
@@ -40,6 +39,8 @@ impl BulletBundle {
         barrel_end: Vec2,
         angle: f32,
         player: Entity,
+        spd: f32,
+        dist: f32,
     ) -> Self {
         BulletBundle {
             offset: Offset(Vec2::new(3., 3.)),
@@ -51,9 +52,8 @@ impl BulletBundle {
                 owner: player,
                 distance_traveled: 0.,
                 angle,
-                spread: 0.5,
-                distance: 20. * 8.,
-                speed: 90.,
+                distance: dist,
+                speed: spd,
             },
             sprite: SpriteBundle {
                 texture: assets.marine_bullet.clone(),

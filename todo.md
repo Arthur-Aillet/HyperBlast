@@ -7,12 +7,12 @@
 - [ ] YOLE
 - [ ] Tourner le joueur dans la direction de l'aim
 - [ ] player in plugin
-- [ ] Reload
-- [ ] Dodge
+- [X] Reload
+- [X] Dodge
 - [ ] Augment system
 - [ ] Reload ui
 - [ ] player spawning
-- [ ] refactor shooting system
+- [~] refactor shooting system
 - [ ] bullets have sphere collision zone
 - [ ] Light sources + bloom!
 - [ ] Plusieurs armes
