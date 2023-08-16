@@ -26,13 +26,36 @@ pub struct BulletStats {
 }
 
 #[derive(Bundle)]
+pub struct SphereCollider {
+    pub collider: Collider,
+    pub active: ActiveEvents,
+    pub rigid: RigidBody,
+    pub gravity: GravityScale,
+    pub mass: ColliderMassProperties,
+    pub locked_trans: LockedAxes,
+}
+
+impl SphereCollider {
+    pub fn new() -> SphereCollider {
+        SphereCollider {
+            collider: Collider::ball(3.5),
+            active: ActiveEvents::COLLISION_EVENTS,
+            rigid: RigidBody::Dynamic,
+            gravity: GravityScale(0.0),
+            mass: ColliderMassProperties::Density(0.0),
+            locked_trans: LockedAxes::TRANSLATION_LOCKED,
+        }
+    }
+}
+
+#[derive(Bundle)]
 pub struct BulletBundle {
     pub name: Name,
     pub stats: BulletStats,
     pub sprite: SpriteBundle,
     pub zindex: Zindex,
     pub position: Position,
-    pub collider: TesselatedCollider,
+    pub collider: SphereCollider,
     pub offset: Offset,
     pub size: Size,
 }
@@ -57,7 +80,7 @@ impl BulletBundle {
                 angle,
                 spread: 0.5,
                 distance: 20. * 8.,
-                speed: 90. / (inventory.amount(Items::Mercury) as f32 * 3.),
+                speed: 90. / (inventory.amount(Items::Mercury) as f32 * 3. + 1.),
                 mercury_amount: inventory.amount(Items::Mercury),
             },
             sprite: SpriteBundle {
@@ -65,10 +88,7 @@ impl BulletBundle {
                 transform: Transform::from_translation(barrel_end.extend(150.)), // TODO: SHOULD'NT EXIST, SHOULD BE PROPERLY FIXED BY "update_transform" system
                 ..default()
             },
-            collider: TesselatedCollider {
-                texture: assets.marine_bullet.clone(),
-                offset: Vec2::new(-3., 3.),
-            },
+            collider: SphereCollider::new(),
         }
     }
 }

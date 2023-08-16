@@ -57,13 +57,13 @@ impl GunBundle {
             shoot: basic_shoot_fn,
             damage: 20.,
             spread: (10_f32).to_radians(),
-            salve: 1,
-            ammo: 100,
-            max_ammo: 100,
-            mag_ammo: 10,
-            mag_size: 10,
+            salve: 30,
+            ammo: 1000000,
+            max_ammo: 1000000,
+            mag_ammo: 1000000,
+            mag_size: 1000000,
             reload_time: 2.5,
-            fire_rate: 4.,
+            fire_rate: 40.,
         };
         stats.timer.set_elapsed(Duration::new(1, 0));
         GunBundle {
