@@ -9,7 +9,8 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.init_collection::<UiAssets>()
             .add_systems(Startup, setup_ui)
-            .add_systems(Update, spawn_player_ui);
+            .add_systems(Update, spawn_player_ui)
+            .add_systems(PostUpdate, (manage_health_bars, manage_ammo_count));
     }
 }
 
@@ -17,17 +18,8 @@ impl Plugin for UiPlugin {
 pub struct UiRoot;
 
 #[derive(Component)]
-pub struct PlayerUI {
-    player_id: Entity
-}
-
-#[derive(Component)]
 pub struct HealthBarFg;
 
-#[derive(Component)]
-pub struct HasHealthBar {
-    pub id: Entity,
-}
 
 #[derive(Component)]
 pub struct HealthBar {
@@ -78,7 +70,6 @@ fn spawn_player_ui(
                 style: Style {
                     width: Val::Px(108. * 3.),
                     height: Val::Px(10. * 3.),
-                    margin: UiRect::all(Val::VMin(2.)),
                     padding: UiRect::left(Val::Px(8. * 3.)),
                     ..default()
                 },
@@ -130,80 +121,31 @@ fn spawn_player_ui(
                 }),
             ]), AmmoCounter {player_id: id},
         )).id();
-        commands.entity(ui_root.single().0)
+        let player_ui_id = commands
+            .spawn(NodeBundle {
+                style: Style {
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    margin: UiRect::all(Val::VMin(2.)),
+                    flex_direction: FlexDirection::Column,
+                    ..default()
+                },
+                ..default()
+            })
+            .insert(Name::new("PlayerUI"))
             .add_child(hb_id)
-            .add_child(count_id);
+            .add_child(count_id).id();
+        commands.entity(ui_root.single().0)
+            .add_child(player_ui_id);
         commands.entity(id).insert(PlayerUiAccess { health_bar_id: hb_id, ammo_counter_id: count_id });
     }
 }
 
-fn spawn_health_bars(
-    mut commands: Commands,
-    ui_assets: Res<UiAssets>,
-    asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-    player_ui_querry: Query<(Entity, &PlayerUI)>,
-    players_query: Query<(Entity,(Without<HasHealthBar>, With<PlayerStats>))>,
-) {
-    for (player, _) in &players_query {
-        let mut player_ui_option = None;
-        for (ui_entity, ui) in &player_ui_querry {
-            println!("Here :D!");
-            if ui.player_id == player {
-                player_ui_option = Some(ui_entity);
-            }
-        }
-        let fg_handle = asset_server.load("ui/healthbar_fg.png");
-        let fg_atlas = TextureAtlas::from_grid(
-            fg_handle,
-            Vec2::new(100.0, 10.0),
-            1,
-            1,
-            None,
-            None,
-        );
-        let fg_atlas_handle = texture_atlases.add(fg_atlas);
-
-        let health_bar = commands.spawn((
-
-                HealthBar {player_id: player, health_bar_fg: fg_atlas_handle.clone()},
-                NodeBundle {
-                    style: Style {
-                        width: Val::Px(108. * 3.),
-                        height: Val::Px(10. * 3.),
-                        margin: UiRect::all(Val::VMin(2.)),
-                        padding: UiRect::left(Val::Px(8. * 3.)),
-                        ..default()
-                    },
-                    background_color: Color::WHITE.into(),
-                    ..default()
-                },
-                UiImage::new(ui_assets.health_bar_bg.clone()),
-        )).with_children(|parent| {
-            parent.spawn((AtlasImageBundle {
-                style: Style {
-                    width: Val::Px(100. * 3.),
-                    height: Val::Px(10. * 3.),
-                    ..default()
-                },
-                texture_atlas: fg_atlas_handle.clone(),
-                texture_atlas_image: UiTextureAtlasImage::default(),
-                ..default()
-            },
-            HealthBarFg,
-            ));
-        }).id();
-        commands.get_entity(player).unwrap().insert(HasHealthBar{id: health_bar});
-        if let Some(player_ui) = player_ui_option {
-            commands.get_entity(player_ui).unwrap().add_child(health_bar);
-        }
-    }
-}
 
 fn manage_health_bars(
     mut commands: Commands,
     mut atlases: ResMut<Assets<TextureAtlas>>,
-    players_query: Query<(&PlayerStats, (With<HasHealthBar>, Without<UiRoot>))>,
+    players_query: Query<(&PlayerStats, &PlayerUiAccess)>,
     health_bars_query: Query<(&Children, Entity, &HealthBar)>,
     mut health_bars_fg_query: Query<(&mut Style, With<HealthBarFg>)>,
 ) {
@@ -225,62 +167,13 @@ fn manage_health_bars(
     }
 }
 
-fn spawn_ammo_count(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    player_ui_querry: Query<(Entity, &PlayerUI)>,
-    players_query: Query<(Entity, (Without<AmmoCounter>, With<PlayerStats>))>,
-) {
-    for (player, _) in &players_query {
-        let mut player_ui_option = None;
-        for (ui_entity, ui) in &player_ui_querry {
-            print!("a\n");
-            if ui.player_id == player {
-                player_ui_option = Some(ui_entity);
-            }
-        }
-        let count = commands.spawn((
-            TextBundle::from_sections([
-                TextSection::from_style(TextStyle {
-                    font: asset_server.load("fonts/Extended_font.ttf"),
-                    font_size: 20.0,
-                    color: Color::WHITE,
-                    ..default()
-                }),
-                TextSection::from_style(TextStyle {
-                    font: asset_server.load("fonts/Extended_font.ttf"),
-                    font_size: 20.0,
-                    color: Color::WHITE,
-                    ..default()
-                }),
-                TextSection::from_style(TextStyle {
-                    font: asset_server.load("fonts/Extended_font.ttf"),
-                    font_size: 20.0,
-                    color: Color::WHITE,
-                    ..default()
-                }),
-                TextSection::from_style(TextStyle {
-                    font: asset_server.load("fonts/Extended_font.ttf"),
-                    font_size: 15.0,
-                    color: Color::WHITE,
-                    ..default()
-                }),
-            ]), AmmoCounter {player_id: player},
-        )).id();
-        commands.entity(player).insert(AmmoCounter{player_id: player});
-        if let Some(player_ui) = player_ui_option {
-            commands.get_entity(player_ui).unwrap().add_child(count);
-        }
-    }
-}
-
 fn manage_ammo_count(
-    players: Query<(&PlayerStats, &GunEntity, (With<AmmoCounter>, Without<UiRoot>))>,
+    players: Query<(&PlayerStats, &GunEntity)>,
     guns: Query<&GunStats, Without<PlayerStats>>,
     mut texts: Query<( &mut Text, &mut AmmoCounter)>
 ) {
     for (mut text, count) in &mut texts {
-        if let Ok((_, gunentity, (_, _))) =players.get(count.player_id) {
+        if let Ok((_, gunentity)) =players.get(count.player_id) {
             if let Ok(gunstats) = guns.get(gunentity.0) {
                 text.sections[0].value = format!("ammo: ");
                 text.sections[1].value = format!("{}", gunstats.mag_ammo);
@@ -306,7 +199,6 @@ fn manage_ammo_count(
 
 pub fn setup_ui(
     mut commands: Commands,
-    players_query: Query<(Entity, With<PlayerStats>)>,
 ) {
     commands.spawn(NodeBundle {
             style: Style {
@@ -318,19 +210,5 @@ pub fn setup_ui(
             ..default()
     })
         .insert(Name::new("UI Root"))
-        .insert(UiRoot)
-        .with_children(|parent| {
-            for player in &players_query {
-                parent.spawn(NodeBundle{
-                    style: Style {
-                        width: Val::Px(50.),
-                        height: Val::Px(50.),
-                        justify_items: JustifyItems::Center,
-                        ..default()
-                    },
-                    ..default()
-                }).insert(Name::new("player ui"))
-                .insert(PlayerUI {player_id: player.0});
-            }
-        });
+        .insert(UiRoot);
 }
