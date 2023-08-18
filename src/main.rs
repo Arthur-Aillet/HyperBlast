@@ -6,10 +6,10 @@ mod debug;
 mod mouse;
 mod outline;
 mod physics;
-mod pickup;
 mod player;
 mod rendering;
 mod ui;
+mod map;
 
 use leafwing_input_manager::plugin::InputManagerSystem;
 
@@ -24,6 +24,7 @@ fn main() {
         .add_plugins(ui::UiPlugin)
         .add_plugins(camera::CameraPlugin)
         .add_plugins(player::PlayerPlugin)
+        .add_plugins(map::MapPlugin)
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -37,16 +38,6 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn((
-        bevy::core::Name::new("Ground"),
-        SpriteBundle {
-            texture: asset_server.load("basic_ground.png"),
-            sprite: Sprite {
-                anchor: bevy::sprite::Anchor::TopLeft,
-                ..default()
-            },
-            ..default()
-        },
-    ));
+fn setup() {
+
 }

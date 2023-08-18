@@ -3,6 +3,9 @@ name = "shooting_pals"
 version = "0.1.0"
 edition = "2021"
 
+[patch.crates-io]
+bevy_ecs_tilemap = { git = "http://github.com/StarArawn/bevy_ecs_tilemap", version = "0.11", branch = "main" }
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 bevy = { version = "0.11.0", features = ["dynamic_linking"] }
@@ -15,6 +18,7 @@ rand = "0.8.5"
 bevy_asset_loader = { version = "0.17.0", features = ["2d"] }
 strum = "0.25"
 strum_macros = "0.25"
+bevy_ecs_ldtk = "0.8.0"
 
 [features]
 editor = ["dep:bevy_editor_pls"]
