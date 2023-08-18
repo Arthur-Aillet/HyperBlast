@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
+use crate::map::colliders::WallCollider;
+use crate::physics::{self, collision_get};
 use crate::rendering::{Offset, Position, Size, Zindex};
 
 use crate::player::inventory::item_manager::Items;
@@ -32,6 +34,7 @@ pub struct SphereCollider {
     pub gravity: GravityScale,
     pub mass: ColliderMassProperties,
     pub locked_trans: LockedAxes,
+    pub sensor: Sensor,
 }
 
 impl SphereCollider {
@@ -43,6 +46,7 @@ impl SphereCollider {
             gravity: GravityScale(0.0),
             mass: ColliderMassProperties::Density(0.0),
             locked_trans: LockedAxes::TRANSLATION_LOCKED,
+            sensor: Sensor,
         }
     }
 }
@@ -53,7 +57,7 @@ pub struct BulletBundle {
     pub stats: BulletStats,
     pub sprite: SpriteBundle,
     pub zindex: Zindex,
-    pub position: Position,
+    //pub position: Position,
     pub collider: SphereCollider,
     pub offset: Offset,
     pub size: Size,
@@ -70,7 +74,7 @@ impl BulletBundle {
         BulletBundle {
             offset: Offset(Vec2::new(3., 3.)),
             name: Name::new("Marine bullet"),
-            position: Position(barrel_end),
+            //position: Position(barrel_end),
             zindex: Zindex(150.),
             size: Size(Vec2 { x: 6., y: 6. }),
             stats: BulletStats {
@@ -92,56 +96,28 @@ impl BulletBundle {
     }
 }
 
-fn player_bullet_collision(
-    commands: &mut Commands,
-    player: (Entity, (&GunEntity, Mut<'_, PlayerStats>)),
-    bullet: (Entity, Mut<'_, BulletStats>),
-    gun: Mut<'_, GunStats>,
-) {
-    let (player_id, (_, mut player_stats)) = player;
-    let (bullet_id, bullet_stats) = bullet;
-    let gun_stats = gun;
-
-    if bullet_stats.owner != player_id {
-        commands.entity(bullet_id).despawn();
-        player_stats.current_health -=
-            (gun_stats.damage + player_stats.damages_added) * player_stats.damages_multiplier;
-    }
-}
-
 pub fn detect_collision_bullets(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
-    mut bullets: Query<&mut BulletStats>,
-    mut players: Query<(&GunEntity, &mut PlayerStats, Without<RollStats>)>,
+    mut bullets: Query<(Entity, &mut BulletStats)>,
+    mut players: Query<(Entity, &GunEntity, &mut PlayerStats, Without<RollStats>)>,
+    mut walls: Query<With<WallCollider>>,
     mut guns: Query<&mut GunStats>,
 ) {
     for collision_event in collision_events.iter() {
         if let CollisionEvent::Started(entity1, entity2, _) = collision_event {
-            let bullet = if let Ok(bullet_found) = bullets.get_mut(*entity1) {
-                Some((*entity1, bullet_found))
-            } else if let Ok(bullet_found) = bullets.get_mut(*entity2) {
-                Some((*entity2, bullet_found))
-            } else {
-                None
-            };
-            let player = if let Ok((gun, stats, _)) = players.get_mut(*entity1) {
-                Some((*entity1, (gun, stats)))
-            } else if let Ok((gun, stats, _)) = players.get_mut(*entity2) {
-                Some((*entity2, (gun, stats)))
-            } else {
-                None
-            };
+            if let Some((bullet_id, bullet_stats)) = collision_get!(bullets, entity1, entity2) {
+                if let Some(_) = collision_get!(walls, entity1, entity2) {
+                    commands.entity(bullet_id).despawn();
 
-            if let Some(bullet) = bullet {
-                if let Some(player) = player {
-                    let gun = guns.get_mut(player.1 .0 .0);
-                    player_bullet_collision(
-                        &mut commands,
-                        player,
-                        bullet,
-                        gun.expect("Gun not found"),
-                    );
+                } else if let Some((id, gun, mut stats, _)) = collision_get!(players, entity1, entity2) {
+                    if let Ok(gun_stats) = guns.get_mut(gun.0) {
+                        if bullet_stats.owner != id {
+                            commands.entity(bullet_id).despawn();
+                            stats.current_health -=
+                                (gun_stats.damage + stats.damages_added) * stats.damages_multiplier;
+                        }
+                    }
                 }
             }
         }
@@ -151,13 +127,13 @@ pub fn detect_collision_bullets(
 pub fn move_bullets(
     mut commands: Commands,
     time: Res<Time>,
-    mut query: Query<(Entity, &mut BulletStats, &mut Position)>,
+    mut query: Query<(Entity, &mut BulletStats, &mut Velocity)>,
 ) {
-    for (entity, mut stats, mut position) in &mut query {
+    for (entity, mut stats, mut vel) in &mut query {
         for _ in 0..stats.mercury_amount {
             stats.speed += time.delta_seconds() * 70.;
         }
-        position.0 += Vec2::from_angle(stats.angle) * stats.speed * time.delta_seconds();
+        vel.linvel = Vec2::from_angle(stats.angle) * stats.speed;
         stats.distance_traveled += stats.speed * time.delta_seconds();
         if stats.distance_traveled > stats.distance {
             commands.entity(entity).despawn_recursive();

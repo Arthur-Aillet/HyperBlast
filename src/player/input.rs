@@ -1,4 +1,5 @@
-use bevy::{prelude::*, reflect::TypePath};
+use bevy::{prelude::*, reflect::TypePath, math::Vec3Swizzles};
+use bevy_rapier2d::prelude::Velocity;
 use leafwing_input_manager::{prelude::*, Actionlike};
 
 use crate::{
@@ -101,7 +102,7 @@ pub fn shooting_system(
     time: Res<Time>,
     mut players: Query<(
         Entity,
-        &Position,
+        &Transform,
         &GunEntity,
         &ActionState<PlayerActions>,
         &mut PlayerStats,
@@ -110,7 +111,7 @@ pub fn shooting_system(
         Option<&RollStats>,
     )>,
     mut gun: Query<(
-        &mut Position,
+        &mut Transform,
         &mut Angle,
         &mut Flip,
         &mut GunStats,
@@ -123,7 +124,7 @@ pub fn shooting_system(
 ) {
     for (
         entity,
-        Position(player_pos),
+        transform,
         gun_id,
         player_actions,
         mut stats,
@@ -132,15 +133,16 @@ pub fn shooting_system(
         roll,
     ) in &mut players
     {
-        if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _)) = gun.get_mut(gun_id.0)
+        if let Ok((mut gun_transform, mut gun_angle, mut flip, mut gun_stats, _)) = gun.get_mut(gun_id.0)
         {
-            gun_pos.0 = *player_pos;
-            gun_pos.0.x += 6.;
+            gun_transform.translation = transform.translation;
+            gun_transform.translation += 6.;
+            let gun_pos = gun_transform.translation.xy();
 
             update_gun_angle(
                 (*debug_level).clone(),
                 &mut lines,
-                gun_pos.0,
+                gun_transform.translation.xy(),
                 cursor_position.value,
                 &gun_stats,
                 &mut gun_angle,
@@ -149,9 +151,9 @@ pub fn shooting_system(
             let angle = gun_angle.0;
             let direction = Vec2::from_angle(angle).normalize();
             let barrel_position = if *flip == Flip::False {
-                gun_pos.0 + direction.perp() * gun_stats.barrel_height
+                gun_pos + direction.perp() * gun_stats.barrel_height
             } else {
-                gun_pos.0 + direction.perp() * -gun_stats.barrel_height
+                gun_pos + direction.perp() * -gun_stats.barrel_height
             };
             let barrel_end = barrel_position + Vec2::from_angle(angle) * gun_stats.barrel_length;
             if *debug_level == DebugLevel::Basic {
@@ -220,13 +222,13 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
 type PlayerEntity<'a> = (
     &'a MoveDirection,
     &'a PlayerStats,
-    &'a mut Position,
+    &'a mut Velocity,
     &'a mut AnimationState,
     Without<RollStats>,
 );
 
-pub fn move_players(time: Res<Time>, mut query: Query<PlayerEntity>) {
-    for (direction, stats, mut position, mut state, _) in &mut query {
+pub fn move_players(mut query: Query<PlayerEntity>) {
+    for (direction, stats, mut velocity, mut state, _) in &mut query {
         if direction.value == Vec2::ZERO {
             *state = AnimationState::new(&PlayerState::Idle);
         } else {
@@ -242,7 +244,7 @@ pub fn move_players(time: Res<Time>, mut query: Query<PlayerEntity>) {
                     panic!("IMPOSSIBLE ANGLE!")
                 }
             };
-            position.0 += direction.value.clamp_length(0., 1.) * stats.speed * time.delta_seconds();
         }
+        velocity.linvel = direction.value.clamp_length(0., 1.) * stats.speed;
     }
 }

@@ -1,4 +1,5 @@
 use bevy::{prelude::*, window::PrimaryWindow};
+use bevy_rapier2d::prelude::Velocity;
 use leafwing_input_manager::{prelude::ActionStateDriver, InputManagerBundle};
 use mouse::Mouse;
 
@@ -30,6 +31,7 @@ pub struct PlayerBundle {
     pub stats: PlayerStats,
     pub action: InputManagerBundle<PlayerActions>,
     pub position: Position,
+    pub velocity: Velocity,
     pub zindex: Zindex,
     pub offset: Offset,
     pub current_gun: GunEntity,
@@ -148,6 +150,10 @@ impl PlayerBundle {
             offset: Offset(Vec2::new(17. / 2., 25. / 2. + 8.)),
             zindex: Zindex(25.),
             position: Position(Vec2::ZERO),
+            velocity: bevy_rapier2d::prelude::Velocity {
+                linvel: Vec2::new(0., 0.),
+                angvel: 0.0,
+            },
             current_gun: GunEntity(gun_id),
             collider: TesselatedCollider {
                 texture: assets.collider.clone(),

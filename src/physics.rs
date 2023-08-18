@@ -4,6 +4,20 @@ use bevy_rapier2d::rapier;
 
 pub use bevy_rapier2d::prelude::*;
 
+macro_rules! collision_get {
+    ($query:expr, $entity1:expr, $entity2:expr) => {
+        if let Ok(found) = $query.get_mut(*$entity1) {
+            Some(found)
+        } else if let Ok(found) = $query.get_mut(*$entity2) {
+            Some(found)
+        } else {
+            None
+        }
+    };
+}
+
+pub(crate) use collision_get;
+
 pub struct PhysicsPlugin;
 
 impl Plugin for PhysicsPlugin {
@@ -12,35 +26,6 @@ impl Plugin for PhysicsPlugin {
             .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
             .add_plugins(RapierDebugRenderPlugin::default().disabled())
             .add_systems(PreUpdate, generate_colliders);
-    }
-}
-
-pub trait CollisionEventExt {
-    fn entities(&self) -> (Entity, Entity);
-    fn is_started(&self) -> bool;
-    fn is_stopped(&self) -> bool;
-}
-
-impl CollisionEventExt for CollisionEvent {
-    /// Get the entities involved in the collision
-    fn entities(&self) -> (Entity, Entity) {
-        match self {
-            CollisionEvent::Started(ent1, ent2, _) | CollisionEvent::Stopped(ent1, ent2, _) => {
-                (*ent1, *ent2)
-            }
-        }
-    }
-
-    /// Whether or not the contact has just started
-    fn is_started(&self) -> bool {
-        match self {
-            CollisionEvent::Started(_, _, _) => true,
-            CollisionEvent::Stopped(_, _, _) => false,
-        }
-    }
-
-    fn is_stopped(&self) -> bool {
-        !self.is_started()
     }
 }
 
@@ -106,8 +91,6 @@ fn generate_colliders(
             .insert(ActiveEvents::COLLISION_EVENTS)
             .insert(RigidBody::Dynamic)
             .insert(GravityScale(0.0))
-            .insert(ColliderMassProperties::Density(0.0))
-            .insert(LockedAxes::ROTATION_LOCKED)
-            .insert(LockedAxes::TRANSLATION_LOCKED);
+            .insert(LockedAxes::ROTATION_LOCKED);
     }
 }

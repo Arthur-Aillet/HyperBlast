@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, math::Vec3Swizzles};
 
 use crate::{
     debug::{draw_rectangle, DebugLevel},
@@ -41,17 +41,17 @@ fn calculate_camera_size(
     mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
     window_query: Query<&Window>,
     debug_level: ResMut<DebugLevel>,
-    query: Query<(&Position, With<PlayerStats>)>,
+    query: Query<(&Transform, With<PlayerStats>)>,
     mut camera: Query<(&mut CameraData, With<Camera2d>)>,
 ) {
     for (mut camera_data, _) in &mut camera {
         let average_player_positions: Vec2 =
-            query.iter().map(|(Position(pos), _)| *pos).sum::<Vec2>() / query.iter().len() as f32;
+            query.iter().map(|(pos, _)| pos.translation.xy()).sum::<Vec2>() / query.iter().len() as f32;
         let mut max: Vec2 = Vec2::NEG_INFINITY;
         let mut min: Vec2 = Vec2::INFINITY;
-        for (Position(pos), _) in &query {
-            max = max.max(*pos);
-            min = min.min(*pos);
+        for (pos, _) in &query {
+            max = max.max(pos.translation.xy());
+            min = min.min(pos.translation.xy());
         }
 
         let distance = max - min;

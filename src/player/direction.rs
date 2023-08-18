@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, math::Vec3Swizzles};
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
@@ -34,7 +34,7 @@ pub fn calculate_cursor_position(
     player_actions: &ActionState<PlayerActions>,
     camera_transform: &GlobalTransform,
     camera: &Camera,
-    player_pos: &Vec2,
+    player_pos: Vec2,
     mouse: Option<&ActionState<Mouse>>,
 ) -> Option<Vec2> {
     if is_controller {
@@ -42,7 +42,7 @@ pub fn calculate_cursor_position(
             let axis_pair = player_actions
                 .clamped_axis_pair(PlayerActions::ControllerLook)
                 .unwrap();
-            return Some(*player_pos + axis_pair.xy().normalize() * 30.);
+            return Some(player_pos + axis_pair.xy().normalize() * 30.);
         }
     } else if let Some(mouse_action_state) = mouse {
         let mouse_ray = mouse_action_state
@@ -59,7 +59,7 @@ pub fn calculate_cursor_position(
 pub fn calculate_players_cursors(
     mut players: Query<(
         Option<&IsController>,
-        &Position,
+        &Transform,
         &ActionState<PlayerActions>,
         &mut CursorPosition,
     )>,
@@ -71,8 +71,10 @@ pub fn calculate_players_cursors(
     if let Some((camera, camera_transform)) =
         camera.into_iter().find(|(camera, _)| camera.is_active)
     {
-        for (controller, Position(player_pos), player_actions, mut cursor) in &mut players {
+        for (controller, transfom, player_actions, mut cursor) in &mut players {
             let mouse_maybe = mouse.get_single();
+            let player_pos = transfom.translation.xy();
+
             if let Some(pos) = calculate_cursor_position(
                 controller.is_some(),
                 player_actions,
@@ -81,7 +83,7 @@ pub fn calculate_players_cursors(
                 player_pos,
                 mouse_maybe.ok(),
             ) {
-                cursor.relative = pos - *player_pos;
+                cursor.relative = pos - player_pos;
                 cursor.value = pos;
                 if *debug_level == DebugLevel::Basic {
                     lines.line_colored(Vec3::ZERO, (cursor.relative).extend(0.), 0.0, Color::RED);
@@ -93,7 +95,7 @@ pub fn calculate_players_cursors(
                     );
                 }
             } else {
-                cursor.value = cursor.relative + *player_pos;
+                cursor.value = cursor.relative + player_pos;
                 if *debug_level == DebugLevel::Basic {
                     lines.line_colored(
                         (player_pos).extend(0.),

@@ -45,7 +45,7 @@ impl Plugin for RenderingPlugin {
 pub fn update_transforms(
     mut query: Query<(
         &mut Transform,
-        &Position,
+        Option<&Position>,
         Option<&mut Sprite>,
         Option<&Offset>,
         Option<&Angle>,
@@ -56,7 +56,7 @@ pub fn update_transforms(
 ) {
     for (
         mut transfrom,
-        Position(position),
+        position,
         sprite_maybe,
         offset,
         angle,
@@ -92,8 +92,8 @@ pub fn update_transforms(
         } else {
             offset_transform = offset.unwrap_or(&Offset(Vec2::ZERO)).0.floor();
         }
-        transfrom.translation.x = position.floor().x - offset_transform.x;
-        transfrom.translation.y = position.floor().y + offset_transform.y;
+        //transfrom.translation.x = position.floor().x - offset_transform.x;
+        //transfrom.translation.y = position.floor().y + offset_transform.y;
         transfrom.rotation = Quat::from_rotation_z(angle.unwrap_or(&Angle(0.)).0);
     }
 }
