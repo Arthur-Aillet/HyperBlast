@@ -9,8 +9,7 @@ pub struct DebugPlugin;
 impl Plugin for DebugPlugin {
     #[cfg(feature = "editor")]
     fn build(&self, app: &mut App) {
-        app
-            .add_plugins(bevy_editor_pls::prelude::EditorPlugin::default())
+        app.add_plugins(bevy_editor_pls::prelude::EditorPlugin::default())
             .add_plugins(DebugLinesPlugin::default())
             .add_plugins((FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin))
             .add_plugins(InputManagerPlugin::<DebugAction>::default())
@@ -19,8 +18,7 @@ impl Plugin for DebugPlugin {
     }
     #[cfg(not(feature = "editor"))]
     fn build(&self, app: &mut App) {
-        app
-            .add_plugins(DebugLinesPlugin::default())
+        app.add_plugins(DebugLinesPlugin::default())
             .add_plugins((FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin))
             .add_plugins(InputManagerPlugin::<DebugAction>::default())
             .add_systems(Startup, setup_debug)

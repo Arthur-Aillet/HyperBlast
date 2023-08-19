@@ -13,6 +13,8 @@ bevy_rapier2d = "0.22.0"
 image = "0.24.6"
 rand = "0.8.5"
 bevy_asset_loader = { version = "0.17.0", features = ["2d"] }
+strum = "0.25"
+strum_macros = "0.25"
 
 [features]
 editor = ["dep:bevy_editor_pls"]

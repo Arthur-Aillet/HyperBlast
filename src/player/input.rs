@@ -15,6 +15,10 @@ use crate::player::{
 use crate::player::roll::RollStats;
 
 use super::{direction::{MoveDirection, CursorPosition}, reload::ReloadStats};
+use super::{
+    direction::{CursorPosition, MoveDirection},
+    inventory::inventory_manager::Inventory,
+};
 
 #[derive(Component)]
 pub struct IsController;
@@ -30,6 +34,8 @@ pub enum PlayerActions {
     Shoot,
     Roll,
     Reload,
+    Pickup,
+    Drop,
 }
 
 #[derive(Component, Debug, Reflect, Default)]
@@ -101,6 +107,7 @@ pub fn shooting_system(
         &GunEntity,
         &ActionState<PlayerActions>,
         &mut PlayerStats,
+        &Inventory,
         &CursorPosition,
         Option<&RollStats>,
         Option<&ReloadStats>,
@@ -117,11 +124,10 @@ pub fn shooting_system(
     mut commands: Commands,
     gun_assets: Res<super::assets::GunAssets>,
 ) {
-
-    for (entity, Position(player_pos), gun_id, player_actions, mut stats, cursor_position, roll, reload) in
+    for (entity, Position(player_pos), gun_id, player_actions, mut stats, inv, cursor_position, roll, reload) in
         &mut players
     {
-        if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _)) =
+        if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _, _)) =
             guns.get_mut(gun_id.0)
         {
             gun_pos.0 = *player_pos;
@@ -143,8 +149,7 @@ pub fn shooting_system(
             } else {
                 gun_pos.0 + direction.perp() * -gun_stats.barrel_height
             };
-            let barrel_end =
-                barrel_position + Vec2::from_angle(angle) * gun_stats.barrel_length;
+            let barrel_end = barrel_position + Vec2::from_angle(angle) * gun_stats.barrel_length;
             if *debug_level == DebugLevel::Basic {
                 lines.line_colored(
                     (barrel_end).extend(0.),
@@ -166,6 +171,7 @@ pub fn shooting_system(
                 &gun_assets,
                 &mut gun_stats,
                 &mut stats,
+                inv,
                 barrel_end,
                 angle,
                 entity,
@@ -183,7 +189,12 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
         input_map = InputMap::new([
             (GamepadButtonType::RightTrigger2, PlayerActions::Shoot),
             (GamepadButtonType::LeftTrigger2, PlayerActions::Roll),
+<<<<<<< HEAD
             (GamepadButtonType::South, PlayerActions::Reload),
+=======
+            (GamepadButtonType::South, PlayerActions::Pickup),
+            (GamepadButtonType::Start, PlayerActions::Drop),
+>>>>>>> 4bd7630eeeb0ce87252513483ba838522594af48
         ]);
         input_map
             .insert(DualAxis::left_stick(), PlayerActions::ControllerMove)
@@ -195,7 +206,12 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
             (KeyCode::Z, PlayerActions::Up),
             (KeyCode::S, PlayerActions::Down),
             (KeyCode::Space, PlayerActions::Roll),
+<<<<<<< HEAD
             (KeyCode::R, PlayerActions::Reload),
+=======
+            (KeyCode::A, PlayerActions::Pickup),
+            (KeyCode::W, PlayerActions::Drop),
+>>>>>>> 4bd7630eeeb0ce87252513483ba838522594af48
         ]);
         input_map.insert(MouseButton::Left, PlayerActions::Shoot);
     }
@@ -211,7 +227,7 @@ type PlayerEntity<'a> = (
     &'a PlayerStats,
     &'a mut Position,
     &'a mut AnimationState,
-    Without<RollStats>
+    Without<RollStats>,
 );
 
 pub fn move_players(time: Res<Time>, mut query: Query<PlayerEntity>) {

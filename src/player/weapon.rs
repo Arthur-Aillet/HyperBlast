@@ -13,10 +13,10 @@ use crate::{
 };
 
 
-use super::{assets::GunAssets, stats::PlayerStats};
+use super::{assets::GunAssets, inventory::inventory_manager::Inventory, stats::PlayerStats};
 
 type ShootFn =
-    fn(&mut Commands, &Res<GunAssets>, &mut GunStats, &mut PlayerStats, Vec2, f32, Entity, &ActionState<PlayerActions>, Option<&RollStats>, Option<&ReloadStats>);
+    fn(&mut Commands, &Res<GunAssets>, &mut GunStats, &mut PlayerStats, &Inventory, Vec2, f32, Entity, &ActionState<PlayerActions>, Option<&RollStats>, Option<&ReloadStats>);
 
 pub type ReloadFn =
     fn(&Res<Time>, &mut Commands, Mut<'_, Angle>, Mut<'_, GunStats>, Mut<'_, PlayerStats>, Mut<'_, ReloadStats>, Option<&RollStats>, Entity);
@@ -240,7 +240,26 @@ pub struct GunEntity(pub Entity);
 
 impl GunBundle {
     pub fn setup(guns: &Res<GunAssets>) -> Self {
+<<<<<<< HEAD
         let mut stats = semi_automatic_stats();
+=======
+        let mut stats = GunStats {
+            handle_position: Vec2::new(2., 2.),
+            barrel_length: 12.,
+            barrel_height: 5.5,
+            timer: Stopwatch::new(),
+            shoot: basic_shoot_fn,
+            damage: 20.,
+            spread: (10_f32).to_radians(),
+            salve: 1,
+            ammo: 100,
+            max_ammo: 100,
+            mag_ammo: 10,
+            mag_size: 10,
+            reload_time: 2.5,
+            fire_rate: 40.,
+        };
+>>>>>>> 4bd7630eeeb0ce87252513483ba838522594af48
         stats.timer.set_elapsed(Duration::new(1, 0));
         GunBundle {
             name: Name::new("Gun"),
@@ -323,6 +342,7 @@ pub fn manual_shoot_fn(
     assets: &Res<GunAssets>,
     stats: &mut GunStats,
     _player: &mut PlayerStats,
+    inventory: &Inventory,
     barrel_end: Vec2,
     angle: f32,
     owner: Entity,
@@ -343,11 +363,26 @@ pub fn manual_shoot_fn(
         if stats.left_to_fire == stats.min_shot || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate {
             stats.timer.reset();
             let mut rng = rand::thread_rng();
+<<<<<<< HEAD
             for _ in 0..stats.salve {
                 commands.spawn(BulletBundle::marine_bullet(
                     assets,
                     barrel_end,
                     angle + (if stats.spread == 0. {0.} else {rng.gen_range((stats.spread * -1.)..stats.spread)}),
+=======
+            let to_fire = if stats.salve > stats.mag_ammo {
+                stats.mag_ammo
+            } else {
+                stats.salve
+            };
+
+            for _ in 0..to_fire {
+                commands.spawn(BulletBundle::marine_bullet(
+                    assets,
+                    barrel_end,
+                    angle + rng.gen_range((stats.spread * -1.)..stats.spread),
+                    inventory,
+>>>>>>> 4bd7630eeeb0ce87252513483ba838522594af48
                     owner,
                     stats.speed + (if stats.spread == 0. {0.} else {rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)}),
                     stats.distance,
@@ -356,6 +391,7 @@ pub fn manual_shoot_fn(
             stats.mag_ammo -= 1;
             stats.left_to_fire -= 1;
         }
+<<<<<<< HEAD
     }
 }
 
@@ -399,3 +435,16 @@ pub fn auto_shoot_fn(
         }
     }
 }
+=======
+    } else if stats.timer.elapsed_secs() >= stats.reload_time {
+        stats.timer.reset();
+        if stats.ammo < stats.mag_size {
+            stats.mag_ammo = stats.ammo;
+            stats.ammo = 0;
+        } else {
+            stats.mag_ammo = stats.mag_size;
+            stats.ammo -= stats.mag_size;
+        }
+    }
+}
+>>>>>>> 4bd7630eeeb0ce87252513483ba838522594af48

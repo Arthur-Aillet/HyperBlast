@@ -1,15 +1,16 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{
-    physics::TesselatedCollider,
-    rendering::{Offset, Position, Size, Zindex},
-};
+use crate::rendering::{Offset, Position, Size, Zindex};
+
+use crate::player::inventory::item_manager::Items;
 
 use super::{
     assets::GunAssets,
+    inventory::inventory_manager::Inventory,
+    roll::RollStats,
     stats::PlayerStats,
-    weapon::{GunEntity, GunStats}, roll::RollStats,
+    weapon::{GunEntity, GunStats},
 };
 
 #[derive(Component)]
@@ -18,7 +19,31 @@ pub struct BulletStats {
     pub distance: f32,
     pub distance_traveled: f32,
     pub speed: f32,
+    pub mercury_amount: usize,
     pub owner: Entity,
+}
+
+#[derive(Bundle)]
+pub struct SphereCollider {
+    pub collider: Collider,
+    pub active: ActiveEvents,
+    pub rigid: RigidBody,
+    pub gravity: GravityScale,
+    pub mass: ColliderMassProperties,
+    pub locked_trans: LockedAxes,
+}
+
+impl SphereCollider {
+    pub fn new() -> SphereCollider {
+        SphereCollider {
+            collider: Collider::ball(3.5),
+            active: ActiveEvents::COLLISION_EVENTS,
+            rigid: RigidBody::Dynamic,
+            gravity: GravityScale(0.0),
+            mass: ColliderMassProperties::Density(0.0),
+            locked_trans: LockedAxes::TRANSLATION_LOCKED,
+        }
+    }
 }
 
 #[derive(Bundle)]
@@ -28,7 +53,7 @@ pub struct BulletBundle {
     pub sprite: SpriteBundle,
     pub zindex: Zindex,
     pub position: Position,
-    pub collider: TesselatedCollider,
+    pub collider: SphereCollider,
     pub offset: Offset,
     pub size: Size,
 }
@@ -38,6 +63,7 @@ impl BulletBundle {
         assets: &Res<GunAssets>,
         barrel_end: Vec2,
         angle: f32,
+        inventory: &Inventory,
         player: Entity,
         spd: f32,
         dist: f32,
@@ -53,17 +79,15 @@ impl BulletBundle {
                 distance_traveled: 0.,
                 angle,
                 distance: dist,
-                speed: spd,
+                speed: spd / (inventory.amount(Items::Mercury) as f32 * 3. + 1.),
+                mercury_amount: inventory.amount(Items::Mercury),
             },
             sprite: SpriteBundle {
                 texture: assets.marine_bullet.clone(),
                 transform: Transform::from_translation(barrel_end.extend(150.)), // TODO: SHOULD'NT EXIST, SHOULD BE PROPERLY FIXED BY "update_transform" system
                 ..default()
             },
-            collider: TesselatedCollider {
-                texture: assets.marine_bullet.clone(),
-                offset: Vec2::new(-3., 3.),
-            },
+            collider: SphereCollider::new(),
         }
     }
 }
@@ -101,9 +125,9 @@ pub fn detect_collision_bullets(
             } else {
                 None
             };
-            let player = if let Ok((gun, stats,_)) = players.get_mut(*entity1) {
+            let player = if let Ok((gun, stats, _)) = players.get_mut(*entity1) {
                 Some((*entity1, (gun, stats)))
-            } else if let Ok((gun, stats,_)) = players.get_mut(*entity2) {
+            } else if let Ok((gun, stats, _)) = players.get_mut(*entity2) {
                 Some((*entity2, (gun, stats)))
             } else {
                 None
@@ -111,7 +135,7 @@ pub fn detect_collision_bullets(
 
             if let Some(bullet) = bullet {
                 if let Some(player) = player {
-                    let gun = guns.get_mut(player.1.0.0);
+                    let gun = guns.get_mut(player.1 .0 .0);
                     player_bullet_collision(
                         &mut commands,
                         player,
@@ -130,6 +154,9 @@ pub fn move_bullets(
     mut query: Query<(Entity, &mut BulletStats, &mut Position)>,
 ) {
     for (entity, mut stats, mut position) in &mut query {
+        for _ in 0..stats.mercury_amount {
+            stats.speed += time.delta_seconds() * 70.;
+        }
         position.0 += Vec2::from_angle(stats.angle) * stats.speed * time.delta_seconds();
         stats.distance_traveled += stats.speed * time.delta_seconds();
         if stats.distance_traveled > stats.distance {

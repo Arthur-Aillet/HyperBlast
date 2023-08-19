@@ -30,6 +30,7 @@ impl Plugin for RenderingPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Msaa::Off)
             .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+            .add_plugins(crate::outline::OutlinePlugin)
             .register_type::<Position>()
             .register_type::<Angle>()
             .register_type::<Zindex>()

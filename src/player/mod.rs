@@ -1,12 +1,18 @@
 pub mod assets;
 pub mod bullets;
+pub mod direction;
 pub mod input;
+pub mod inventory;
+pub mod roll;
 pub mod setup;
 pub mod stats;
 pub mod weapon;
+<<<<<<< HEAD
 pub mod roll;
 pub mod reload;
 pub mod direction;
+=======
+>>>>>>> 4bd7630eeeb0ce87252513483ba838522594af48
 
 use bevy::{prelude::*, window::PrimaryWindow};
 
@@ -27,6 +33,7 @@ impl Plugin for PlayerPlugin {
             .init_collection::<assets::PlayerAssets>()
             .init_collection::<assets::GunAssets>()
             .add_plugins(InputManagerPlugin::<input::PlayerActions>::default())
+            .add_plugins(inventory::ItemsPlugin)
             .add_systems(Startup, setup_players)
             .add_systems(First, direction::calculate_players_cursors)
             .add_systems(First, direction::calculate_players_move_direction)
