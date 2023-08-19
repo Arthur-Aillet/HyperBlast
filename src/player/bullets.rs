@@ -35,6 +35,7 @@ pub struct SphereCollider {
     pub mass: ColliderMassProperties,
     pub locked_trans: LockedAxes,
     pub sensor: Sensor,
+    pub velocity: Velocity,
 }
 
 impl SphereCollider {
@@ -47,6 +48,7 @@ impl SphereCollider {
             mass: ColliderMassProperties::Density(0.0),
             locked_trans: LockedAxes::TRANSLATION_LOCKED,
             sensor: Sensor,
+            velocity: Velocity::default(),
         }
     }
 }

@@ -1,12 +1,11 @@
 use bevy::{prelude::*, window::PrimaryWindow};
-use bevy_rapier2d::prelude::Velocity;
+use bevy_rapier2d::prelude::*;
 use leafwing_input_manager::{prelude::ActionStateDriver, InputManagerBundle};
 use mouse::Mouse;
 
 use crate::{
     animation::{AnimationFlip, AnimationIndices, AnimationState, AnimationStateMachine},
     mouse,
-    physics::TesselatedCollider,
     rendering::{Offset, Position, Zindex},
 };
 
@@ -35,10 +34,14 @@ pub struct PlayerBundle {
     pub zindex: Zindex,
     pub offset: Offset,
     pub current_gun: GunEntity,
-    pub collider: TesselatedCollider,
     pub direction: MoveDirection,
     pub cursor: CursorPosition,
     pub inventory: Inventory,
+    pub active: ActiveEvents,
+    pub rigid_body: RigidBody,
+    pub gravity: GravityScale,
+    pub locked_axes: LockedAxes,
+    pub collider: Collider,
 }
 
 impl PlayerBundle {
@@ -142,6 +145,7 @@ impl PlayerBundle {
                     anchor: bevy::sprite::Anchor::TopLeft,
                     ..default()
                 },
+                transform: Transform::from_translation(Vec3::new(controller as i32 as f32 * 60., 0., 0.,)),
                 ..default()
             },
             state_machine,
@@ -149,19 +153,20 @@ impl PlayerBundle {
             action: input::player_input_setup(controller),
             offset: Offset(Vec2::new(17. / 2., 25. / 2. + 8.)),
             zindex: Zindex(25.),
-            position: Position(Vec2::ZERO),
+            position: Position(Vec2::new(controller as i32 as f32 * 60., 0.,)),
             velocity: bevy_rapier2d::prelude::Velocity {
                 linvel: Vec2::new(0., 0.),
                 angvel: 0.0,
             },
             current_gun: GunEntity(gun_id),
-            collider: TesselatedCollider {
-                texture: assets.collider.clone(),
-                offset: Vec2::ZERO,
-            },
             direction: MoveDirection::default(),
             cursor: CursorPosition::default(),
             inventory: Inventory::new(),
+            active: ActiveEvents::COLLISION_EVENTS,
+            rigid_body: RigidBody::Dynamic,
+            gravity: GravityScale(0.0),
+            locked_axes: LockedAxes::ROTATION_LOCKED,
+            collider: Collider::capsule_y(25./2., 17./2.)
         };
         if controller {
             commands.spawn(player).insert(IsController);

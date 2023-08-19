@@ -1,7 +1,33 @@
-use bevy::prelude::*;
+use std::time::Duration;
 
-#[derive(Component, Default, Reflect, Clone)]
-pub struct Position(pub Vec2);
+use bevy::{prelude::*, render::{Render, RenderSet, RenderApp}, asset::ChangeWatcher, transform};
+use bevy::{
+    core_pipeline::{
+        clear_color::ClearColorConfig, core_3d,
+        fullscreen_vertex_shader::fullscreen_shader_vertex_state,
+    },
+    ecs::query::QueryItem,
+    prelude::*,
+    render::{
+        extract_component::{
+            ComponentUniforms, ExtractComponent, ExtractComponentPlugin, UniformComponentPlugin,
+        },
+        render_graph::{
+            NodeRunError, RenderGraphApp, RenderGraphContext, ViewNode, ViewNodeRunner,
+        },
+        render_resource::{
+            BindGroupDescriptor, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor,
+            BindGroupLayoutEntry, BindingResource, BindingType, CachedRenderPipelineId,
+            ColorTargetState, ColorWrites, FragmentState, MultisampleState, Operations,
+            PipelineCache, PrimitiveState, RenderPassColorAttachment, RenderPassDescriptor,
+            RenderPipelineDescriptor, Sampler, SamplerBindingType, SamplerDescriptor, ShaderStages,
+            ShaderType, TextureFormat, TextureSampleType, TextureViewDimension,
+        },
+        renderer::{RenderContext, RenderDevice},
+        texture::BevyDefault,
+        view::ViewTarget,
+    },
+};
 
 #[derive(Component, Default, Reflect, Clone)]
 pub struct Angle(pub f32); // Not supported yet
@@ -15,6 +41,9 @@ pub struct Offset(pub Vec2);
 #[derive(Component, Default, Reflect, Clone)]
 pub struct Size(pub Vec2);
 
+#[derive(Component, Default, Reflect, Clone)]
+pub struct Position(pub Vec2);
+
 #[derive(Component, Reflect, Default, PartialEq)]
 pub enum Flip {
     #[default]
@@ -24,12 +53,17 @@ pub enum Flip {
     XYAxis,
 }
 
+
 pub struct RenderingPlugin;
 
 impl Plugin for RenderingPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Msaa::Off)
-            .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+            .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()).set(AssetPlugin {
+                // Hot reloading the shader works correctly
+                watch_for_changes: ChangeWatcher::with_delay(Duration::from_millis(200)),
+                ..default()
+            }))
             .add_plugins(crate::outline::OutlinePlugin)
             .register_type::<Position>()
             .register_type::<Angle>()
@@ -37,63 +71,12 @@ impl Plugin for RenderingPlugin {
             .register_type::<Offset>()
             .register_type::<Size>()
             .register_type::<Flip>()
-            .add_systems(Last, update_transforms);
+            .add_systems(Update, set_zindex);
     }
 }
 
-#[allow(clippy::type_complexity)]
-pub fn update_transforms(
-    mut query: Query<(
-        &mut Transform,
-        Option<&Position>,
-        Option<&mut Sprite>,
-        Option<&Offset>,
-        Option<&Angle>,
-        Option<&Zindex>,
-        Option<&Size>,
-        Option<&Flip>,
-    )>,
-) {
-    for (
-        mut transfrom,
-        position,
-        sprite_maybe,
-        offset,
-        angle,
-        zindex,
-        size_maybe,
-        flip_maybe,
-    ) in &mut query
-    {
-        let mut offset_transform = Vec2::ZERO;
-
-        if let Some(z) = zindex {
-            transfrom.translation.z = z.0;
-        }
-        if let Some(mut sprite) = sprite_maybe {
-            if let Some(flip) = flip_maybe {
-                sprite.flip_x = *flip == Flip::XAxis || *flip == Flip::XYAxis;
-                sprite.flip_y = *flip == Flip::YAxis || *flip == Flip::XYAxis;
-            }
-            if let Some(size) = size_maybe {
-                let size = size.0.floor();
-                let mut offset = offset.unwrap_or(&Offset(Vec2::ZERO)).0.floor();
-
-                if sprite.flip_x {
-                    offset.x = size.x - offset.x;
-                }
-                if sprite.flip_y {
-                    offset.y = size.y - offset.y;
-                }
-                sprite.anchor = bevy::sprite::Anchor::Custom(((offset * 2. - size) / size) * 0.5);
-            } else {
-                offset_transform = offset.unwrap_or(&Offset(Vec2::ZERO)).0.floor();
-            }
-        } else {
-            offset_transform = offset.unwrap_or(&Offset(Vec2::ZERO)).0.floor();
-        }
-        //transfrom.translation.x = position.floor().x - offset_transform.x;
-        //transfrom.translation.y = position.floor().y + offset_transform.y;
-        transfrom.rotation = Quat::from_rotation_z(angle.unwrap_or(&Angle(0.)).0);
+fn set_zindex(mut query: Query<(&mut Transform, &Zindex)>) {
+    for (mut transform, Zindex(val)) in &mut query {
+        transform.translation.z = *val;
     }
 }

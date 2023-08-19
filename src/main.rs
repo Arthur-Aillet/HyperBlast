@@ -17,14 +17,16 @@ use bevy::{input::InputSystem, prelude::*};
 
 fn main() {
     App::new()
-        .add_plugins(physics::PhysicsPlugin)
-        .add_plugins(rendering::RenderingPlugin)
-        .add_plugins(animation::AnimationPlugin)
-        .add_plugins(debug::DebugPlugin)
-        .add_plugins(ui::UiPlugin)
-        .add_plugins(camera::CameraPlugin)
-        .add_plugins(player::PlayerPlugin)
-        .add_plugins(map::MapPlugin)
+        .add_plugins((
+            physics::PhysicsPlugin,
+            rendering::RenderingPlugin,
+            animation::AnimationPlugin,
+            debug::DebugPlugin,
+            ui::UiPlugin,
+            camera::CameraPlugin,
+            player::PlayerPlugin,
+            map::MapPlugin
+        ))
         .add_systems(Startup, setup)
         .add_systems(
             Update,
