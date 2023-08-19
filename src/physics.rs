@@ -19,6 +19,8 @@ macro_rules! collision_get {
 
 pub(crate) use collision_get;
 
+use crate::rendering::floor_transform_position;
+
 
 pub struct PhysicsPlugin;
 
@@ -35,6 +37,7 @@ impl Plugin for PhysicsPlugin {
                 )
                     .chain()
                     .before(TransformSystem::TransformPropagate)
+                    .before(floor_transform_position)
             )
             .add_systems(
                 PostUpdate,

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::{prelude::*, render::{Render, RenderSet, RenderApp}, asset::ChangeWatcher, transform};
+use bevy::{prelude::*, render::{Render, RenderSet, RenderApp}, asset::ChangeWatcher, transform, math::Vec3Swizzles};
 use bevy::{
     core_pipeline::{
         clear_color::ClearColorConfig, core_3d,
@@ -71,12 +71,41 @@ impl Plugin for RenderingPlugin {
             .register_type::<Offset>()
             .register_type::<Size>()
             .register_type::<Flip>()
-            .add_systems(Update, set_zindex);
+            .add_systems(Update, set_zindex)
+            .add_systems(First, reset_positions);
+        .add_systems(PostUpdate, floor_transform_position);
     }
 }
 
 fn set_zindex(mut query: Query<(&mut Transform, &Zindex)>) {
     for (mut transform, Zindex(val)) in &mut query {
         transform.translation.z = *val;
+    }
+}
+
+pub fn reset_positions(
+    mut query: Query<(
+        &mut Transform,
+        &Position,
+    )>,
+) {
+    for (mut transform, pos) in &mut query {
+        transform.translation.x = pos.0.x;
+        transform.translation.y = pos.0.y;
+    }
+}
+
+pub fn floor_transform_position(
+    mut query: Query<(
+        &mut Transform,
+        &mut Position,
+    )>,
+) {
+    for (mut transform, mut pos) in &mut query {
+        let save = transform.translation.xy();
+
+        transform.translation.x = transform.translation.x.floor();
+        transform.translation.y = transform.translation.y.floor();
+        pos.0 = save;
     }
 }
