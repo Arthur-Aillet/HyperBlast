@@ -72,8 +72,8 @@ impl Plugin for RenderingPlugin {
             .register_type::<Size>()
             .register_type::<Flip>()
             .add_systems(Update, set_zindex)
-            .add_systems(First, reset_positions);
-        .add_systems(PostUpdate, floor_transform_position);
+            .add_systems(First, reset_positions)
+            .add_systems(PostUpdate, floor_transform_position);
     }
 }
 
