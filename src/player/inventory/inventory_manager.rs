@@ -2,9 +2,9 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
-    outline::Outline,
+    rendering::outline::Outline,
     player::{input::PlayerActions, inventory::item_manager::Items},
-    rendering::Position,
+    rendering::utils::Position,
 };
 
 use super::{assets::ItemsAssets, DroppedEvent};

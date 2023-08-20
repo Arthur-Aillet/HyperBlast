@@ -6,13 +6,13 @@ use rand::Rng;
 use strum::IntoEnumIterator;
 
 use crate::{
-    outline::Outline,
+    rendering::outline::Outline,
     player::{
         input::PlayerActions,
         inventory::{inventory_manager::Inventory, item_manager::Items},
         stats::PlayerStats,
     },
-    rendering::{Position, Zindex},
+    rendering::utils::{Position, Zindex},
 };
 
 use super::{assets::ItemsAssets, PickupEvent};

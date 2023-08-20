@@ -5,7 +5,7 @@ use crate::{
     debug::DebugLevel,
     mouse::Mouse,
     player::input::{IsController, PlayerActions},
-    rendering::Position,
+    rendering::utils::Position,
 };
 
 #[derive(Component, Default, Clone)]

@@ -3,16 +3,16 @@ use bevy::{prelude::*, math::Vec3Swizzles};
 use crate::{
     debug::{draw_rectangle, DebugLevel},
     player::stats::PlayerStats,
-    rendering::Position,
+    rendering::utils::Position,
 };
 
 pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_camera)
-            .add_systems(Update, calculate_camera_size)
-            .add_systems(Update, resize_camera.after(calculate_camera_size));
+        app.add_systems(Startup, setup_camera);
+            //.add_systems(Update, calculate_camera_size)
+            //.add_systems(Update, resize_camera.after(calculate_camera_size));
     }
 }
 

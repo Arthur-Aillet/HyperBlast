@@ -6,7 +6,7 @@ use mouse::Mouse;
 use crate::{
     animation::{AnimationFlip, AnimationIndices, AnimationState, AnimationStateMachine},
     mouse,
-    rendering::{Offset, Position, Zindex},
+    rendering::utils::{Offset, Position, Zindex},
 };
 
 use input::PlayerActions;

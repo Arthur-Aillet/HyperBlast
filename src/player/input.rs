@@ -5,7 +5,7 @@ use leafwing_input_manager::{prelude::*, Actionlike};
 use crate::{
     animation::AnimationState,
     debug::DebugLevel,
-    rendering::{Angle, Flip, Position},
+    rendering::utils::{Angle, Flip, Position},
 };
 
 use crate::player::{

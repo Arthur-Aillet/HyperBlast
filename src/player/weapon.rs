@@ -5,7 +5,7 @@ use rand::Rng;
 
 use crate::{
     player::bullets::BulletBundle,
-    rendering::{Angle, Flip, Offset, Position, Size, Zindex},
+    rendering::utils::{Angle, Flip, Offset, Position, Size, Zindex},
 };
 
 use super::{assets::GunAssets, inventory::inventory_manager::Inventory, stats::PlayerStats};

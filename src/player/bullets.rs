@@ -2,8 +2,8 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::map::colliders::WallCollider;
-use crate::physics::{self, collision_get};
-use crate::rendering::{Offset, Position, Size, Zindex};
+use crate::physics::collision_get;
+use crate::rendering::utils::{Offset, Position, Size, Zindex};
 
 use crate::player::inventory::item_manager::Items;
 

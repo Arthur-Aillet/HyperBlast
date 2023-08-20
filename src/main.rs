@@ -1,15 +1,14 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod animation;
-mod camera;
-mod debug;
-mod mouse;
-mod outline;
-mod physics;
-mod player;
-mod rendering;
-mod ui;
-mod map;
+pub mod animation;
+pub mod camera;
+pub mod debug;
+pub mod mouse;
+pub mod physics;
+pub mod player;
+pub mod rendering;
+pub mod ui;
+pub mod map;
 
 use leafwing_input_manager::plugin::InputManagerSystem;
 
@@ -43,3 +42,4 @@ fn main() {
 fn setup() {
 
 }
+
