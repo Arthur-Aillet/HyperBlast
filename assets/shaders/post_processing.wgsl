@@ -29,15 +29,12 @@ var texture_sampler: sampler;
 struct PostProcessSettings {
     intensity: f32,
     enabled: f32,
-#ifdef SIXTEEN_BYTE_ALIGNMENT
-    // WebGL2 structs must be 16 byte aligned.
-    _webgl2_padding: vec2<f32>
-#endif
+    position: vec2<f32>,
 }
 @group(0) @binding(2)
 var<uniform> settings: PostProcessSettings;
 
 @fragment
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
-    return textureSample(screen_texture, texture_sampler, (in.uv - 0.5) * settings.intensity + 0.5);
+    return textureSample(screen_texture, texture_sampler, (in.uv - 0.5) * settings.intensity + 0.5 + settings.position);
 }

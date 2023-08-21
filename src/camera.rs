@@ -23,6 +23,7 @@ pub struct CameraData {
 }
 
 fn resize_camera(
+    window_query: Query<&Window>,
     mut camera: Query<(
         &CameraData,
         &mut Transform,
@@ -32,13 +33,16 @@ fn resize_camera(
     mut settings: Query<&mut PostProcessSettings>,
 ) {
     for (camera_data, mut transform, mut projection, _) in &mut camera {
-        transform.translation = transform.translation + (camera_data.pos.extend(999.9) - transform.translation) / 5.;
         let mut settings = settings.single_mut();
         if settings.enabled == 1. {
             projection.scale = 1.;
+            let window = window_query.single();
+            settings.position = settings.position + (Vec2::new(camera_data.pos.x / window.width(), -camera_data.pos.y / window.height()) - settings.position) / 5.;
             settings.intensity = settings.intensity + (camera_data.scale - settings.intensity) / 10.;
         } else {
             settings.intensity = 1.;
+            settings.position = Vec2::new(0., 0.);
+            transform.translation = transform.translation + (camera_data.pos.extend(999.9) - transform.translation) / 5.;
             projection.scale = projection.scale + (camera_data.scale - projection.scale) / 10.;
         }
     }

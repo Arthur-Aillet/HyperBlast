@@ -306,9 +306,7 @@ impl FromWorld for PostProcessPipeline {
 pub struct PostProcessSettings {
     pub intensity: f32,
     pub enabled: f32,
-    // WebGL2 structs must be 16 byte aligned.
-    #[cfg(feature = "webgl2")]
-    _webgl2_padding: Vec2,
+    pub position: Vec2,
 }
 
 /// Set up a simple 3D scene
@@ -321,6 +319,7 @@ pub fn setup(
         PostProcessSettings {
             intensity: 1.,
             enabled: 1.,
+            position: Vec2::new(0., 0.),
         },
     ));
 }
