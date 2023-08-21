@@ -16,6 +16,8 @@ use input::PlayerState;
 use leafwing_input_manager::prelude::*;
 use stats::PlayerStats;
 
+use crate::mouse::update_cursor_state_from_window;
+
 use self::assets::{GunAssets, PlayerAssets};
 
 pub struct PlayerPlugin;
@@ -32,11 +34,11 @@ impl Plugin for PlayerPlugin {
             .add_systems(First, direction::calculate_players_cursors)
             .add_systems(First, direction::calculate_players_move_direction)
             .add_systems(PreUpdate, roll::start_roll)
-            .add_systems(Update, input::move_players)
-            .add_systems(Update, roll::rolling)
-            .add_systems(Update, input::shooting_system)
-            .add_systems(Update, bullets::move_bullets)
-            .add_systems(Update, bullets::detect_collision_bullets)
+            .add_systems(Update, input::move_players.after(update_cursor_state_from_window))
+            .add_systems(Update, roll::rolling.after(update_cursor_state_from_window))
+            .add_systems(Update, input::shooting_system.after(update_cursor_state_from_window))
+            .add_systems(Update, bullets::move_bullets.after(update_cursor_state_from_window))
+            .add_systems(Update, bullets::detect_collision_bullets.after(update_cursor_state_from_window))
             .add_systems(PostUpdate, stats::player_death);
     }
 }

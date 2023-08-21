@@ -307,9 +307,10 @@ impl FromWorld for PostProcessPipeline {
 #[derive(Component, Default, Clone, Copy, ExtractComponent, ShaderType)]
 pub struct PostProcessSettings {
     pub intensity: f32,
+    pub enabled: f32,
     // WebGL2 structs must be 16 byte aligned.
     #[cfg(feature = "webgl2")]
-    _webgl2_padding: Vec3,
+    _webgl2_padding: Vec2,
 }
 
 /// Set up a simple 3D scene
@@ -323,7 +324,7 @@ pub fn setup(
         // Add the setting to the camera.
         // This component is also used to determine on which camera to run the post processing effect.
         PostProcessSettings {
-            intensity: 0.02,
+            intensity: 1.,
             ..default()
         },
     ));

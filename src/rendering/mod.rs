@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use bevy::{prelude::*, asset::ChangeWatcher};
 
-use self::{utils::{Position, Zindex, Offset, Flip}, zoom::{setup, PostProcessPlugin}};
+use self::{utils::{Position, Zindex, Offset, Flip}, zoom::{setup, PostProcessPlugin, PostProcessSettings}};
 
 pub struct RenderingPlugin;
 
@@ -28,6 +28,14 @@ impl Plugin for RenderingPlugin {
             .register_type::<Size>()
             .register_type::<Flip>()
             .add_systems(Update, crate::rendering::utils::set_zindex)
+            .add_systems(Update, disable_pixel_perfect)
             .add_systems(PostUpdate, crate::rendering::utils::set_angle);
+    }
+}
+
+fn disable_pixel_perfect(input: Res<Input<KeyCode>>, mut settings: Query<&mut PostProcessSettings>)  {
+    if input.just_pressed(KeyCode::P) {
+        let mut set = settings.single_mut();
+        set.enabled = if set.enabled == 1. { 0. } else { 1. };
     }
 }
