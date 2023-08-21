@@ -3,7 +3,7 @@ use bevy_rapier2d::prelude::*;
 
 use crate::map::colliders::WallCollider;
 use crate::physics::collision_get;
-use crate::rendering::utils::{Offset, Position, Size, Zindex};
+use crate::rendering::utils::Zindex;
 
 use crate::player::inventory::item_manager::Items;
 
@@ -59,10 +59,7 @@ pub struct BulletBundle {
     pub stats: BulletStats,
     pub sprite: SpriteBundle,
     pub zindex: Zindex,
-    //pub position: Position,
     pub collider: SphereCollider,
-    pub offset: Offset,
-    pub size: Size,
 }
 
 impl BulletBundle {
@@ -74,11 +71,8 @@ impl BulletBundle {
         player: Entity,
     ) -> Self {
         BulletBundle {
-            offset: Offset(Vec2::new(3., 3.)),
             name: Name::new("Marine bullet"),
-            //position: Position(barrel_end),
-            zindex: Zindex(150.),
-            size: Size(Vec2 { x: 6., y: 6. }),
+            zindex: Zindex(45.),
             stats: BulletStats {
                 owner: player,
                 distance_traveled: 0.,
@@ -90,7 +84,7 @@ impl BulletBundle {
             },
             sprite: SpriteBundle {
                 texture: assets.marine_bullet.clone(),
-                transform: Transform::from_translation(barrel_end.extend(150.)), // TODO: SHOULD'NT EXIST, SHOULD BE PROPERLY FIXED BY "update_transform" system
+                transform: Transform::from_translation(barrel_end.extend(150.)),
                 ..default()
             },
             collider: SphereCollider::new(),

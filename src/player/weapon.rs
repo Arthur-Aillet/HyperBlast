@@ -5,7 +5,7 @@ use rand::Rng;
 
 use crate::{
     player::bullets::BulletBundle,
-    rendering::utils::{Angle, Flip, Offset, Position, Size, Zindex},
+    rendering::utils::{Angle, Zindex, set_anchor},
 };
 
 use super::{assets::GunAssets, inventory::inventory_manager::Inventory, stats::PlayerStats};
@@ -24,6 +24,7 @@ type ShootFn = fn(
 #[derive(Component)]
 pub struct GunStats {
     pub handle_position: Vec2,
+    pub size: Vec2,
     pub barrel_length: f32,
     pub barrel_height: f32,
     pub spread: f32,
@@ -46,9 +47,6 @@ pub struct GunBundle {
     pub sprite: SpriteBundle,
     pub angle: Angle,
     pub zindex: Zindex,
-    pub flip: Flip,
-    pub offset: Offset,
-    pub size: Size,
 }
 
 #[derive(Component)]
@@ -58,6 +56,7 @@ impl GunBundle {
     pub fn setup(guns: &Res<GunAssets>) -> Self {
         let mut stats = GunStats {
             handle_position: Vec2::new(2., 2.),
+            size: Vec2::new(14., 9.),
             barrel_length: 12.,
             barrel_height: 5.5,
             timer: Stopwatch::new(),
@@ -75,20 +74,17 @@ impl GunBundle {
         stats.timer.set_elapsed(Duration::new(1, 0));
         GunBundle {
             name: Name::new("Gun"),
-            offset: Offset(stats.handle_position),
-            stats,
             sprite: SpriteBundle {
                 texture: guns.marine.clone(),
                 sprite: Sprite {
-                    anchor: bevy::sprite::Anchor::TopLeft,
+                    anchor: set_anchor(stats.handle_position, stats.size),
                     ..default()
                 },
                 ..default()
             },
-            size: Size(Vec2::new(14., 9.)),
+            stats,
             angle: Angle(0.),
-            zindex: Zindex(50.),
-            flip: Flip::False,
+            zindex: Zindex(56.),
         }
     }
 }

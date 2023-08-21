@@ -2,10 +2,11 @@ use bevy::{prelude::*, reflect::TypePath, math::Vec3Swizzles};
 use bevy_rapier2d::prelude::Velocity;
 use leafwing_input_manager::{prelude::*, Actionlike};
 
+use crate::rendering::utils::set_anchor;
 use crate::{
     animation::AnimationState,
     debug::DebugLevel,
-    rendering::utils::{Angle, Flip, Position},
+    rendering::utils::Angle,
 };
 
 use crate::player::{
@@ -62,19 +63,21 @@ pub fn update_gun_angle(
     cursor_position: Vec2,
     gun_stats: &GunStats,
     gun_angle: &mut Angle,
-    flip: &mut Flip,
+    sprite: &mut Sprite,
 ) {
     let direction = (cursor_position - gun_pos).normalize();
     let mut barrel_position = gun_pos + direction.perp() * gun_stats.barrel_height;
     let mut barrel_to_cursor = cursor_position - barrel_position;
     *gun_angle = Angle(barrel_to_cursor.y.atan2(barrel_to_cursor.x));
-    *flip = if gun_angle.0.abs().to_degrees() > 90. {
+    if gun_angle.0.abs().to_degrees() > 90. {
         barrel_position = gun_pos + direction.perp() * -gun_stats.barrel_height;
         barrel_to_cursor = cursor_position - barrel_position;
         *gun_angle = Angle(barrel_to_cursor.y.atan2(barrel_to_cursor.x));
-        Flip::YAxis
+        sprite.flip_y = true;
+        sprite.anchor = set_anchor(Vec2 { x: gun_stats.handle_position.x, y: gun_stats.size.y - gun_stats.handle_position.y }, gun_stats.size);
     } else {
-        Flip::False
+        sprite.flip_y = false;
+        sprite.anchor = set_anchor(gun_stats.handle_position, gun_stats.size);
     };
     if debug_level == DebugLevel::Basic {
         lines.line_colored(
@@ -113,7 +116,7 @@ pub fn shooting_system(
     mut gun: Query<(
         &mut Transform,
         &mut Angle,
-        &mut Flip,
+        &mut Sprite,
         &mut GunStats,
         Without<PlayerStats>,
     )>,
@@ -133,10 +136,10 @@ pub fn shooting_system(
         roll,
     ) in &mut players
     {
-        if let Ok((mut gun_transform, mut gun_angle, mut flip, mut gun_stats, _)) = gun.get_mut(gun_id.0)
+        if let Ok((mut gun_transform, mut gun_angle, mut sprite, mut gun_stats, _)) = gun.get_mut(gun_id.0)
         {
-            gun_transform.translation = transform.translation;
-            gun_transform.translation += 6.;
+            gun_transform.translation.y = transform.translation.y;
+            gun_transform.translation.x = transform.translation.x + 8.;
             let gun_pos = gun_transform.translation.xy();
 
             update_gun_angle(
@@ -146,11 +149,11 @@ pub fn shooting_system(
                 cursor_position.value,
                 &gun_stats,
                 &mut gun_angle,
-                &mut flip,
+                &mut sprite,
             );
             let angle = gun_angle.0;
             let direction = Vec2::from_angle(angle).normalize();
-            let barrel_position = if *flip == Flip::False {
+            let barrel_position = if sprite.flip_y == false {
                 gun_pos + direction.perp() * gun_stats.barrel_height
             } else {
                 gun_pos + direction.perp() * -gun_stats.barrel_height

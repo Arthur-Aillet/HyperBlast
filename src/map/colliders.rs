@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
-use bevy_rapier2d::{prelude::*, na::Translation};
+use bevy_rapier2d::prelude::*;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Component)]

@@ -316,33 +316,14 @@ pub struct PostProcessSettings {
 /// Set up a simple 3D scene
 pub fn setup(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // camera
     commands.spawn((
         // Add the setting to the camera.
         // This component is also used to determine on which camera to run the post processing effect.
         PostProcessSettings {
             intensity: 1.,
-            ..default()
+            enabled: 1.,
         },
     ));
 }
-/*
-// Change the intensity over time to show that the effect is controlled from the main world
-pub fn update_settings(mut settings: Query<&mut PostProcessSettings>, time: Res<Time>) {
-    for mut setting in &mut settings {
-        let mut intensity = time.elapsed_seconds();
-        // Make it loop periodically
-        intensity = intensity.sin();
-        // Remap it to 0..1 because the intensity can't be negative
-        intensity = intensity * 0.5 + 0.5;
-        // Scale it to a more reasonable level
 
-        // Set the intensity.
-        // This will then be extracted to the render world and uploaded to the gpu automatically by the [`UniformComponentPlugin`]
-        setting.intensity = intensity;
-    }
-}
-*/

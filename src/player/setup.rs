@@ -6,7 +6,7 @@ use mouse::Mouse;
 use crate::{
     animation::{AnimationFlip, AnimationIndices, AnimationState, AnimationStateMachine},
     mouse,
-    rendering::utils::{Offset, Position, Zindex},
+    rendering::utils::{Position, Zindex, set_anchor},
 };
 
 use input::PlayerActions;
@@ -32,7 +32,6 @@ pub struct PlayerBundle {
     pub position: Position,
     pub velocity: Velocity,
     pub zindex: Zindex,
-    pub offset: Offset,
     pub current_gun: GunEntity,
     pub direction: MoveDirection,
     pub cursor: CursorPosition,
@@ -142,7 +141,7 @@ impl PlayerBundle {
                 texture_atlas: assets.idle.clone(),
                 sprite: TextureAtlasSprite {
                     index: 0,
-                    anchor: bevy::sprite::Anchor::TopLeft,
+                    anchor: set_anchor(Vec2::new(17. / 2., 25. / 2. - 8.), Vec2::new(17., 25.)),
                     ..default()
                 },
                 transform: Transform::from_translation(Vec3::new(controller as i32 as f32 * 60., 0., 0.,)),
@@ -151,7 +150,6 @@ impl PlayerBundle {
             state_machine,
             stats: PlayerStats::default(),
             action: input::player_input_setup(controller),
-            offset: Offset(Vec2::new(17. / 2., 25. / 2. + 8.)),
             zindex: Zindex(25.),
             position: Position(Vec2::new(controller as i32 as f32 * 60., 0.,)),
             velocity: bevy_rapier2d::prelude::Velocity {

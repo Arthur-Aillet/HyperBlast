@@ -39,6 +39,5 @@ var<uniform> settings: PostProcessSettings;
 
 @fragment
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
-    let color = textureSample(screen_texture, texture_sampler, (in.uv - 0.5) * settings.intensity + 0.5);
-    return color;
+    return textureSample(screen_texture, texture_sampler, (in.uv - 0.5) * settings.intensity + 0.5);
 }
