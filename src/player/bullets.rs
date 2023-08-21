@@ -12,7 +12,7 @@ use super::{
     inventory::inventory_manager::Inventory,
     roll::RollStats,
     stats::PlayerStats,
-    weapon::{GunEntity, GunStats},
+    weapon::{GunEntity, GunStats}, setup::PlayerCollider,
 };
 
 #[derive(Component)]
@@ -97,6 +97,7 @@ pub fn detect_collision_bullets(
     mut collision_events: EventReader<CollisionEvent>,
     mut bullets: Query<(Entity, &mut BulletStats)>,
     mut players: Query<(Entity, &GunEntity, &mut PlayerStats, Without<RollStats>)>,
+    mut player_collider: Query<(&Parent, With<PlayerCollider>)>,
     mut walls: Query<With<WallCollider>>,
     mut guns: Query<&mut GunStats>,
 ) {
@@ -105,13 +106,16 @@ pub fn detect_collision_bullets(
             if let Some((bullet_id, bullet_stats)) = collision_get!(bullets, entity1, entity2) {
                 if let Some(_) = collision_get!(walls, entity1, entity2) {
                     commands.entity(bullet_id).despawn();
-
-                } else if let Some((id, gun, mut stats, _)) = collision_get!(players, entity1, entity2) {
-                    if let Ok(gun_stats) = guns.get_mut(gun.0) {
-                        if bullet_stats.owner != id {
-                            commands.entity(bullet_id).despawn();
-                            stats.current_health -=
-                                (gun_stats.damage + stats.damages_added) * stats.damages_multiplier;
+                } else {
+                    if let Some((player, _)) = collision_get!(player_collider, entity1, entity2) {
+                        if let Ok((id, gun, mut stats, _)) = players.get_mut(player.get()) {
+                            if let Ok(gun_stats) = guns.get_mut(gun.0) {
+                                if bullet_stats.owner != id {
+                                    commands.entity(bullet_id).despawn();
+                                    stats.current_health -=
+                                        (gun_stats.damage + stats.damages_added) * stats.damages_multiplier;
+                                }
+                            }
                         }
                     }
                 }

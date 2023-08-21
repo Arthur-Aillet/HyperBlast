@@ -41,6 +41,9 @@ pub struct PlayerBundle {
     pub locked_axes: LockedAxes,
 }
 
+#[derive(Debug, Reflect, Component)]
+pub struct PlayerCollider;
+
 impl PlayerBundle {
     pub fn setup(
         commands: &mut Commands,
@@ -167,6 +170,7 @@ impl PlayerBundle {
                 parent.spawn((
                     Collider::capsule_y(3.25, 13. / 2.),
                     TransformBundle::from(Transform::from_xyz(0., 6., 0.)),
+                    PlayerCollider,
                 ));
             }).insert(IsController);
         } else {
@@ -176,6 +180,7 @@ impl PlayerBundle {
                     parent.spawn((
                         Collider::capsule_y(3.25, 13. / 2.),
                         TransformBundle::from(Transform::from_xyz(0., 6., 0.)),
+                        PlayerCollider,
                     ));
                 })
                 .insert(InputManagerBundle::<Mouse>::default())
