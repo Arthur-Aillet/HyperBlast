@@ -38,15 +38,6 @@ var<uniform> settings: PostProcessSettings;
 
 @fragment
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
-    // Chromatic aberration strength
-    let offset_strength = settings.intensity;
-
-    let color = textureSample(screen_texture, texture_sampler, in.uv);
-    // Sample each color channel with an arbitrary shift
-    return vec4<f32>(
-        color.r,
-        color.g * 0.5,
-        color.b,
-        1.0
-    );
+    let color = textureSample(screen_texture, texture_sampler, (in.uv - 0.5) * settings.intensity + 0.5);
+    return color;
 }

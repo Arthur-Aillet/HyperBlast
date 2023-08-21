@@ -44,7 +44,6 @@ pub struct GunBundle {
     pub name: Name,
     pub stats: GunStats,
     pub sprite: SpriteBundle,
-    //pub pos: Position,
     pub angle: Angle,
     pub zindex: Zindex,
     pub flip: Flip,
@@ -89,7 +88,6 @@ impl GunBundle {
             size: Size(Vec2::new(14., 9.)),
             angle: Angle(0.),
             zindex: Zindex(50.),
-            //pos: Position(Vec2::ZERO),
             flip: Flip::False,
         }
     }

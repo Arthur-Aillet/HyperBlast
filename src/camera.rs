@@ -3,16 +3,16 @@ use bevy::{prelude::*, math::Vec3Swizzles};
 use crate::{
     debug::{draw_rectangle, DebugLevel},
     player::stats::PlayerStats,
-    rendering::utils::Position,
+    rendering::{utils::Position, zoom::PostProcessSettings},
 };
 
 pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_camera);
-            //.add_systems(Update, calculate_camera_size)
-            //.add_systems(Update, resize_camera.after(calculate_camera_size));
+        app.add_systems(Startup, setup_camera)
+            .add_systems(Update, calculate_camera_size)
+            .add_systems(Update, resize_camera);
     }
 }
 
@@ -26,14 +26,14 @@ fn resize_camera(
     mut camera: Query<(
         &CameraData,
         &mut Transform,
-        &mut OrthographicProjection,
         With<Camera2d>,
     )>,
+    mut settings: Query<&mut PostProcessSettings>,
 ) {
-    for (camera_data, mut transform, mut projection, _) in &mut camera {
-        transform.translation =
-            transform.translation + (camera_data.pos.extend(999.9) - transform.translation) / 5.;
-        projection.scale = projection.scale + (camera_data.scale - projection.scale) / 5.;
+    for (camera_data, mut transform, _) in &mut camera {
+        transform.translation = transform.translation + (camera_data.pos.extend(999.9) - transform.translation) / 5.;
+        settings.single_mut().intensity = camera_data.scale;
+        //projection.scale = projection.scale + (camera_data.scale - projection.scale) / 5.;
     }
 }
 

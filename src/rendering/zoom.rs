@@ -306,7 +306,7 @@ impl FromWorld for PostProcessPipeline {
 // This is the component that will get passed to the shader
 #[derive(Component, Default, Clone, Copy, ExtractComponent, ShaderType)]
 pub struct PostProcessSettings {
-    intensity: f32,
+    pub intensity: f32,
     // WebGL2 structs must be 16 byte aligned.
     #[cfg(feature = "webgl2")]
     _webgl2_padding: Vec3,
@@ -328,20 +328,20 @@ pub fn setup(
         },
     ));
 }
-
+/*
 // Change the intensity over time to show that the effect is controlled from the main world
 pub fn update_settings(mut settings: Query<&mut PostProcessSettings>, time: Res<Time>) {
     for mut setting in &mut settings {
-        let mut intensity = time.elapsed_seconds().sin();
+        let mut intensity = time.elapsed_seconds();
         // Make it loop periodically
         intensity = intensity.sin();
         // Remap it to 0..1 because the intensity can't be negative
         intensity = intensity * 0.5 + 0.5;
         // Scale it to a more reasonable level
-        intensity *= 0.015;
 
         // Set the intensity.
         // This will then be extracted to the render world and uploaded to the gpu automatically by the [`UniformComponentPlugin`]
         setting.intensity = intensity;
     }
 }
+*/
