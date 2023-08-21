@@ -20,6 +20,7 @@ impl Plugin for CameraPlugin {
 pub struct CameraData {
     pub pos: Vec2,
     pub scale: f32,
+    pub pixel: bool,
 }
 
 fn resize_camera(
@@ -34,9 +35,11 @@ fn resize_camera(
 ) {
     for (camera_data, mut transform, mut projection, _) in &mut camera {
         let mut settings = settings.single_mut();
-        if settings.enabled == 1. {
+
+        if camera_data.pixel {
             projection.scale = 1.;
             let window = window_query.single();
+            transform.translation = Vec3::new(0., 0., 999.9);
             settings.position = settings.position + (Vec2::new(camera_data.pos.x / window.width(), -camera_data.pos.y / window.height()) - settings.position) / 5.;
             settings.intensity = settings.intensity + (camera_data.scale - settings.intensity) / 10.;
         } else {
@@ -109,5 +112,6 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn(camera).insert(CameraData {
         pos: Vec2::ZERO,
         scale: 1_f32,
+        pixel: true,
     });
 }

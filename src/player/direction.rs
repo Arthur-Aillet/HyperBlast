@@ -4,7 +4,7 @@ use leafwing_input_manager::prelude::ActionState;
 use crate::{
     debug::DebugLevel,
     mouse::Mouse,
-    player::input::{IsController, PlayerActions},
+    player::input::{IsController, PlayerActions}, camera::CameraData,
 };
 
 #[derive(Component, Default, Clone)]
@@ -33,6 +33,7 @@ pub fn calculate_cursor_position(
     player_actions: &ActionState<PlayerActions>,
     camera_transform: &GlobalTransform,
     camera: &Camera,
+    data: &CameraData,
     player_pos: Vec2,
     mouse: Option<&ActionState<Mouse>>,
 ) -> Option<Vec2> {
@@ -46,10 +47,10 @@ pub fn calculate_cursor_position(
     } else if let Some(mouse_action_state) = mouse {
         let mouse_ray = mouse_action_state
             .axis_pair(Mouse::MousePosition)
-            .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()));
+            .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor.xy()));
 
         if let Some(mouse_pos) = mouse_ray {
-            return Some(mouse_pos.origin.truncate());
+            return Some(mouse_pos + if data.pixel { data.pos } else { Vec2::ZERO });
         }
     }
     None
@@ -64,11 +65,11 @@ pub fn calculate_players_cursors(
     )>,
     mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
     mouse: Query<&ActionState<Mouse>>,
-    camera: Query<(&Camera, &GlobalTransform)>,
+    camera: Query<(&Camera, &GlobalTransform, &CameraData)>,
     debug_level: Res<crate::debug::DebugLevel>,
 ) {
-    if let Some((camera, camera_transform)) =
-        camera.into_iter().find(|(camera, _)| camera.is_active)
+    if let Some((camera, camera_transform, data)) =
+        camera.into_iter().find(|(camera, _, _)| camera.is_active)
     {
         for (controller, transfom, player_actions, mut cursor) in &mut players {
             let mouse_maybe = mouse.get_single();
@@ -79,6 +80,7 @@ pub fn calculate_players_cursors(
                 player_actions,
                 camera_transform,
                 camera,
+                data,
                 player_pos,
                 mouse_maybe.ok(),
             ) {

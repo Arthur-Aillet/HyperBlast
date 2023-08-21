@@ -305,7 +305,6 @@ impl FromWorld for ZoomPipeline {
 #[derive(Component, Default, Clone, Copy, ExtractComponent, ShaderType)]
 pub struct ZoomSettings {
     pub intensity: f32,
-    pub enabled: f32,
     pub position: Vec2,
 }
 
@@ -318,7 +317,6 @@ pub fn setup(
         // This component is also used to determine on which camera to run the post processing effect.
         ZoomSettings {
             intensity: 1.,
-            enabled: 1.,
             position: Vec2::new(0., 0.),
         },
     ));
