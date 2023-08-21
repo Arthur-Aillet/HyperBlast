@@ -6,9 +6,6 @@ pub struct Angle(pub f32);
 #[derive(Component, Default, Reflect, Clone)]
 pub struct Zindex(pub f32);
 
-#[derive(Component, Default, Reflect, Clone)]
-pub struct Position(pub Vec2);
-
 pub fn set_angle(mut query: Query<(&mut Transform, &Angle)>) {
     for (mut transform, Angle(val)) in &mut query {
         transform.rotation = Quat::from_rotation_z(*val);

@@ -1,7 +1,7 @@
-use bevy::{prelude::*, math::Vec3Swizzles};
+use bevy::prelude::*;
 use leafwing_input_manager::{axislike::DualAxisData, prelude::*};
 
-use crate::{rendering::zoom::PostProcessSettings, camera::CameraData};
+use crate::rendering::zoom::PostProcessSettings;
 
 #[derive(Actionlike, Clone, Debug, Copy, PartialEq, Eq, Reflect)]
 pub enum Mouse {
@@ -12,10 +12,6 @@ pub fn update_cursor_state_from_window(
     window_query: Query<(&Window, &ActionStateDriver<Mouse>)>,
     settings: Query<&PostProcessSettings>,
     mut action_state_query: Query<&mut ActionState<Mouse>>,
-    camera: Query<(
-        &Transform,
-        With<CameraData>,
-    )>
 ) {
     for (window, driver) in &window_query {
         for entity in driver.targets.iter() {
@@ -26,7 +22,6 @@ pub fn update_cursor_state_from_window(
                     let center_mouse_scaled = center_mouse_vec * settings.single().intensity;
 
                     action_state.action_data_mut(driver.action).axis_pair = Some(DualAxisData::from_xy(center_mouse_scaled + center));
-                    //action_state.action_data_mut(driver.action).axis_pair = Some(DualAxisData::from_xy(pos));
                 }
             }
         }

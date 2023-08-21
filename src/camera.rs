@@ -3,7 +3,7 @@ use bevy::{prelude::*, math::Vec3Swizzles};
 use crate::{
     debug::{draw_rectangle, DebugLevel},
     player::stats::PlayerStats,
-    rendering::{utils::Position, zoom::PostProcessSettings},
+    rendering::zoom::PostProcessSettings,
 };
 
 pub struct CameraPlugin;

@@ -1,7 +1,6 @@
 use bevy::{
-    asset::ChangeWatcher,
     core_pipeline::{
-        clear_color::ClearColorConfig, core_2d,
+        core_2d,
         fullscreen_vertex_shader::fullscreen_shader_vertex_state,
     },
     ecs::query::QueryItem,
@@ -26,7 +25,6 @@ use bevy::{
         view::ViewTarget,
         RenderApp,
     },
-    utils::Duration,
 };
 
 

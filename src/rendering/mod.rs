@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use bevy::{prelude::*, asset::ChangeWatcher};
 
-use self::{utils::{Position, Zindex}, zoom::{setup, PostProcessPlugin, PostProcessSettings}, outline::OutlinePlugin};
+use self::{utils::Zindex, zoom::{setup, PostProcessPlugin, PostProcessSettings}, outline::OutlinePlugin};
 
 pub struct RenderingPlugin;
 
@@ -22,7 +22,6 @@ impl Plugin for RenderingPlugin {
                 OutlinePlugin,
                 PostProcessPlugin))
             .add_systems(Startup, setup)
-            .register_type::<Position>()
             .register_type::<Zindex>()
             .add_systems(Update, crate::rendering::utils::set_zindex)
             .add_systems(Update, disable_pixel_perfect)

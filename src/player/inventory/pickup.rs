@@ -12,7 +12,7 @@ use crate::{
         inventory::{inventory_manager::Inventory, item_manager::Items},
         stats::PlayerStats,
     },
-    rendering::utils::{Position, Zindex},
+    rendering::utils::Zindex,
 };
 
 use super::{assets::ItemsAssets, PickupEvent};
@@ -118,7 +118,6 @@ pub struct PickupBundle {
     pub name: bevy::core::Name,
     pub material: MaterialMesh2dBundle<Outline>,
     pub zindex: Zindex,
-    pub position: Position,
     pub pickup: Pickup,
 }
 
@@ -153,7 +152,6 @@ impl PickupBundle {
                 ..default()
             },
             zindex: Zindex(0.),
-            position: Position(pos),
             pickup: Pickup {
                 anim_offset: place_rng,
                 pickup_type: PickupType::Item(item_type),

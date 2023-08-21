@@ -6,7 +6,7 @@ use mouse::Mouse;
 use crate::{
     animation::{AnimationFlip, AnimationIndices, AnimationState, AnimationStateMachine},
     mouse,
-    rendering::utils::{Position, Zindex, set_anchor},
+    rendering::utils::{Zindex, set_anchor},
 };
 
 use input::PlayerActions;
@@ -29,7 +29,6 @@ pub struct PlayerBundle {
     pub sprite: SpriteSheetBundle,
     pub stats: PlayerStats,
     pub action: InputManagerBundle<PlayerActions>,
-    pub position: Position,
     pub velocity: Velocity,
     pub zindex: Zindex,
     pub current_gun: GunEntity,
@@ -40,7 +39,6 @@ pub struct PlayerBundle {
     pub rigid_body: RigidBody,
     pub gravity: GravityScale,
     pub locked_axes: LockedAxes,
-    pub collider: Collider,
 }
 
 impl PlayerBundle {
@@ -151,7 +149,6 @@ impl PlayerBundle {
             stats: PlayerStats::default(),
             action: input::player_input_setup(controller),
             zindex: Zindex(25.),
-            position: Position(Vec2::new(controller as i32 as f32 * 60., 0.,)),
             velocity: bevy_rapier2d::prelude::Velocity {
                 linvel: Vec2::new(0., 0.),
                 angvel: 0.0,
@@ -164,13 +161,23 @@ impl PlayerBundle {
             rigid_body: RigidBody::Dynamic,
             gravity: GravityScale(0.0),
             locked_axes: LockedAxes::ROTATION_LOCKED,
-            collider: Collider::capsule_y(25./2., 17./2.)
         };
         if controller {
-            commands.spawn(player).insert(IsController);
+            commands.spawn(player).with_children(|parent| {
+                parent.spawn((
+                    Collider::capsule_y(3.25, 13. / 2.),
+                    TransformBundle::from(Transform::from_xyz(0., 6., 0.)),
+                ));
+            }).insert(IsController);
         } else {
             let player_id = commands
                 .spawn(player)
+                .with_children(|parent| {
+                    parent.spawn((
+                        Collider::capsule_y(3.25, 13. / 2.),
+                        TransformBundle::from(Transform::from_xyz(0., 6., 0.)),
+                    ));
+                })
                 .insert(InputManagerBundle::<Mouse>::default())
                 .id();
 
