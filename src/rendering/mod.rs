@@ -25,6 +25,7 @@ impl Plugin for RenderingPlugin {
                 ZoomPlugin))
             .add_systems(Startup, setup)
             .register_type::<Zindex>()
+            .add_systems(Update, crate::rendering::utils::set_auto_zindex)
             .add_systems(Update, crate::rendering::utils::set_zindex)
             .add_systems(Update, disable_pixel_perfect)
             .add_systems(PostUpdate, crate::rendering::utils::set_angle);

@@ -1,12 +1,12 @@
 use bevy::{prelude::*, window::PrimaryWindow};
-use bevy_rapier2d::prelude::*;
+use bevy_rapier2d::{prelude::*, rapier::prelude::ColliderType};
 use leafwing_input_manager::{prelude::ActionStateDriver, InputManagerBundle};
 use mouse::Mouse;
 
 use crate::{
     animation::{AnimationFlip, AnimationIndices, AnimationState, AnimationStateMachine},
     mouse,
-    rendering::utils::{Zindex, set_anchor},
+    rendering::utils::{AutoZindex, set_anchor},
 };
 
 use input::PlayerActions;
@@ -30,7 +30,7 @@ pub struct PlayerBundle {
     pub stats: PlayerStats,
     pub action: InputManagerBundle<PlayerActions>,
     pub velocity: Velocity,
-    pub zindex: Zindex,
+    pub zindex: AutoZindex,
     pub current_gun: GunEntity,
     pub direction: MoveDirection,
     pub cursor: CursorPosition,
@@ -151,7 +151,7 @@ impl PlayerBundle {
             state_machine,
             stats: PlayerStats::default(),
             action: input::player_input_setup(controller),
-            zindex: Zindex(25.),
+            zindex: AutoZindex,
             velocity: bevy_rapier2d::prelude::Velocity {
                 linvel: Vec2::new(0., 0.),
                 angvel: 0.0,
@@ -169,8 +169,14 @@ impl PlayerBundle {
             commands.spawn(player).with_children(|parent| {
                 parent.spawn((
                     Collider::capsule_y(3.25, 13. / 2.),
+                    Sensor,
                     TransformBundle::from(Transform::from_xyz(0., 6., 0.)),
+                    ColliderDebugColor(Color::BLUE),
                     PlayerCollider,
+                ));
+                parent.spawn((
+                    Collider::capsule_y(0., 13. / 2.),
+                    TransformBundle::from(Transform::from_xyz(0., 0., 0.).with_scale(Vec3::new(1., 0.7, 1.))),
                 ));
             }).insert(IsController);
         } else {
@@ -179,8 +185,14 @@ impl PlayerBundle {
                 .with_children(|parent| {
                     parent.spawn((
                         Collider::capsule_y(3.25, 13. / 2.),
+                        Sensor,
                         TransformBundle::from(Transform::from_xyz(0., 6., 0.)),
+                        ColliderDebugColor(Color::BLUE),
                         PlayerCollider,
+                    ));
+                    parent.spawn((
+                        Collider::capsule_y(0., 13. / 2.),
+                        TransformBundle::from(Transform::from_xyz(0., 0., 0.).with_scale(Vec3::new(1., 0.7, 1.))),
                     ));
                 })
                 .insert(InputManagerBundle::<Mouse>::default())
