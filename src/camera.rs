@@ -3,7 +3,7 @@ use bevy::{prelude::*, math::Vec3Swizzles};
 use crate::{
     debug::{draw_rectangle, DebugLevel},
     player::stats::PlayerStats,
-    rendering::zoom::PostProcessSettings,
+    rendering::zoom::ZoomSettings,
 };
 
 pub struct CameraPlugin;
@@ -30,7 +30,7 @@ fn resize_camera(
         &mut OrthographicProjection,
         With<Camera2d>,
     )>,
-    mut settings: Query<&mut PostProcessSettings>,
+    mut settings: Query<&mut ZoomSettings>,
 ) {
     for (camera_data, mut transform, mut projection, _) in &mut camera {
         let mut settings = settings.single_mut();

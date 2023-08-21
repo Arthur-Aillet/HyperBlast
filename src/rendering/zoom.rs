@@ -29,22 +29,22 @@ use bevy::{
 
 
 /// It is generally encouraged to set up post processing effects as a plugin
-pub struct PostProcessPlugin;
+pub struct ZoomPlugin;
 
-impl Plugin for PostProcessPlugin {
+impl Plugin for ZoomPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             // The settings will be a component that lives in the main world but will
             // be extracted to the render world every frame.
             // This makes it possible to control the effect from the main world.
             // This plugin will take care of extracting it automatically.
-            // It's important to derive [`ExtractComponent`] on [`PostProcessingSettings`]
+            // It's important to derive [`ExtractComponent`] on [`ZoomingSettings`]
             // for this plugin to work correctly.
-            ExtractComponentPlugin::<PostProcessSettings>::default(),
+            ExtractComponentPlugin::<ZoomSettings>::default(),
             // The settings will also be the data used in the shader.
             // This plugin will prepare the component for the GPU by creating a uniform buffer
             // and writing the data to that buffer every frame.
-            UniformComponentPlugin::<PostProcessSettings>::default(),
+            UniformComponentPlugin::<ZoomSettings>::default(),
         ));
 
         // We need to get the render app from the main app
@@ -66,11 +66,11 @@ impl Plugin for PostProcessPlugin {
             //
             // The [`ViewNodeRunner`] is a special [`Node`] that will automatically run the node for each view
             // matching the [`ViewQuery`]
-            .add_render_graph_node::<ViewNodeRunner<PostProcessNode>>(
+            .add_render_graph_node::<ViewNodeRunner<ZoomNode>>(
                 // Specify the name of the graph, in this case we want the graph for 3d
                 core_2d::graph::NAME,
                 // It also needs the name of the node
-                PostProcessNode::NAME,
+                ZoomNode::NAME,
             )
             .add_render_graph_edges(
                 core_2d::graph::NAME,
@@ -78,7 +78,7 @@ impl Plugin for PostProcessPlugin {
                 // This will automatically create all required node edges to enforce the given ordering.
                 &[
                     core_2d::graph::node::TONEMAPPING,
-                    PostProcessNode::NAME,
+                    ZoomNode::NAME,
                     core_2d::graph::node::END_MAIN_PASS_POST_PROCESSING,
                 ],
             );
@@ -92,19 +92,19 @@ impl Plugin for PostProcessPlugin {
 
         render_app
             // Initialize the pipeline
-            .init_resource::<PostProcessPipeline>();
+            .init_resource::<ZoomPipeline>();
     }
 }
 
 // The post process node used for the render graph
 #[derive(Default)]
-struct PostProcessNode;
-impl PostProcessNode {
-    pub const NAME: &str = "post_process";
+struct ZoomNode;
+impl ZoomNode {
+    pub const NAME: &str = "zoom";
 }
 
 // The ViewNode trait is required by the ViewNodeRunner
-impl ViewNode for PostProcessNode {
+impl ViewNode for ZoomNode {
     // The node needs a query to gather data from the ECS in order to do its rendering,
     // but it's not a normal system so we need to define it manually.
     //
@@ -127,7 +127,7 @@ impl ViewNode for PostProcessNode {
     ) -> Result<(), NodeRunError> {
         // Get the pipeline resource that contains the global data we need
         // to create the render pipeline
-        let post_process_pipeline = world.resource::<PostProcessPipeline>();
+        let zoom_pipeline = world.resource::<ZoomPipeline>();
 
         // The pipeline cache is a cache of all previously created pipelines.
         // It is required to avoid creating a new pipeline each frame,
@@ -135,12 +135,12 @@ impl ViewNode for PostProcessNode {
         let pipeline_cache = world.resource::<PipelineCache>();
 
         // Get the pipeline from the cache
-        let Some(pipeline) = pipeline_cache.get_render_pipeline(post_process_pipeline.pipeline_id) else {
+        let Some(pipeline) = pipeline_cache.get_render_pipeline(zoom_pipeline.pipeline_id) else {
             return Ok(());
         };
 
         // Get the settings uniform binding
-        let settings_uniforms = world.resource::<ComponentUniforms<PostProcessSettings>>();
+        let settings_uniforms = world.resource::<ComponentUniforms<ZoomSettings>>();
         let Some(settings_binding) = settings_uniforms.uniforms().binding() else {
             return Ok(());
         };
@@ -152,7 +152,7 @@ impl ViewNode for PostProcessNode {
         // [`ViewTarget`] will internally flip the [`ViewTarget`]'s main
         // texture to the `destination` texture. Failing to do so will cause
         // the current main texture information to be lost.
-        let post_process = view_target.post_process_write();
+        let zoom = view_target.post_process_write();
 
         // The bind_group gets created each frame.
         //
@@ -164,19 +164,19 @@ impl ViewNode for PostProcessNode {
         let bind_group = render_context
             .render_device()
             .create_bind_group(&BindGroupDescriptor {
-                label: Some("post_process_bind_group"),
-                layout: &post_process_pipeline.layout,
-                // It's important for this to match the BindGroupLayout defined in the PostProcessPipeline
+                label: Some("zoom_bind_group"),
+                layout: &zoom_pipeline.layout,
+                // It's important for this to match the BindGroupLayout defined in the ZoomPipeline
                 entries: &[
                     BindGroupEntry {
                         binding: 0,
                         // Make sure to use the source view
-                        resource: BindingResource::TextureView(post_process.source),
+                        resource: BindingResource::TextureView(zoom.source),
                     },
                     BindGroupEntry {
                         binding: 1,
                         // Use the sampler created for the pipeline
-                        resource: BindingResource::Sampler(&post_process_pipeline.sampler),
+                        resource: BindingResource::Sampler(&zoom_pipeline.sampler),
                     },
                     BindGroupEntry {
                         binding: 2,
@@ -188,11 +188,11 @@ impl ViewNode for PostProcessNode {
 
         // Begin the render pass
         let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
-            label: Some("post_process_pass"),
+            label: Some("zoom_pass"),
             color_attachments: &[Some(RenderPassColorAttachment {
                 // We need to specify the post process destination view here
                 // to make sure we write to the appropriate texture.
-                view: post_process.destination,
+                view: zoom.destination,
                 resolve_target: None,
                 ops: Operations::default(),
             })],
@@ -211,19 +211,19 @@ impl ViewNode for PostProcessNode {
 
 // This contains global data used by the render pipeline. This will be created once on startup.
 #[derive(Resource)]
-struct PostProcessPipeline {
+struct ZoomPipeline {
     layout: BindGroupLayout,
     sampler: Sampler,
     pipeline_id: CachedRenderPipelineId,
 }
 
-impl FromWorld for PostProcessPipeline {
+impl FromWorld for ZoomPipeline {
     fn from_world(world: &mut World) -> Self {
         let render_device = world.resource::<RenderDevice>();
 
         // We need to define the bind group layout used for our pipeline
         let layout = render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-            label: Some("post_process_bind_group_layout"),
+            label: Some("zoom_bind_group_layout"),
             entries: &[
                 // The screen texture
                 BindGroupLayoutEntry {
@@ -250,7 +250,7 @@ impl FromWorld for PostProcessPipeline {
                     ty: BindingType::Buffer {
                         ty: bevy::render::render_resource::BufferBindingType::Uniform,
                         has_dynamic_offset: false,
-                        min_binding_size: Some(PostProcessSettings::min_size()),
+                        min_binding_size: Some(ZoomSettings::min_size()),
                     },
                     count: None,
                 },
@@ -263,13 +263,13 @@ impl FromWorld for PostProcessPipeline {
         // Get the shader handle
         let shader = world
             .resource::<AssetServer>()
-            .load("shaders/post_processing.wgsl");
+            .load("shaders/zoom.wgsl");
 
         let pipeline_id = world
             .resource_mut::<PipelineCache>()
             // This will add the pipeline to the cache and queue it's creation
             .queue_render_pipeline(RenderPipelineDescriptor {
-                label: Some("post_process_pipeline".into()),
+                label: Some("zoom_pipeline".into()),
                 layout: vec![layout.clone()],
                 // This will setup a fullscreen triangle for the vertex state
                 vertex: fullscreen_shader_vertex_state(),
@@ -303,7 +303,7 @@ impl FromWorld for PostProcessPipeline {
 
 // This is the component that will get passed to the shader
 #[derive(Component, Default, Clone, Copy, ExtractComponent, ShaderType)]
-pub struct PostProcessSettings {
+pub struct ZoomSettings {
     pub intensity: f32,
     pub enabled: f32,
     pub position: Vec2,
@@ -316,7 +316,7 @@ pub fn setup(
     commands.spawn((
         // Add the setting to the camera.
         // This component is also used to determine on which camera to run the post processing effect.
-        PostProcessSettings {
+        ZoomSettings {
             intensity: 1.,
             enabled: 1.,
             position: Vec2::new(0., 0.),

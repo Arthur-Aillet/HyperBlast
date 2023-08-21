@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use bevy::{prelude::*, asset::ChangeWatcher};
 
-use self::{utils::Zindex, zoom::{setup, PostProcessPlugin, PostProcessSettings}, outline::OutlinePlugin};
+use self::{utils::Zindex, zoom::{setup, ZoomPlugin, ZoomSettings}, outline::OutlinePlugin};
 
 pub struct RenderingPlugin;
 
@@ -20,7 +20,7 @@ impl Plugin for RenderingPlugin {
                 ..default()
                 }),
                 OutlinePlugin,
-                PostProcessPlugin))
+                ZoomPlugin))
             .add_systems(Startup, setup)
             .register_type::<Zindex>()
             .add_systems(Update, crate::rendering::utils::set_zindex)
@@ -29,7 +29,7 @@ impl Plugin for RenderingPlugin {
     }
 }
 
-fn disable_pixel_perfect(input: Res<Input<KeyCode>>, mut settings: Query<&mut PostProcessSettings>)  {
+fn disable_pixel_perfect(input: Res<Input<KeyCode>>, mut settings: Query<&mut ZoomSettings>)  {
     if input.just_pressed(KeyCode::P) {
         let mut set = settings.single_mut();
         set.enabled = if set.enabled == 1. { 0. } else { 1. };

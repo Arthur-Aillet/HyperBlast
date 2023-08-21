@@ -26,13 +26,13 @@
 var screen_texture: texture_2d<f32>;
 @group(0) @binding(1)
 var texture_sampler: sampler;
-struct PostProcessSettings {
+struct ZoomSettings {
     intensity: f32,
     enabled: f32,
     position: vec2<f32>,
 }
 @group(0) @binding(2)
-var<uniform> settings: PostProcessSettings;
+var<uniform> settings: ZoomSettings;
 
 @fragment
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
