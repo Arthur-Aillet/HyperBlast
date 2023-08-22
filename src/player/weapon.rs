@@ -252,7 +252,7 @@ impl GunBundle {
         GunBundle {
             name: Name::new("Gun"),
             sprite: SpriteBundle {
-                texture: guns.shotgun.clone(),
+                texture: guns.sniper.clone(),
                 sprite: Sprite {
                     anchor: set_anchor(stats.handle_position, stats.size),
                     ..default()
@@ -460,8 +460,13 @@ pub fn overheat_shoot_fn(
         }
     }
     if !player_actions.pressed(PlayerActions::Shoot) {
+        if stats.heat > 0. {
         stats.heat -= stats.timer.elapsed_secs();
         stats.timer.reset();
+        }
+        if stats.heat < 0. {
+            stats.heat = 0.
+        }
     }
     if stats.left_to_fire != 0 {
         if stats.left_to_fire == stats.min_shot || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate {
