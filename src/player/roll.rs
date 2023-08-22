@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use leafwing_input_manager::prelude::*;
+use bevy_rapier2d::prelude::Velocity;
+use leafwing_input_manager::prelude::ActionState;
 
 use crate::animation::{AnimationState, AnimationStateMachine};
 
@@ -72,18 +74,16 @@ pub fn rolling(
     time: Res<Time>,
     mut query: Query<(
         Entity,
-        &mut crate::rendering::Position,
+        &mut Velocity,
         &mut RollStats,
         &mut AnimationStateMachine,
         &PlayerStats,
     )>,
 ) {
-    for (player, mut pos, mut roll_stats, mut machine, stats) in &mut query {
+    for (player, mut vel, mut roll_stats, mut machine, stats) in &mut query {
         roll_stats.since.tick(time.delta());
 
-        pos.0 += roll_stats.start_direction.value.clamp_length(0., 1.)
-            * stats.roll_speed
-            * time.delta_seconds();
+        vel.linvel = roll_stats.start_direction.value.clamp_length(0., 1.) * stats.roll_speed;
 
         if roll_stats.since.elapsed_secs()
             >= (stats.roll_duration.as_secs_f32() / 9.) * roll_stats.current_frame as f32

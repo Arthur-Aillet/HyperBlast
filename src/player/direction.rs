@@ -1,11 +1,10 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, math::Vec3Swizzles};
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
     debug::DebugLevel,
     mouse::Mouse,
-    player::input::{IsController, PlayerActions},
-    rendering::Position,
+    player::input::{IsController, PlayerActions}, camera::CameraData,
 };
 
 #[derive(Component, Default, Clone)]
@@ -34,7 +33,8 @@ pub fn calculate_cursor_position(
     player_actions: &ActionState<PlayerActions>,
     camera_transform: &GlobalTransform,
     camera: &Camera,
-    player_pos: &Vec2,
+    data: &CameraData,
+    player_pos: Vec2,
     mouse: Option<&ActionState<Mouse>>,
 ) -> Option<Vec2> {
     if is_controller {
@@ -42,15 +42,15 @@ pub fn calculate_cursor_position(
             let axis_pair = player_actions
                 .clamped_axis_pair(PlayerActions::ControllerLook)
                 .unwrap();
-            return Some(*player_pos + axis_pair.xy().normalize() * 30.);
+            return Some(player_pos + axis_pair.xy().normalize() * 30.);
         }
     } else if let Some(mouse_action_state) = mouse {
         let mouse_ray = mouse_action_state
             .axis_pair(Mouse::MousePosition)
-            .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor.xy()));
+            .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor.xy()));
 
         if let Some(mouse_pos) = mouse_ray {
-            return Some(mouse_pos.origin.truncate());
+            return Some(mouse_pos + if data.pixel { data.pos } else { Vec2::ZERO });
         }
     }
     None
@@ -59,29 +59,32 @@ pub fn calculate_cursor_position(
 pub fn calculate_players_cursors(
     mut players: Query<(
         Option<&IsController>,
-        &Position,
+        &Transform,
         &ActionState<PlayerActions>,
         &mut CursorPosition,
     )>,
     mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
     mouse: Query<&ActionState<Mouse>>,
-    camera: Query<(&Camera, &GlobalTransform)>,
+    camera: Query<(&Camera, &GlobalTransform, &CameraData)>,
     debug_level: Res<crate::debug::DebugLevel>,
 ) {
-    if let Some((camera, camera_transform)) =
-        camera.into_iter().find(|(camera, _)| camera.is_active)
+    if let Some((camera, camera_transform, data)) =
+        camera.into_iter().find(|(camera, _, _)| camera.is_active)
     {
-        for (controller, Position(player_pos), player_actions, mut cursor) in &mut players {
+        for (controller, transfom, player_actions, mut cursor) in &mut players {
             let mouse_maybe = mouse.get_single();
+            let player_pos = transfom.translation.xy();
+
             if let Some(pos) = calculate_cursor_position(
                 controller.is_some(),
                 player_actions,
                 camera_transform,
                 camera,
+                data,
                 player_pos,
                 mouse_maybe.ok(),
             ) {
-                cursor.relative = pos - *player_pos;
+                cursor.relative = pos - player_pos;
                 cursor.value = pos;
                 if *debug_level == DebugLevel::Basic {
                     lines.line_colored(Vec3::ZERO, (cursor.relative).extend(0.), 0.0, Color::RED);
@@ -93,7 +96,7 @@ pub fn calculate_players_cursors(
                     );
                 }
             } else {
-                cursor.value = cursor.relative + *player_pos;
+                cursor.value = cursor.relative + player_pos;
                 if *debug_level == DebugLevel::Basic {
                     lines.line_colored(
                         (player_pos).extend(0.),

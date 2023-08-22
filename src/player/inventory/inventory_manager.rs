@@ -1,10 +1,9 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, math::Vec3Swizzles};
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
-    outline::Outline,
+    rendering::outline::Outline,
     player::{input::PlayerActions, inventory::item_manager::Items},
-    rendering::Position,
 };
 
 use super::{assets::ItemsAssets, DroppedEvent};
@@ -18,7 +17,7 @@ pub fn drop_item(
     mut query: Query<(
         Entity,
         &ActionState<PlayerActions>,
-        &Position,
+        &Transform,
         &mut Inventory,
     )>,
 ) {
@@ -26,7 +25,7 @@ pub fn drop_item(
         if action.just_pressed(PlayerActions::Drop) {
             if let Some(item) = inventory.content.pop() {
                 ev_drop.send(DroppedEvent(item, entity));
-                commands.spawn(item.to_pickup(pos.0, &mut meshes, &mut materials, &sprites));
+                commands.spawn(item.to_pickup(pos.translation.xy(), &mut meshes, &mut materials, &sprites));
             }
         }
     }

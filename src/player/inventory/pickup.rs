@@ -1,18 +1,18 @@
 use std::f32::INFINITY;
 
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
+use bevy::{prelude::*, sprite::MaterialMesh2dBundle, math::Vec3Swizzles};
 use leafwing_input_manager::prelude::ActionState;
 use rand::Rng;
 use strum::IntoEnumIterator;
 
 use crate::{
-    outline::Outline,
+    rendering::outline::Outline,
     player::{
         input::PlayerActions,
         inventory::{inventory_manager::Inventory, item_manager::Items},
         stats::PlayerStats,
     },
-    rendering::{Position, Zindex},
+    rendering::utils::Zindex,
 };
 
 use super::{assets::ItemsAssets, PickupEvent};
@@ -27,14 +27,14 @@ pub fn update_pickup(
     mut pickups: Query<(
         Entity,
         &Handle<Outline>,
-        &mut Position,
+        &mut Transform,
         &mut Pickup,
         &mut Zindex,
         Without<PlayerStats>,
     )>,
     mut players: Query<(
         Entity,
-        &mut Position,
+        &mut Transform,
         &mut Inventory,
         &ActionState<PlayerActions>,
         With<PlayerStats>,
@@ -42,7 +42,7 @@ pub fn update_pickup(
 ) {
     for (_, outline, mut pos, pickup, mut zindex, _) in &mut pickups {
         let float = ((time.elapsed_seconds() + pickup.anim_offset) * 3.).sin() / 10.;
-        pos.0.y += float;
+        pos.translation.y += float;
         zindex.0 = float + 5.;
 
         if let Some(material) = materials.get_mut(outline) {
@@ -55,7 +55,7 @@ pub fn update_pickup(
         let mut distance: f32 = INFINITY;
 
         for (entity, _, pos, _, _, _) in &mut pickups {
-            let current_distance = pos.0.distance(player_pos.0);
+            let current_distance = pos.translation.xy().distance(player_pos.translation.xy());
 
             if current_distance < distance && current_distance < PICKUP_RANGE {
                 distance = current_distance;
@@ -118,7 +118,6 @@ pub struct PickupBundle {
     pub name: bevy::core::Name,
     pub material: MaterialMesh2dBundle<Outline>,
     pub zindex: Zindex,
-    pub position: Position,
     pub pickup: Pickup,
 }
 
@@ -153,7 +152,6 @@ impl PickupBundle {
                 ..default()
             },
             zindex: Zindex(0.),
-            position: Position(pos),
             pickup: Pickup {
                 anim_offset: place_rng,
                 pickup_type: PickupType::Item(item_type),

@@ -6,10 +6,10 @@ use leafwing_input_manager::prelude::*;
 
 use crate::{
     player::bullets::BulletBundle,
-    rendering::{Angle, Flip, Offset, Position, Size, Zindex},
     player::reload::ReloadStats,
     player::roll::RollStats,
     player::input::PlayerActions,
+    rendering::utils::{Angle, Zindex, set_anchor},
 };
 
 
@@ -24,6 +24,7 @@ pub type ReloadFn =
 #[derive(Component)]
 pub struct GunStats {
     pub handle_position: Vec2,
+    pub size: Vec2,
     pub barrel_length: f32,
     pub barrel_height: f32,
     pub spread: f32,
@@ -55,6 +56,7 @@ impl Default for GunStats {
     fn default() -> Self {
         GunStats {
             handle_position: Vec2::new(2., 2.),
+            size: Vec2::new(14., 9.),
             barrel_length: 12.,
             barrel_height: 5.5,
             timer: Stopwatch::new(),
@@ -89,12 +91,8 @@ pub struct GunBundle {
     pub name: Name,
     pub stats: GunStats,
     pub sprite: SpriteBundle,
-    pub pos: Position,
     pub angle: Angle,
     pub zindex: Zindex,
-    pub flip: Flip,
-    pub offset: Offset,
-    pub size: Size,
 }
 
 pub fn revolver_stats() -> GunStats {
@@ -253,21 +251,17 @@ impl GunBundle {
         stats.timer.set_elapsed(Duration::new(1, 0));
         GunBundle {
             name: Name::new("Gun"),
-            offset: Offset(stats.handle_position),
-            stats,
             sprite: SpriteBundle {
                 texture: guns.shotgun.clone(),
                 sprite: Sprite {
-                    anchor: bevy::sprite::Anchor::TopLeft,
+                    anchor: set_anchor(stats.handle_position, stats.size),
                     ..default()
                 },
                 ..default()
             },
-            size: Size(Vec2::new(14., 9.)),
+            stats,
             angle: Angle(0.),
-            zindex: Zindex(50.),
-            pos: Position(Vec2::ZERO),
-            flip: Flip::False,
+            zindex: Zindex(56.),
         }
     }
 }

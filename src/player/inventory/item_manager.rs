@@ -5,7 +5,7 @@ use std::fmt::Debug;
 use strum_macros::EnumIter;
 
 use super::{assets::ItemsAssets, pickup::PickupBundle};
-use crate::outline::Outline;
+use crate::rendering::outline::Outline;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, EnumIter)]
 pub enum Items {

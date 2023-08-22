@@ -5,7 +5,7 @@ use bevy::time::Stopwatch;
 use crate::{player::{
     stats::PlayerStats,
     weapon::{GunEntity, GunStats},
-}, rendering::Angle};
+}, rendering::utils::Angle};
 
 use crate::player::roll::RollStats;
 use crate::player::input::PlayerActions;

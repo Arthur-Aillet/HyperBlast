@@ -1,12 +1,12 @@
 use bevy::{prelude::*, window::PrimaryWindow};
+use bevy_rapier2d::{prelude::*, rapier::prelude::ColliderType};
 use leafwing_input_manager::{prelude::ActionStateDriver, InputManagerBundle};
 use mouse::Mouse;
 
 use crate::{
     animation::{AnimationFlip, AnimationIndices, AnimationState, AnimationStateMachine},
     mouse,
-    physics::TesselatedCollider,
-    rendering::{Offset, Position, Zindex},
+    rendering::utils::{AutoZindex, set_anchor},
 };
 
 use input::PlayerActions;
@@ -29,15 +29,20 @@ pub struct PlayerBundle {
     pub sprite: SpriteSheetBundle,
     pub stats: PlayerStats,
     pub action: InputManagerBundle<PlayerActions>,
-    pub position: Position,
-    pub zindex: Zindex,
-    pub offset: Offset,
+    pub velocity: Velocity,
+    pub zindex: AutoZindex,
     pub current_gun: GunEntity,
-    pub collider: TesselatedCollider,
     pub direction: MoveDirection,
     pub cursor: CursorPosition,
     pub inventory: Inventory,
+    pub active: ActiveEvents,
+    pub rigid_body: RigidBody,
+    pub gravity: GravityScale,
+    pub locked_axes: LockedAxes,
 }
+
+#[derive(Debug, Reflect, Component)]
+pub struct PlayerCollider;
 
 impl PlayerBundle {
     pub fn setup(
@@ -137,31 +142,59 @@ impl PlayerBundle {
                 texture_atlas: assets.idle.clone(),
                 sprite: TextureAtlasSprite {
                     index: 0,
-                    anchor: bevy::sprite::Anchor::TopLeft,
+                    anchor: set_anchor(Vec2::new(17. / 2., 25. / 2. - 8.), Vec2::new(17., 25.)),
                     ..default()
                 },
+                transform: Transform::from_translation(Vec3::new(controller as i32 as f32 * 60., 0., 0.,)),
                 ..default()
             },
             state_machine,
             stats: PlayerStats::default(),
             action: input::player_input_setup(controller),
-            offset: Offset(Vec2::new(17. / 2., 25. / 2. + 8.)),
-            zindex: Zindex(25.),
-            position: Position(Vec2::ZERO),
-            current_gun: GunEntity(gun_id),
-            collider: TesselatedCollider {
-                texture: assets.collider.clone(),
-                offset: Vec2::ZERO,
+            zindex: AutoZindex,
+            velocity: bevy_rapier2d::prelude::Velocity {
+                linvel: Vec2::new(0., 0.),
+                angvel: 0.0,
             },
+            current_gun: GunEntity(gun_id),
             direction: MoveDirection::default(),
             cursor: CursorPosition::default(),
             inventory: Inventory::new(),
+            active: ActiveEvents::COLLISION_EVENTS,
+            rigid_body: RigidBody::Dynamic,
+            gravity: GravityScale(0.0),
+            locked_axes: LockedAxes::ROTATION_LOCKED,
         };
         if controller {
-            commands.spawn(player).insert(IsController);
+            commands.spawn(player).with_children(|parent| {
+                parent.spawn((
+                    Collider::capsule_y(3.25, 13. / 2.),
+                    Sensor,
+                    TransformBundle::from(Transform::from_xyz(0., 6., 0.)),
+                    ColliderDebugColor(Color::BLUE),
+                    PlayerCollider,
+                ));
+                parent.spawn((
+                    Collider::capsule_y(0., 13. / 2.),
+                    TransformBundle::from(Transform::from_xyz(0., 0., 0.).with_scale(Vec3::new(1., 0.7, 1.))),
+                ));
+            }).insert(IsController);
         } else {
             let player_id = commands
                 .spawn(player)
+                .with_children(|parent| {
+                    parent.spawn((
+                        Collider::capsule_y(3.25, 13. / 2.),
+                        Sensor,
+                        TransformBundle::from(Transform::from_xyz(0., 6., 0.)),
+                        ColliderDebugColor(Color::BLUE),
+                        PlayerCollider,
+                    ));
+                    parent.spawn((
+                        Collider::capsule_y(0., 13. / 2.),
+                        TransformBundle::from(Transform::from_xyz(0., 0., 0.).with_scale(Vec3::new(1., 0.7, 1.))),
+                    ));
+                })
                 .insert(InputManagerBundle::<Mouse>::default())
                 .id();
 
