@@ -49,24 +49,14 @@ fn spawn_player_ui(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     ui_assets: Res<UiAssets>,
     asset_server: Res<AssetServer>,
-<<<<<<< HEAD
     ui_root: Query<(Entity, With<UiRoot>)>,
     players_query: Query<(Entity, (Without<PlayerUiAccess>, With<PlayerStats>))>,
 ) {
     for (id, _) in &players_query {
         // Create healthbar:
-=======
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-    root_query: Query<(Entity, With<UiRoot>)>,
-    players_query: Query<(Entity, (Without<HasHealthBar>, With<PlayerStats>))>,
-) {
-    let root = root_query.single().0;
-    for (player, _) in &players_query {
->>>>>>> 4bd7630eeeb0ce87252513483ba838522594af48
         let fg_handle = asset_server.load("ui/healthbar_fg.png");
         let fg_atlas = TextureAtlas::from_grid(fg_handle, Vec2::new(100.0, 10.0), 1, 1, None, None);
         let fg_atlas_handle = texture_atlases.add(fg_atlas);
-<<<<<<< HEAD
         let hb_id = commands.spawn((
             HealthBar {player_id: id, health_bar_fg: fg_atlas_handle.clone()},
             NodeBundle {
@@ -141,49 +131,6 @@ fn spawn_player_ui(
         commands.entity(ui_root.single().0)
             .add_child(player_ui_id);
         commands.entity(id).insert(PlayerUiAccess { health_bar_id: hb_id, ammo_counter_id: count_id });
-=======
-
-        let health_bar = commands
-            .spawn((
-                HealthBar {
-                    player_id: player,
-                    health_bar_fg: fg_atlas_handle.clone(),
-                },
-                NodeBundle {
-                    style: Style {
-                        width: Val::Px(108. * 3.),
-                        height: Val::Px(10. * 3.),
-                        margin: UiRect::all(Val::VMin(2.)),
-                        padding: UiRect::left(Val::Px(8. * 3.)),
-                        ..default()
-                    },
-                    background_color: Color::WHITE.into(),
-                    ..default()
-                },
-                UiImage::new(ui_assets.health_bar_bg.clone()),
-            ))
-            .with_children(|parent| {
-                parent.spawn((
-                    AtlasImageBundle {
-                        style: Style {
-                            width: Val::Px(100. * 3.),
-                            height: Val::Px(10. * 3.),
-                            ..default()
-                        },
-                        texture_atlas: fg_atlas_handle.clone(),
-                        texture_atlas_image: UiTextureAtlasImage::default(),
-                        ..default()
-                    },
-                    HealthBarFg,
-                ));
-            })
-            .id();
-        commands
-            .get_entity(player)
-            .unwrap()
-            .insert(HasHealthBar { id: health_bar });
-        commands.get_entity(root).unwrap().add_child(health_bar);
->>>>>>> 4bd7630eeeb0ce87252513483ba838522594af48
     }
 }
 

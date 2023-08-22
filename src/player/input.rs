@@ -10,11 +10,10 @@ use crate::{
 use crate::player::{
     stats::PlayerStats,
     weapon::{GunEntity, GunStats},
+    roll::RollStats,
+    reload::ReloadStats,
 };
 
-use crate::player::roll::RollStats;
-
-use super::{direction::{MoveDirection, CursorPosition}, reload::ReloadStats};
 use super::{
     direction::{CursorPosition, MoveDirection},
     inventory::inventory_manager::Inventory,
@@ -127,8 +126,8 @@ pub fn shooting_system(
     for (entity, Position(player_pos), gun_id, player_actions, mut stats, inv, cursor_position, roll, reload) in
         &mut players
     {
-        if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _, _)) =
-            guns.get_mut(gun_id.0)
+        if let Ok((mut gun_pos, mut gun_angle, mut flip, mut gun_stats, _)) =
+        guns.get_mut(gun_id.0)
         {
             gun_pos.0 = *player_pos;
             gun_pos.0.x += 6.;
@@ -189,12 +188,9 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
         input_map = InputMap::new([
             (GamepadButtonType::RightTrigger2, PlayerActions::Shoot),
             (GamepadButtonType::LeftTrigger2, PlayerActions::Roll),
-<<<<<<< HEAD
-            (GamepadButtonType::South, PlayerActions::Reload),
-=======
+            (GamepadButtonType::North, PlayerActions::Reload),
             (GamepadButtonType::South, PlayerActions::Pickup),
             (GamepadButtonType::Start, PlayerActions::Drop),
->>>>>>> 4bd7630eeeb0ce87252513483ba838522594af48
         ]);
         input_map
             .insert(DualAxis::left_stick(), PlayerActions::ControllerMove)
@@ -206,12 +202,9 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
             (KeyCode::Z, PlayerActions::Up),
             (KeyCode::S, PlayerActions::Down),
             (KeyCode::Space, PlayerActions::Roll),
-<<<<<<< HEAD
             (KeyCode::R, PlayerActions::Reload),
-=======
             (KeyCode::A, PlayerActions::Pickup),
             (KeyCode::W, PlayerActions::Drop),
->>>>>>> 4bd7630eeeb0ce87252513483ba838522594af48
         ]);
         input_map.insert(MouseButton::Left, PlayerActions::Shoot);
     }

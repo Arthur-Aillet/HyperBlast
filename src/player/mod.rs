@@ -7,12 +7,7 @@ pub mod roll;
 pub mod setup;
 pub mod stats;
 pub mod weapon;
-<<<<<<< HEAD
-pub mod roll;
 pub mod reload;
-pub mod direction;
-=======
->>>>>>> 4bd7630eeeb0ce87252513483ba838522594af48
 
 use bevy::{prelude::*, window::PrimaryWindow};
 

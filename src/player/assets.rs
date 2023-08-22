@@ -3,10 +3,22 @@ use bevy_asset_loader::prelude::*;
 
 #[derive(AssetCollection, Resource)]
 pub struct GunAssets {
-    #[asset(path = "guns/marine_gun.png")]
-    pub marine: Handle<Image>,
     #[asset(path = "guns/bullet.png")]
     pub marine_bullet: Handle<Image>,
+    #[asset(path = "guns/marine_gun.png")]
+    pub marine: Handle<Image>,
+    #[asset(path = "guns/revolver.png")]
+    pub revolver: Handle<Image>,
+    #[asset(path = "guns/shotgun.png")]
+    pub shotgun: Handle<Image>,
+    #[asset(path = "guns/sniper.png")]
+    pub sniper: Handle<Image>,
+    #[asset(path = "guns/kalachnikov.png")]
+    pub kalachnikov: Handle<Image>,
+    #[asset(path = "guns/full_auto.png")]
+    pub automatic: Handle<Image>,
+    #[asset(path = "guns/flamethrower.png")]
+    pub flame_thrower: Handle<Image>,
 }
 
 #[derive(AssetCollection, Resource)]
