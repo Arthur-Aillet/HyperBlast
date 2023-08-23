@@ -2,7 +2,10 @@ use bevy::prelude::*;
 
 use crate::player::weapon::GunEntity;
 
-use super::{weapon_manager::{Guns, GunAssets}, PickupWeaponEvent};
+use super::{
+    weapon_manager::{GunAssets, Guns},
+    PickupWeaponEvent,
+};
 
 #[derive(Component)]
 pub struct Armory {
@@ -27,7 +30,7 @@ pub fn pickup_weapon(
     mut commands: Commands,
     mut pickup: EventReader<PickupWeaponEvent>,
     mut players: Query<Option<&mut GunEntity>>,
-    assets: Res<GunAssets>
+    assets: Res<GunAssets>,
 ) {
     for PickupWeaponEvent(gun_name, player_id) in pickup.iter() {
         let id = commands.spawn(gun_name.to_gun_bundle(&assets)).id();

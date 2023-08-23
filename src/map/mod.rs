@@ -22,7 +22,12 @@ impl Plugin for MapPlugin {
                 level_background: LevelBackground::Nonexistent,
                 ..default()
             })
-            .insert_resource(ClearColor(Color::Rgba { red: 20./255., green: 20./255., blue: 18./255., alpha: 1. }))
+            .insert_resource(ClearColor(Color::Rgba {
+                red: 20. / 255.,
+                green: 20. / 255.,
+                blue: 18. / 255.,
+                alpha: 1.,
+            }))
             .register_ldtk_int_cell::<WallBundle>(1)
             .add_systems(Startup, setup_map)
             .add_systems(Update, colliders::spawn_wall_collision)

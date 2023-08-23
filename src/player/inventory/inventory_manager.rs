@@ -1,9 +1,9 @@
-use bevy::{prelude::*, math::Vec3Swizzles};
+use bevy::{math::Vec3Swizzles, prelude::*};
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
-    rendering::outline::Outline,
     player::{input::PlayerActions, inventory::item_manager::Items},
+    rendering::outline::Outline,
 };
 
 use super::{assets::ItemsAssets, DroppedItemEvent};
@@ -25,7 +25,12 @@ pub fn drop_item(
         if action.just_pressed(PlayerActions::Drop) {
             if let Some(item) = inventory.content.pop() {
                 ev_drop.send(DroppedItemEvent(item, entity));
-                commands.spawn(item.to_pickup(pos.translation.xy(), &mut meshes, &mut materials, &sprites));
+                commands.spawn(item.to_pickup(
+                    pos.translation.xy(),
+                    &mut meshes,
+                    &mut materials,
+                    &sprites,
+                ));
             }
         }
     }

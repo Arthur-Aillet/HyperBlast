@@ -2,7 +2,19 @@ use std::time::Duration;
 
 use bevy::{prelude::*, time::Stopwatch};
 
-use crate::{player::{weapon::{GunStats, basic_reload_fn, manual_shoot_fn}, inventory::{weapon_manager::{GunAssets, Guns}, pickup::{PickupBundle, PickupType}}}, rendering::{utils::{set_anchor, Angle, Zindex}, outline::Outline}};
+use crate::{
+    player::{
+        inventory::{
+            pickup::{PickupBundle, PickupType},
+            weapon_manager::{GunAssets, Guns},
+        },
+        weapon::{basic_reload_fn, manual_shoot_fn, GunStats},
+    },
+    rendering::{
+        outline::Outline,
+        utils::{set_anchor, Angle, Zindex},
+    },
+};
 
 use super::GunBundle;
 
@@ -28,7 +40,6 @@ pub fn sniper_stats() -> GunStats {
         ..Default::default()
     }
 }
-
 
 impl GunBundle {
     pub fn sniper(guns: &Res<GunAssets>) -> Self {

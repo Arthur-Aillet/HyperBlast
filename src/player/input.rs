@@ -1,19 +1,15 @@
-use bevy::{prelude::*, reflect::TypePath, math::Vec3Swizzles};
+use bevy::{math::Vec3Swizzles, prelude::*, reflect::TypePath};
 use bevy_rapier2d::prelude::Velocity;
 use leafwing_input_manager::{prelude::*, Actionlike};
 
 use crate::rendering::utils::set_anchor;
-use crate::{
-    animation::AnimationState,
-    debug::DebugLevel,
-    rendering::utils::Angle,
-};
+use crate::{animation::AnimationState, debug::DebugLevel, rendering::utils::Angle};
 
 use crate::player::{
+    reload::ReloadStats,
+    roll::RollStats,
     stats::PlayerStats,
     weapon::{GunEntity, GunStats},
-    roll::RollStats,
-    reload::ReloadStats,
 };
 
 use super::{
@@ -75,7 +71,13 @@ pub fn update_gun_angle(
         barrel_to_cursor = cursor_position - barrel_position;
         *gun_angle = Angle(barrel_to_cursor.y.atan2(barrel_to_cursor.x));
         sprite.flip_y = true;
-        sprite.anchor = set_anchor(Vec2 { x: gun_stats.handle_position.x, y: gun_stats.size.y - gun_stats.handle_position.y }, gun_stats.size);
+        sprite.anchor = set_anchor(
+            Vec2 {
+                x: gun_stats.handle_position.x,
+                y: gun_stats.size.y - gun_stats.handle_position.y,
+            },
+            gun_stats.size,
+        );
     } else {
         sprite.flip_y = false;
         sprite.anchor = set_anchor(gun_stats.handle_position, gun_stats.size);
@@ -126,18 +128,11 @@ pub fn shooting_system(
     mut commands: Commands,
     gun_assets: Res<super::inventory::weapon_manager::GunAssets>,
 ) {
-    for (
-        entity,
-        gun_id,
-        player_actions,
-        mut stats,
-        inv,
-        cursor_position,
-        roll,
-        reload,
-    ) in &mut players
+    for (entity, gun_id, player_actions, mut stats, inv, cursor_position, roll, reload) in
+        &mut players
     {
-        if let Ok((gun_transform, mut gun_angle, mut sprite, mut gun_stats, _)) = gun.get_mut(gun_id.0)
+        if let Ok((gun_transform, mut gun_angle, mut sprite, mut gun_stats, _)) =
+            gun.get_mut(gun_id.0)
         {
             let gun_pos = gun_transform.translation().xy();
 

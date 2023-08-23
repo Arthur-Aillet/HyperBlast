@@ -1,14 +1,14 @@
 pub mod assets;
 pub mod bullets;
 pub mod direction;
+pub mod guns;
 pub mod input;
 pub mod inventory;
+pub mod reload;
 pub mod roll;
 pub mod setup;
 pub mod stats;
 pub mod weapon;
-pub mod reload;
-pub mod guns;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 
@@ -39,12 +39,24 @@ impl Plugin for PlayerPlugin {
             .add_systems(First, direction::calculate_players_move_direction)
             .add_systems(Update, reload::start_reload)
             .add_systems(PreUpdate, roll::start_roll)
-            .add_systems(Update, input::move_players.after(update_cursor_state_from_window))
+            .add_systems(
+                Update,
+                input::move_players.after(update_cursor_state_from_window),
+            )
             .add_systems(Update, roll::rolling.after(update_cursor_state_from_window))
-            .add_systems(Update, input::shooting_system.after(update_cursor_state_from_window))
+            .add_systems(
+                Update,
+                input::shooting_system.after(update_cursor_state_from_window),
+            )
             .add_systems(Update, reload::reload.after(input::shooting_system))
-            .add_systems(Update, bullets::move_bullets.after(update_cursor_state_from_window))
-            .add_systems(Update, bullets::detect_collision_bullets.after(update_cursor_state_from_window))
+            .add_systems(
+                Update,
+                bullets::move_bullets.after(update_cursor_state_from_window),
+            )
+            .add_systems(
+                Update,
+                bullets::detect_collision_bullets.after(update_cursor_state_from_window),
+            )
             .add_systems(PostUpdate, stats::player_death);
     }
 }

@@ -1,23 +1,39 @@
 use bevy::{prelude::*, time::Stopwatch};
-use rand::Rng;
 use leafwing_input_manager::prelude::*;
+use rand::Rng;
 
 use crate::{
-    player::bullets::BulletBundle,
-    player::reload::ReloadStats,
-    player::roll::RollStats,
-    player::input::PlayerActions,
-    rendering::utils::Angle,
+    player::bullets::BulletBundle, player::input::PlayerActions, player::reload::ReloadStats,
+    player::roll::RollStats, rendering::utils::Angle,
 };
 
 use super::inventory::weapon_manager::GunAssets;
 use super::{inventory::inventory_manager::Inventory, stats::PlayerStats};
 
-type ShootFn =
-    fn(&mut Commands, &Res<GunAssets>, &mut GunStats, &mut PlayerStats, &Inventory, Vec2, f32, Entity, &ActionState<PlayerActions>, Option<&RollStats>, Option<&ReloadStats>);
+type ShootFn = fn(
+    &mut Commands,
+    &Res<GunAssets>,
+    &mut GunStats,
+    &mut PlayerStats,
+    &Inventory,
+    Vec2,
+    f32,
+    Entity,
+    &ActionState<PlayerActions>,
+    Option<&RollStats>,
+    Option<&ReloadStats>,
+);
 
-pub type ReloadFn =
-    fn(&Res<Time>, &mut Commands, Mut<'_, Angle>, Mut<'_, GunStats>, Mut<'_, PlayerStats>, Mut<'_, ReloadStats>, Option<&RollStats>, Entity);
+pub type ReloadFn = fn(
+    &Res<Time>,
+    &mut Commands,
+    Mut<'_, Angle>,
+    Mut<'_, GunStats>,
+    Mut<'_, PlayerStats>,
+    Mut<'_, ReloadStats>,
+    Option<&RollStats>,
+    Entity,
+);
 
 #[derive(Component)]
 pub struct GunStats {
@@ -198,8 +214,12 @@ pub fn basic_reload_fn(
     roll: Option<&RollStats>,
     owner: Entity,
 ) {
-    if roll.is_some() && !reload_stats.since.paused() { reload_stats.since.pause(); }
-    if roll.is_none() && reload_stats.since.paused() { reload_stats.since.unpause(); }
+    if roll.is_some() && !reload_stats.since.paused() {
+        reload_stats.since.pause();
+    }
+    if roll.is_none() && reload_stats.since.paused() {
+        reload_stats.since.unpause();
+    }
     reload_stats.since.tick(time.delta());
     if reload_stats.since.elapsed_secs() >= stats.reload_time {
         if stats.infinite {
@@ -228,8 +248,12 @@ pub fn shotgun_reload_fn(
     roll: Option<&RollStats>,
     owner: Entity,
 ) {
-    if roll.is_some() && !reload_stats.since.paused() { reload_stats.since.pause(); }
-    if roll.is_none() && reload_stats.since.paused() { reload_stats.since.unpause(); }
+    if roll.is_some() && !reload_stats.since.paused() {
+        reload_stats.since.pause();
+    }
+    if roll.is_none() && reload_stats.since.paused() {
+        reload_stats.since.unpause();
+    }
     reload_stats.since.tick(time.delta());
     if reload_stats.since.elapsed_secs() >= stats.reload_time {
         if stats.infinite {
@@ -270,31 +294,54 @@ pub fn manual_shoot_fn(
     owner: Entity,
     player_actions: &ActionState<PlayerActions>,
     roll: Option<&RollStats>,
-    reload: Option<&ReloadStats>
+    reload: Option<&ReloadStats>,
 ) {
-    if roll.is_some() || reload.is_some() || stats.broken {stats.left_to_fire = 0};
-    if player_actions.just_pressed(PlayerActions::Shoot) && roll.is_none() && reload.is_none() && stats.left_to_fire == 0 && !stats.broken {
+    if roll.is_some() || reload.is_some() || stats.broken {
+        stats.left_to_fire = 0
+    };
+    if player_actions.just_pressed(PlayerActions::Shoot)
+        && roll.is_none()
+        && reload.is_none()
+        && stats.left_to_fire == 0
+        && !stats.broken
+    {
         if stats.mag_ammo > 0 {
             if stats.timer.elapsed_secs() >= 1. / stats.fire_rate {
                 stats.timer.reset();
-                stats.left_to_fire = if stats.min_shot < stats.mag_ammo {stats.min_shot} else {stats.mag_ammo};
+                stats.left_to_fire = if stats.min_shot < stats.mag_ammo {
+                    stats.min_shot
+                } else {
+                    stats.mag_ammo
+                };
             }
         }
     }
     if stats.left_to_fire != 0 {
-        if stats.left_to_fire == stats.min_shot || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate {
+        if stats.left_to_fire == stats.min_shot
+            || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate
+        {
             stats.timer.reset();
             let mut rng = rand::thread_rng();
             for _ in 0..stats.salve {
                 commands.spawn(BulletBundle::marine_bullet(
                     assets,
                     barrel_end,
-                    angle + (if stats.spread == 0. {0.} else {rng.gen_range((stats.spread * -1.)..stats.spread)}),
+                    angle
+                        + (if stats.spread == 0. {
+                            0.
+                        } else {
+                            rng.gen_range((stats.spread * -1.)..stats.spread)
+                        }),
                     inventory,
                     &stats,
                     player,
                     owner,
-                    stats.speed + (if stats.spread == 0. {0.} else {rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)}),
+                    stats.speed
+                        + (if stats.spread == 0. {
+                            0.
+                        } else {
+                            rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)
+                        }),
                 ));
             }
             stats.mag_ammo -= 1;
@@ -314,31 +361,54 @@ pub fn auto_shoot_fn(
     owner: Entity,
     player_actions: &ActionState<PlayerActions>,
     roll: Option<&RollStats>,
-    reload: Option<&ReloadStats>
+    reload: Option<&ReloadStats>,
 ) {
-    if roll.is_some() || reload.is_some() || stats.broken {stats.left_to_fire = 0};
-    if player_actions.pressed(PlayerActions::Shoot) && roll.is_none() && reload.is_none() && stats.left_to_fire == 0 && !stats.broken {
+    if roll.is_some() || reload.is_some() || stats.broken {
+        stats.left_to_fire = 0
+    };
+    if player_actions.pressed(PlayerActions::Shoot)
+        && roll.is_none()
+        && reload.is_none()
+        && stats.left_to_fire == 0
+        && !stats.broken
+    {
         if stats.mag_ammo > 0 {
             if stats.timer.elapsed_secs() >= 1. / stats.fire_rate {
                 stats.timer.reset();
-                stats.left_to_fire = if stats.min_shot < stats.mag_ammo {stats.min_shot} else {stats.mag_ammo};
+                stats.left_to_fire = if stats.min_shot < stats.mag_ammo {
+                    stats.min_shot
+                } else {
+                    stats.mag_ammo
+                };
             }
         }
     }
     if stats.left_to_fire != 0 {
-        if stats.left_to_fire == stats.min_shot || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate {
+        if stats.left_to_fire == stats.min_shot
+            || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate
+        {
             stats.timer.reset();
             let mut rng = rand::thread_rng();
             for _ in 0..stats.salve {
                 commands.spawn(BulletBundle::marine_bullet(
                     assets,
                     barrel_end,
-                    angle + (if stats.spread == 0. {0.} else {rng.gen_range((stats.spread * -1.)..stats.spread)}),
+                    angle
+                        + (if stats.spread == 0. {
+                            0.
+                        } else {
+                            rng.gen_range((stats.spread * -1.)..stats.spread)
+                        }),
                     inventory,
                     &stats,
                     player,
                     owner,
-                    stats.speed + (if stats.spread == 0. {0.} else {rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)}),
+                    stats.speed
+                        + (if stats.spread == 0. {
+                            0.
+                        } else {
+                            rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)
+                        }),
                 ));
             }
             stats.mag_ammo -= 1;
@@ -358,9 +428,11 @@ pub fn overheat_shoot_fn(
     owner: Entity,
     player_actions: &ActionState<PlayerActions>,
     roll: Option<&RollStats>,
-    reload: Option<&ReloadStats>
+    reload: Option<&ReloadStats>,
 ) {
-    if roll.is_some() || reload.is_some() || stats.broken {stats.left_to_fire = 0};
+    if roll.is_some() || reload.is_some() || stats.broken {
+        stats.left_to_fire = 0
+    };
     if stats.broken {
         if stats.heat > 0. {
             stats.heat -= stats.timer.elapsed_secs();
@@ -371,15 +443,26 @@ pub fn overheat_shoot_fn(
             stats.broken = false;
         }
     }
-    if player_actions.pressed(PlayerActions::Shoot) && roll.is_none() && reload.is_none() && stats.left_to_fire == 0 && !stats.broken {
+    if player_actions.pressed(PlayerActions::Shoot)
+        && roll.is_none()
+        && reload.is_none()
+        && stats.left_to_fire == 0
+        && !stats.broken
+    {
         if stats.mag_ammo > 0 {
             if stats.timer.elapsed_secs() >= 1. / stats.fire_rate {
                 stats.heat += stats.timer.elapsed_secs();
                 stats.timer.reset();
                 if stats.heat >= stats.min_heat && stats.heat < stats.max_heat {
-                    stats.left_to_fire = if stats.min_shot < stats.mag_ammo {stats.min_shot} else {stats.mag_ammo};
+                    stats.left_to_fire = if stats.min_shot < stats.mag_ammo {
+                        stats.min_shot
+                    } else {
+                        stats.mag_ammo
+                    };
                 }
-                if stats.heat > stats.max_heat {stats.broken = true};
+                if stats.heat > stats.max_heat {
+                    stats.broken = true
+                };
             }
         }
     }
@@ -393,19 +476,31 @@ pub fn overheat_shoot_fn(
         }
     }
     if stats.left_to_fire != 0 {
-        if stats.left_to_fire == stats.min_shot || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate {
+        if stats.left_to_fire == stats.min_shot
+            || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate
+        {
             stats.timer.reset();
             let mut rng = rand::thread_rng();
             for _ in 0..stats.salve {
                 commands.spawn(BulletBundle::marine_bullet(
                     assets,
                     barrel_end,
-                    angle + (if stats.spread == 0. {0.} else {rng.gen_range((stats.spread * -1.)..stats.spread)}),
+                    angle
+                        + (if stats.spread == 0. {
+                            0.
+                        } else {
+                            rng.gen_range((stats.spread * -1.)..stats.spread)
+                        }),
                     inventory,
                     &stats,
                     player,
                     owner,
-                    stats.speed + (if stats.spread == 0. {0.} else {rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)}),
+                    stats.speed
+                        + (if stats.spread == 0. {
+                            0.
+                        } else {
+                            rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)
+                        }),
                 ));
             }
             stats.mag_ammo -= 1;

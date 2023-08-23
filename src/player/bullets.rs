@@ -10,8 +10,9 @@ use crate::player::inventory::item_manager::Items;
 use super::{
     inventory::{inventory_manager::Inventory, weapon_manager::GunAssets},
     roll::RollStats,
+    setup::PlayerCollider,
     stats::PlayerStats,
-    weapon::{GunEntity, GunStats}, setup::PlayerCollider,
+    weapon::{GunEntity, GunStats},
 };
 
 #[derive(Component)]
@@ -82,7 +83,8 @@ impl BulletBundle {
                 distance: gun_stats.distance,
                 speed: spd / (inventory.amount(Items::Mercury) as f32 * 3. + 1.),
                 mercury_amount: inventory.amount(Items::Mercury),
-                damages: (gun_stats.damage + player_stats.damages_added) * player_stats.damages_multiplier,
+                damages: (gun_stats.damage + player_stats.damages_added)
+                    * player_stats.damages_multiplier,
             },
             sprite: SpriteBundle {
                 texture: assets.marine_bullet.clone(),

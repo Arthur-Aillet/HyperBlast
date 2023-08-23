@@ -1,21 +1,26 @@
 use std::f32::INFINITY;
 
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle, math::Vec3Swizzles};
+use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
 use leafwing_input_manager::prelude::ActionState;
 use rand::Rng;
 use strum::IntoEnumIterator;
 
 use crate::{
-    rendering::outline::Outline,
     player::{
         input::PlayerActions,
         inventory::{inventory_manager::Inventory, item_manager::Items},
         stats::PlayerStats,
     },
+    rendering::outline::Outline,
     rendering::utils::Zindex,
 };
 
-use super::{assets::ItemsAssets, PickupItemEvent, weapon_manager::{Guns, GunAssets}, armory_manager::Armory, PickupWeaponEvent};
+use super::{
+    armory_manager::Armory,
+    assets::ItemsAssets,
+    weapon_manager::{GunAssets, Guns},
+    PickupItemEvent, PickupWeaponEvent,
+};
 
 const PICKUP_RANGE: f32 = 25. * 1.5;
 
@@ -75,7 +80,7 @@ pub fn update_pickup(
                         PickupType::Gun(gun) => {
                             ev_pickup_w.send(PickupWeaponEvent(*gun, entity));
                             armory.add(*gun);
-                        },
+                        }
                         PickupType::Item(item) => {
                             ev_pickup_i.send(PickupItemEvent(*item, entity));
                             inventory.add(*item);

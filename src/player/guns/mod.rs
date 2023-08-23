@@ -5,9 +5,12 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::rendering::utils::{Angle, Zindex, set_anchor};
+use crate::rendering::utils::{set_anchor, Angle, Zindex};
 
-use super::{weapon::{GunStats, flamethrower_stats}, inventory::weapon_manager::GunAssets};
+use super::{
+    inventory::weapon_manager::GunAssets,
+    weapon::{flamethrower_stats, GunStats},
+};
 
 #[derive(Bundle)]
 pub struct GunBundle {

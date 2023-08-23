@@ -2,10 +2,10 @@ use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 use strum_macros::EnumIter;
 
+use super::pickup::PickupBundle;
+use crate::player::guns::GunBundle;
 use crate::player::guns::{revolver::create_revolver_pickup, sniper::create_sniper_pickup};
 use crate::rendering::outline::Outline;
-use crate::player::guns::GunBundle;
-use super::pickup::{PickupBundle, PickupType};
 
 #[derive(AssetCollection, Resource)]
 pub struct GunAssets {

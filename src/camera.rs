@@ -1,4 +1,4 @@
-use bevy::{prelude::*, math::Vec3Swizzles};
+use bevy::{math::Vec3Swizzles, prelude::*};
 
 use crate::{
     debug::{draw_rectangle, DebugLevel},
@@ -40,12 +40,19 @@ fn resize_camera(
             projection.scale = 1.;
             let window = window_query.single();
             transform.translation = Vec3::new(0., 0., 999.9);
-            settings.position = settings.position + (Vec2::new(camera_data.pos.x / window.width(), -camera_data.pos.y / window.height()) - settings.position) / 5.;
-            settings.intensity = settings.intensity + (camera_data.scale - settings.intensity) / 10.;
+            settings.position = settings.position
+                + (Vec2::new(
+                    camera_data.pos.x / window.width(),
+                    -camera_data.pos.y / window.height(),
+                ) - settings.position)
+                    / 5.;
+            settings.intensity =
+                settings.intensity + (camera_data.scale - settings.intensity) / 10.;
         } else {
             settings.intensity = 1.;
             settings.position = Vec2::new(0., 0.);
-            transform.translation = transform.translation + (camera_data.pos.extend(999.9) - transform.translation) / 5.;
+            transform.translation = transform.translation
+                + (camera_data.pos.extend(999.9) - transform.translation) / 5.;
             projection.scale = projection.scale + (camera_data.scale - projection.scale) / 10.;
         }
     }
@@ -59,8 +66,11 @@ fn calculate_camera_size(
     mut camera: Query<(&mut CameraData, With<Camera2d>)>,
 ) {
     for (mut camera_data, _) in &mut camera {
-        let average_player_positions: Vec2 =
-            query.iter().map(|(pos, _)| pos.translation.xy()).sum::<Vec2>() / query.iter().len() as f32;
+        let average_player_positions: Vec2 = query
+            .iter()
+            .map(|(pos, _)| pos.translation.xy())
+            .sum::<Vec2>()
+            / query.iter().len() as f32;
         let mut max: Vec2 = Vec2::NEG_INFINITY;
         let mut min: Vec2 = Vec2::INFINITY;
         for (pos, _) in &query {

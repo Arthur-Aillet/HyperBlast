@@ -2,7 +2,19 @@ use std::time::Duration;
 
 use bevy::{prelude::*, time::Stopwatch};
 
-use crate::{player::{weapon::{GunStats, auto_shoot_fn, basic_reload_fn}, inventory::{weapon_manager::{GunAssets, Guns}, pickup::{PickupBundle, PickupType}}}, rendering::{utils::{set_anchor, Angle, Zindex}, outline::Outline}};
+use crate::{
+    player::{
+        inventory::{
+            pickup::{PickupBundle, PickupType},
+            weapon_manager::{GunAssets, Guns},
+        },
+        weapon::{auto_shoot_fn, basic_reload_fn, GunStats},
+    },
+    rendering::{
+        outline::Outline,
+        utils::{set_anchor, Angle, Zindex},
+    },
+};
 
 use super::GunBundle;
 

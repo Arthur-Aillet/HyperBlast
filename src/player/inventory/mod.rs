@@ -1,20 +1,22 @@
+pub mod armory_manager;
 pub mod assets;
 pub mod inventory_manager;
 pub mod item_manager;
 pub mod pickup;
 pub mod stats;
-pub mod armory_manager;
 pub mod weapon_manager;
 
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
 use self::{
+    armory_manager::pickup_weapon,
     assets::ItemsAssets,
     inventory_manager::drop_item,
     item_manager::Items,
     pickup::{spawn_items, update_pickup},
-    stats::{drop_events, pickup_events}, weapon_manager::Guns, armory_manager::pickup_weapon,
+    stats::{drop_events, pickup_events},
+    weapon_manager::Guns,
 };
 
 #[derive(Event)]

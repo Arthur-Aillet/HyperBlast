@@ -1,14 +1,18 @@
-pub mod zoom;
-pub mod utils;
 pub mod outline;
+pub mod utils;
+pub mod zoom;
 
 use std::time::Duration;
 
-use bevy::{prelude::*, asset::ChangeWatcher};
+use bevy::{asset::ChangeWatcher, prelude::*};
 
 use crate::camera::CameraData;
 
-use self::{utils::Zindex, zoom::{setup, ZoomPlugin, ZoomSettings}, outline::OutlinePlugin};
+use self::{
+    outline::OutlinePlugin,
+    utils::Zindex,
+    zoom::{setup, ZoomPlugin, ZoomSettings},
+};
 
 pub struct RenderingPlugin;
 
@@ -16,13 +20,16 @@ impl Plugin for RenderingPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Msaa::Off)
             .add_plugins((
-                DefaultPlugins.set(ImagePlugin::default_nearest()).set(AssetPlugin {
-                // Hot reloading the shader works correctly
-                watch_for_changes: ChangeWatcher::with_delay(Duration::from_millis(200)),
-                ..default()
-                }),
+                DefaultPlugins
+                    .set(ImagePlugin::default_nearest())
+                    .set(AssetPlugin {
+                        // Hot reloading the shader works correctly
+                        watch_for_changes: ChangeWatcher::with_delay(Duration::from_millis(200)),
+                        ..default()
+                    }),
                 OutlinePlugin,
-                ZoomPlugin))
+                ZoomPlugin,
+            ))
             .add_systems(Startup, setup)
             .register_type::<Zindex>()
             .add_systems(Update, crate::rendering::utils::set_auto_zindex)
@@ -32,14 +39,17 @@ impl Plugin for RenderingPlugin {
     }
 }
 
-fn disable_pixel_perfect(input: Res<Input<KeyCode>>, mut set: Query<&mut ZoomSettings>,
+fn disable_pixel_perfect(
+    input: Res<Input<KeyCode>>,
+    mut set: Query<&mut ZoomSettings>,
     window_query: Query<&Window>,
     mut camera: Query<(
         &mut CameraData,
         &mut Transform,
         &mut OrthographicProjection,
         With<Camera2d>,
-    )>,)  {
+    )>,
+) {
     if input.just_pressed(KeyCode::P) {
         let mut set = set.single_mut();
         for (mut camera_data, mut transform, mut projection, _) in &mut camera {
@@ -48,7 +58,10 @@ fn disable_pixel_perfect(input: Res<Input<KeyCode>>, mut set: Query<&mut ZoomSet
                 transform.translation = Vec3::new(0., 0., 999.9);
                 projection.scale = 1.;
                 let window = window_query.single();
-                set.position = Vec2::new(camera_data.pos.x / window.width(), -camera_data.pos.y / window.height());
+                set.position = Vec2::new(
+                    camera_data.pos.x / window.width(),
+                    -camera_data.pos.y / window.height(),
+                );
                 set.intensity = camera_data.scale;
             } else {
                 set.intensity = 1.;

@@ -1,8 +1,5 @@
 use bevy::{
-    core_pipeline::{
-        core_2d,
-        fullscreen_vertex_shader::fullscreen_shader_vertex_state,
-    },
+    core_pipeline::{core_2d, fullscreen_vertex_shader::fullscreen_shader_vertex_state},
     ecs::query::QueryItem,
     prelude::*,
     render::{
@@ -26,7 +23,6 @@ use bevy::{
         RenderApp,
     },
 };
-
 
 /// It is generally encouraged to set up post processing effects as a plugin
 pub struct ZoomPlugin;
@@ -261,9 +257,7 @@ impl FromWorld for ZoomPipeline {
         let sampler = render_device.create_sampler(&SamplerDescriptor::default());
 
         // Get the shader handle
-        let shader = world
-            .resource::<AssetServer>()
-            .load("shaders/zoom.wgsl");
+        let shader = world.resource::<AssetServer>().load("shaders/zoom.wgsl");
 
         let pipeline_id = world
             .resource_mut::<PipelineCache>()
@@ -309,9 +303,7 @@ pub struct ZoomSettings {
 }
 
 /// Set up a simple 3D scene
-pub fn setup(
-    mut commands: Commands,
-) {
+pub fn setup(mut commands: Commands) {
     commands.spawn((
         // Add the setting to the camera.
         // This component is also used to determine on which camera to run the post processing effect.
@@ -321,4 +313,3 @@ pub fn setup(
         },
     ));
 }
-

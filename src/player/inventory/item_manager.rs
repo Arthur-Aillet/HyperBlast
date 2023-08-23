@@ -4,7 +4,10 @@ use std::fmt::Debug;
 
 use strum_macros::EnumIter;
 
-use super::{assets::ItemsAssets, pickup::{PickupBundle, PickupType}};
+use super::{
+    assets::ItemsAssets,
+    pickup::{PickupBundle, PickupType},
+};
 use crate::rendering::outline::Outline;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, EnumIter)]
