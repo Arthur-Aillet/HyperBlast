@@ -18,9 +18,7 @@ use super::{
     input::{self, IsController, PlayerState},
     inventory::{armory_manager::Armory, inventory_manager::Inventory},
     stats::PlayerStats,
-    weapon::GunEntity,
 };
-use crate::player::inventory::weapon_manager::GunAssets;
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
@@ -51,7 +49,6 @@ impl PlayerBundle {
         window: &Query<Entity, With<PrimaryWindow>>,
         controller: bool,
         assets: &Res<PlayerAssets>,
-        guns_assets: &Res<GunAssets>,
     ) {
         let state_machine = AnimationStateMachine::new_filled([
             (

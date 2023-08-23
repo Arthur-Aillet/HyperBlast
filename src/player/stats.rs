@@ -2,8 +2,6 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use super::weapon::GunEntity;
-
 #[derive(Component, Reflect)]
 pub struct PlayerStats {
     pub speed: f32,

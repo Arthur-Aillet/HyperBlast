@@ -65,8 +65,7 @@ fn setup_players(
     mut commands: Commands,
     window: Query<Entity, With<PrimaryWindow>>,
     assets: Res<PlayerAssets>,
-    guns: Res<GunAssets>,
 ) {
-    setup::PlayerBundle::setup(&mut commands, &window, true, &assets, &guns);
-    setup::PlayerBundle::setup(&mut commands, &window, false, &assets, &guns);
+    setup::PlayerBundle::setup(&mut commands, &window, true, &assets);
+    setup::PlayerBundle::setup(&mut commands, &window, false, &assets);
 }

@@ -22,7 +22,7 @@ pub fn drop_item(
     )>,
 ) {
     for (entity, action, pos, mut inventory) in &mut query {
-        if action.just_pressed(PlayerActions::Drop) {
+        if action.just_pressed(PlayerActions::DropItem) {
             if let Some(item) = inventory.content.pop() {
                 ev_drop.send(DroppedItemEvent(item, entity));
                 commands.spawn(item.to_pickup(

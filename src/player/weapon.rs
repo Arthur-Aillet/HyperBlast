@@ -273,9 +273,9 @@ pub fn no_reload(
     _tim: &Res<Time>,
     commands: &mut Commands,
     mut angle: Mut<'_, Angle>,
-    mut stats: Mut<'_, GunStats>,
+    stats: Mut<'_, GunStats>,
     _player: Mut<'_, PlayerStats>,
-    mut reload_stats: Mut<'_, ReloadStats>,
+    _reload_stats: Mut<'_, ReloadStats>,
     _roll: Option<&RollStats>,
     owner: Entity,
 ) {

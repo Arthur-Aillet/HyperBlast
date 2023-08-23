@@ -80,6 +80,7 @@ pub fn update_pickup(
                         PickupType::Gun(gun) => {
                             ev_pickup_w.send(PickupWeaponEvent(*gun, entity));
                             armory.add(*gun);
+                            armory.current_weapon_index = armory.content.len() - 1;
                         }
                         PickupType::Item(item) => {
                             ev_pickup_i.send(PickupItemEvent(*item, entity));

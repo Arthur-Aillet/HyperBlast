@@ -3,8 +3,6 @@ use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 use std::collections::{HashMap, HashSet};
 
-use crate::rendering::utils::AutoZindex;
-
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Component)]
 pub struct Wall;
 

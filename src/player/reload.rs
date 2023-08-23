@@ -64,7 +64,6 @@ pub fn reload(
     )>,
     mut guns: Query<(&mut GunStats, &mut Angle, Without<PlayerStats>)>,
     mut commands: Commands,
-    gun_assets: Res<super::inventory::weapon_manager::GunAssets>,
 ) {
     for (entity, gun_id, player_stats, roll, reload) in &mut players {
         if let Ok((gunstats, gunangle, _)) = guns.get_mut(gun_id.0) {

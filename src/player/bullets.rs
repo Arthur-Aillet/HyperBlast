@@ -12,7 +12,7 @@ use super::{
     roll::RollStats,
     setup::PlayerCollider,
     stats::PlayerStats,
-    weapon::{GunEntity, GunStats},
+    weapon::GunStats,
 };
 
 #[derive(Component)]
