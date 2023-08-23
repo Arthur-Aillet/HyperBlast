@@ -14,7 +14,7 @@ use self::{
     inventory_manager::drop_item,
     item_manager::Items,
     pickup::{spawn_items, update_pickup},
-    stats::{drop_events, pickup_events}, weapon_manager::Guns, armory_manager::{pickup_weapon, Armory},
+    stats::{drop_events, pickup_events}, weapon_manager::Guns, armory_manager::pickup_weapon,
 };
 
 #[derive(Event)]

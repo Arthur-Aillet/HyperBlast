@@ -2,8 +2,8 @@ use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 use strum_macros::EnumIter;
 
-use crate::player::guns::revolver::create_revolver_pickup;
-use crate::{rendering::outline::Outline, player::weapon::GunStats};
+use crate::player::guns::{revolver::create_revolver_pickup, sniper::create_sniper_pickup};
+use crate::rendering::outline::Outline;
 use crate::player::guns::GunBundle;
 use super::pickup::{PickupBundle, PickupType};
 
@@ -53,21 +53,4 @@ impl Guns {
             Guns::Sniper => GunBundle::sniper(assets),
         }
     }
-}
-
-pub fn create_sniper_pickup(
-    pos: Vec2,
-    meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<Outline>>,
-    sprites: &Res<GunAssets>,
-) -> PickupBundle {
-    PickupBundle::create(
-        meshes,
-        materials,
-        sprites.sniper.clone(),
-        Vec2::new(16., 16.),
-        "Sniper".to_string(),
-        pos,
-        PickupType::Gun(Guns::Sniper),
-    )
 }

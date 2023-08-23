@@ -9,6 +9,7 @@ use super::GunBundle;
 pub fn revolver_stats() -> GunStats {
     GunStats {
         handle_position: Vec2::new(2., 2.),
+        size: Vec2::new(14., 10.),
         barrel_length: 12.,
         barrel_height: 5.5,
         timer: Stopwatch::new(),
@@ -62,7 +63,7 @@ pub fn create_revolver_pickup(
         meshes,
         materials,
         sprites.revolver.clone(),
-        Vec2::new(16., 16.),
+        Vec2::new(14., 10.),
         "Revolver".to_string(),
         pos,
         PickupType::Gun(Guns::Revolver),
