@@ -167,8 +167,8 @@ fn manage_ammo_count(
     mut texts: Query<( &mut Text, &mut AmmoCounter)>
 ) {
     for (mut text, count) in &mut texts {
-        if let Ok((_, gunentity)) =players.get(count.player_id) {
-            if let Ok(gunstats) = guns.get(gunentity.0) {
+        if let Ok((_, gun_entity)) = players.get(count.player_id) {
+            if let Ok(gunstats) = guns.get(gun_entity.0) {
                 text.sections[0].value = format!("ammo: ");
                 text.sections[1].value = format!("{}", gunstats.mag_ammo);
                 text.sections[1].style.color =

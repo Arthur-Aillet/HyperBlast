@@ -6,11 +6,11 @@ use crate::{
     player::{input::PlayerActions, inventory::item_manager::Items},
 };
 
-use super::{assets::ItemsAssets, DroppedEvent};
+use super::{assets::ItemsAssets, DroppedItemEvent};
 
 pub fn drop_item(
     mut commands: Commands,
-    mut ev_drop: EventWriter<DroppedEvent>,
+    mut ev_drop: EventWriter<DroppedItemEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Outline>>,
     sprites: Res<ItemsAssets>,
@@ -24,7 +24,7 @@ pub fn drop_item(
     for (entity, action, pos, mut inventory) in &mut query {
         if action.just_pressed(PlayerActions::Drop) {
             if let Some(item) = inventory.content.pop() {
-                ev_drop.send(DroppedEvent(item, entity));
+                ev_drop.send(DroppedItemEvent(item, entity));
                 commands.spawn(item.to_pickup(pos.translation.xy(), &mut meshes, &mut materials, &sprites));
             }
         }

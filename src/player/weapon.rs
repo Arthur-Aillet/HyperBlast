@@ -12,8 +12,8 @@ use crate::{
     rendering::utils::{Angle, Zindex, set_anchor},
 };
 
-
-use super::{assets::GunAssets, inventory::inventory_manager::Inventory, stats::PlayerStats};
+use super::inventory::weapon_manager::GunAssets;
+use super::{inventory::inventory_manager::Inventory, stats::PlayerStats};
 
 type ShootFn =
     fn(&mut Commands, &Res<GunAssets>, &mut GunStats, &mut PlayerStats, &Inventory, Vec2, f32, Entity, &ActionState<PlayerActions>, Option<&RollStats>, Option<&ReloadStats>);
@@ -242,7 +242,7 @@ pub fn flamethrower_stats() -> GunStats {
     }
 }
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Reflect)]
 pub struct GunEntity(pub Entity);
 
 impl GunBundle {
@@ -253,6 +253,7 @@ impl GunBundle {
             name: Name::new("Gun"),
             sprite: SpriteBundle {
                 texture: guns.sniper.clone(),
+                transform: Transform::from_translation(Vec3::new(8., 0., 50.)),
                 sprite: Sprite {
                     anchor: set_anchor(stats.handle_position, stats.size),
                     ..default()
@@ -261,7 +262,7 @@ impl GunBundle {
             },
             stats,
             angle: Angle(0.),
-            zindex: Zindex(56.),
+            zindex: Zindex(50.),
         }
     }
 }
@@ -341,7 +342,7 @@ pub fn manual_shoot_fn(
     commands: &mut Commands,
     assets: &Res<GunAssets>,
     stats: &mut GunStats,
-    _player: &mut PlayerStats,
+    player: &mut PlayerStats,
     inventory: &Inventory,
     barrel_end: Vec2,
     angle: f32,
@@ -369,9 +370,10 @@ pub fn manual_shoot_fn(
                     barrel_end,
                     angle + (if stats.spread == 0. {0.} else {rng.gen_range((stats.spread * -1.)..stats.spread)}),
                     inventory,
+                    &stats,
+                    player,
                     owner,
                     stats.speed + (if stats.spread == 0. {0.} else {rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)}),
-                    stats.distance,
                 ));
             }
             stats.mag_ammo -= 1;
@@ -384,7 +386,7 @@ pub fn auto_shoot_fn(
     commands: &mut Commands,
     assets: &Res<GunAssets>,
     stats: &mut GunStats,
-    _player: &mut PlayerStats,
+    player: &mut PlayerStats,
     inventory: &Inventory,
     barrel_end: Vec2,
     angle: f32,
@@ -412,9 +414,10 @@ pub fn auto_shoot_fn(
                     barrel_end,
                     angle + (if stats.spread == 0. {0.} else {rng.gen_range((stats.spread * -1.)..stats.spread)}),
                     inventory,
+                    &stats,
+                    player,
                     owner,
                     stats.speed + (if stats.spread == 0. {0.} else {rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)}),
-                    stats.distance,
                 ));
             }
             stats.mag_ammo -= 1;
@@ -427,7 +430,7 @@ pub fn overheat_shoot_fn(
     commands: &mut Commands,
     assets: &Res<GunAssets>,
     stats: &mut GunStats,
-    _player: &mut PlayerStats,
+    player: &mut PlayerStats,
     inventory: &Inventory,
     barrel_end: Vec2,
     angle: f32,
@@ -461,8 +464,8 @@ pub fn overheat_shoot_fn(
     }
     if !player_actions.pressed(PlayerActions::Shoot) {
         if stats.heat > 0. {
-        stats.heat -= stats.timer.elapsed_secs();
-        stats.timer.reset();
+            stats.heat -= stats.timer.elapsed_secs();
+            stats.timer.reset();
         }
         if stats.heat < 0. {
             stats.heat = 0.
@@ -478,9 +481,10 @@ pub fn overheat_shoot_fn(
                     barrel_end,
                     angle + (if stats.spread == 0. {0.} else {rng.gen_range((stats.spread * -1.)..stats.spread)}),
                     inventory,
+                    &stats,
+                    player,
                     owner,
                     stats.speed + (if stats.spread == 0. {0.} else {rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)}),
-                    stats.distance,
                 ));
             }
             stats.mag_ammo -= 1;

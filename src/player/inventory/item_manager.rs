@@ -4,7 +4,7 @@ use std::fmt::Debug;
 
 use strum_macros::EnumIter;
 
-use super::{assets::ItemsAssets, pickup::PickupBundle};
+use super::{assets::ItemsAssets, pickup::{PickupBundle, PickupType}};
 use crate::rendering::outline::Outline;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, EnumIter)]
@@ -41,7 +41,7 @@ pub fn create_mercury_pickup(
         Vec2::new(16., 16.),
         "mercury".to_string(),
         pos,
-        Items::Mercury,
+        PickupType::Item(Items::Mercury),
     )
 }
 
@@ -58,6 +58,6 @@ pub fn create_health_apple_pickup(
         Vec2::new(16., 16.),
         "apple".to_string(),
         pos,
-        Items::HealthApple,
+        PickupType::Item(Items::HealthApple),
     )
 }

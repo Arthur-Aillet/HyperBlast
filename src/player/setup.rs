@@ -1,5 +1,5 @@
 use bevy::{prelude::*, window::PrimaryWindow};
-use bevy_rapier2d::{prelude::*, rapier::prelude::ColliderType};
+use bevy_rapier2d::prelude::*;
 use leafwing_input_manager::{prelude::ActionStateDriver, InputManagerBundle};
 use mouse::Mouse;
 
@@ -11,14 +11,15 @@ use crate::{
 
 use input::PlayerActions;
 
+use crate::player::inventory::weapon_manager::GunAssets;
 use super::{
-    assets::{GunAssets, PlayerAssets},
+    assets::PlayerAssets,
     direction::CursorPosition,
     direction::MoveDirection,
     input::{self, IsController, PlayerState},
-    inventory::inventory_manager::Inventory,
+    inventory::{inventory_manager::Inventory, armory_manager::Armory},
     stats::PlayerStats,
-    weapon::{GunBundle, GunEntity},
+    weapon::GunEntity,
 };
 
 #[derive(Bundle)]
@@ -31,10 +32,10 @@ pub struct PlayerBundle {
     pub action: InputManagerBundle<PlayerActions>,
     pub velocity: Velocity,
     pub zindex: AutoZindex,
-    pub current_gun: GunEntity,
     pub direction: MoveDirection,
     pub cursor: CursorPosition,
     pub inventory: Inventory,
+    pub armory: Armory,
     pub active: ActiveEvents,
     pub rigid_body: RigidBody,
     pub gravity: GravityScale,
@@ -133,8 +134,6 @@ impl PlayerBundle {
             ),
         ]);
 
-        let gun_id = commands.spawn(GunBundle::setup(guns_assets)).id();
-
         let player = PlayerBundle {
             name: bevy::core::Name::new("Player"),
             state: AnimationState::new(&PlayerState::Idle),
@@ -156,10 +155,10 @@ impl PlayerBundle {
                 linvel: Vec2::new(0., 0.),
                 angvel: 0.0,
             },
-            current_gun: GunEntity(gun_id),
             direction: MoveDirection::default(),
             cursor: CursorPosition::default(),
             inventory: Inventory::new(),
+            armory: Armory::new(),
             active: ActiveEvents::COLLISION_EVENTS,
             rigid_body: RigidBody::Dynamic,
             gravity: GravityScale(0.0),

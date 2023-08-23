@@ -19,16 +19,18 @@ use stats::PlayerStats;
 
 use crate::mouse::update_cursor_state_from_window;
 
-use self::assets::{GunAssets, PlayerAssets};
-
+use self::assets::PlayerAssets;
+use self::inventory::weapon_manager::GunAssets;
+use self::weapon::GunEntity;
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<PlayerStats>()
             .register_type::<PlayerState>()
-            .init_collection::<assets::PlayerAssets>()
-            .init_collection::<assets::GunAssets>()
+            .register_type::<GunEntity>()
+            .init_collection::<PlayerAssets>()
+            .init_collection::<GunAssets>()
             .add_plugins(InputManagerPlugin::<input::PlayerActions>::default())
             .add_plugins(inventory::ItemsPlugin)
             .add_systems(Startup, setup_players)

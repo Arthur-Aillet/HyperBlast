@@ -15,13 +15,14 @@ use crate::{
     rendering::utils::Zindex,
 };
 
-use super::{assets::ItemsAssets, PickupEvent};
+use super::{assets::ItemsAssets, PickupItemEvent, weapon_manager::{Guns, GunAssets}, armory_manager::Armory, PickupWeaponEvent};
 
 const PICKUP_RANGE: f32 = 25. * 1.5;
 
 pub fn update_pickup(
     time: Res<Time>,
-    mut ev_pickup: EventWriter<PickupEvent>,
+    mut ev_pickup_i: EventWriter<PickupItemEvent>,
+    mut ev_pickup_w: EventWriter<PickupWeaponEvent>,
     mut commands: Commands,
     mut materials: ResMut<Assets<Outline>>,
     mut pickups: Query<(
@@ -36,6 +37,7 @@ pub fn update_pickup(
         Entity,
         &mut Transform,
         &mut Inventory,
+        &mut Armory,
         &ActionState<PlayerActions>,
         With<PlayerStats>,
     )>,
@@ -50,7 +52,7 @@ pub fn update_pickup(
         }
     }
 
-    for (entity, player_pos, mut inventory, actions, _) in &mut players {
+    for (entity, player_pos, mut inventory, mut armory, actions, _) in &mut players {
         let mut nearest: Option<Entity> = None;
         let mut distance: f32 = INFINITY;
 
@@ -70,9 +72,12 @@ pub fn update_pickup(
                 }
                 if actions.just_pressed(PlayerActions::Pickup) {
                     match &pickup.pickup_type {
-                        PickupType::Weapon => todo!(),
+                        PickupType::Gun(gun) => {
+                            ev_pickup_w.send(PickupWeaponEvent(*gun, entity));
+                            armory.add(*gun);
+                        },
                         PickupType::Item(item) => {
-                            ev_pickup.send(PickupEvent(*item, entity));
+                            ev_pickup_i.send(PickupItemEvent(*item, entity));
                             inventory.add(*item);
                         }
                     }
@@ -88,6 +93,7 @@ pub fn spawn_items(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Outline>>,
     assets: Res<ItemsAssets>,
+    gun_assets: Res<GunAssets>,
 ) {
     let len = Items::iter().count();
     for (x, item) in Items::iter().enumerate() {
@@ -100,10 +106,22 @@ pub fn spawn_items(
             ));
         }
     }
+
+    let len: usize = Guns::iter().count();
+    for (x, gun) in Guns::iter().enumerate() {
+        for _ in 0..10 {
+            commands.spawn(gun.to_pickup(
+                Vec2::new(-(len as f32 * 30.) / 2. + x as f32 * 30. + 15., 110.),
+                &mut meshes,
+                &mut materials,
+                &gun_assets,
+            ));
+        }
+    }
 }
 
 pub enum PickupType {
-    Weapon,
+    Gun(Guns),
     Item(Items),
 }
 
@@ -129,7 +147,7 @@ impl PickupBundle {
         size: Vec2,
         name: String,
         pos: Vec2,
-        item_type: Items,
+        object_type: PickupType,
     ) -> PickupBundle {
         let mut rng = rand::thread_rng();
         let place_rng = rng.gen::<f32>() * 100.;
@@ -154,7 +172,7 @@ impl PickupBundle {
             zindex: Zindex(0.),
             pickup: Pickup {
                 anim_offset: place_rng,
-                pickup_type: PickupType::Item(item_type),
+                pickup_type: object_type,
             },
         }
     }

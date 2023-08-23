@@ -1,4 +1,4 @@
-use bevy::{prelude::*, reflect::TypePath};
+use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use bevy::time::Stopwatch;
 
@@ -38,12 +38,12 @@ pub fn start_reload (
     )>,
     mut commands: Commands,
 ) {
-    for (entity, gun_entity, player_actions, _) in &players {
-        if let Ok((gunstats, _)) = guns.get(gun_entity.0) {
+    for (entity, gun_id, player_actions, _) in &players {
+        if let Ok((gunstats, _)) = guns.get(gun_id.0) {
             if player_actions.pressed(PlayerActions::Reload) || (
             player_actions.just_pressed(PlayerActions::Shoot) && gunstats.mag_ammo == 0) {
                 if gunstats.mag_ammo < gunstats.mag_size && (gunstats.ammo > 0 || gunstats.infinite) {
-                    let relaod_stats = ReloadStats::new(gun_entity.clone());
+                    let relaod_stats = ReloadStats::new(gun_id.clone());
                     commands.entity(entity).insert(relaod_stats);
                 }
             }
@@ -66,10 +66,10 @@ pub fn reload (
         Without<PlayerStats>,
     )>,
     mut commands: Commands,
-    gun_assets: Res<super::assets::GunAssets>,
+    gun_assets: Res<super::inventory::weapon_manager::GunAssets>,
 ) {
-    for (entity, gun_entity, player_stats, roll, reload) in &mut players {
-        if let Ok((gunstats, gunangle, _)) = guns.get_mut(gun_entity.0) {
+    for (entity, gun_id, player_stats, roll, reload) in &mut players {
+        if let Ok((gunstats, gunangle, _)) = guns.get_mut(gun_id.0) {
             (gunstats.reload)(&time, &mut commands, gunangle, gunstats, player_stats, reload, roll, entity);
         }
     }

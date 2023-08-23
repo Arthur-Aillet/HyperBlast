@@ -106,7 +106,6 @@ pub fn shooting_system(
     time: Res<Time>,
     mut players: Query<(
         Entity,
-        &Transform,
         &GunEntity,
         &ActionState<PlayerActions>,
         &mut PlayerStats,
@@ -116,7 +115,7 @@ pub fn shooting_system(
         Option<&ReloadStats>,
     )>,
     mut gun: Query<(
-        &mut Transform,
+        &GlobalTransform,
         &mut Angle,
         &mut Sprite,
         &mut GunStats,
@@ -125,11 +124,10 @@ pub fn shooting_system(
     debug_level: Res<DebugLevel>,
     mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
     mut commands: Commands,
-    gun_assets: Res<super::assets::GunAssets>,
+    gun_assets: Res<super::inventory::weapon_manager::GunAssets>,
 ) {
     for (
         entity,
-        transform,
         gun_id,
         player_actions,
         mut stats,
@@ -139,16 +137,14 @@ pub fn shooting_system(
         reload,
     ) in &mut players
     {
-        if let Ok((mut gun_transform, mut gun_angle, mut sprite, mut gun_stats, _)) = gun.get_mut(gun_id.0)
+        if let Ok((gun_transform, mut gun_angle, mut sprite, mut gun_stats, _)) = gun.get_mut(gun_id.0)
         {
-            gun_transform.translation.y = transform.translation.y;
-            gun_transform.translation.x = transform.translation.x + 8.;
-            let gun_pos = gun_transform.translation.xy();
+            let gun_pos = gun_transform.translation().xy();
 
             update_gun_angle(
                 (*debug_level).clone(),
                 &mut lines,
-                gun_transform.translation.xy(),
+                gun_pos,
                 cursor_position.value,
                 &gun_stats,
                 &mut gun_angle,
