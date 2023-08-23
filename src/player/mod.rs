@@ -8,6 +8,7 @@ pub mod setup;
 pub mod stats;
 pub mod weapon;
 pub mod reload;
+pub mod guns;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 

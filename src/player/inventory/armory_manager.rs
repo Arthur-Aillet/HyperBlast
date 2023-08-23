@@ -1,7 +1,6 @@
-use bevy::{prelude::*, transform::commands};
-use image::Pixel;
+use bevy::prelude::*;
 
-use crate::player::{weapon::{GunStats, GunEntity}, stats::PlayerStats};
+use crate::player::weapon::GunEntity;
 
 use super::{weapon_manager::{Guns, GunAssets}, PickupWeaponEvent};
 
@@ -38,7 +37,6 @@ pub fn pickup_weapon(
                 commands.entity(player.0).despawn_recursive();
                 player.0 = id;
             } else {
-                println!("Here :DDD");
                 commands.entity(*player_id).insert(GunEntity(id));
             }
         }

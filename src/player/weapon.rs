@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use bevy::{prelude::*, time::Stopwatch};
 use rand::Rng;
 use leafwing_input_manager::prelude::*;
@@ -9,7 +7,7 @@ use crate::{
     player::reload::ReloadStats,
     player::roll::RollStats,
     player::input::PlayerActions,
-    rendering::utils::{Angle, Zindex, set_anchor},
+    rendering::utils::Angle,
 };
 
 use super::inventory::weapon_manager::GunAssets;
@@ -86,39 +84,6 @@ impl Default for GunStats {
     }
 }
 
-#[derive(Bundle)]
-pub struct GunBundle {
-    pub name: Name,
-    pub stats: GunStats,
-    pub sprite: SpriteBundle,
-    pub angle: Angle,
-    pub zindex: Zindex,
-}
-
-pub fn revolver_stats() -> GunStats {
-    GunStats {
-        handle_position: Vec2::new(2., 2.),
-        barrel_length: 12.,
-        barrel_height: 5.5,
-        timer: Stopwatch::new(),
-        shoot: auto_shoot_fn,
-        reload: basic_reload_fn,
-        damage: 10.,
-        spread: (5_f32).to_radians(),
-        speed: 90.,
-        speed_spread: 1.,
-        distance: 80.,
-        ammo: 0,
-        max_ammo: 0,
-        infinite: true,
-        mag_ammo: 6,
-        mag_size: 6,
-        reload_time: 2.5,
-        fire_rate: 1.5,
-        ..Default::default()
-    }
-}
-
 pub fn shotgun_stats() -> GunStats {
     GunStats {
         handle_position: Vec2::new(2., 2.),
@@ -140,28 +105,6 @@ pub fn shotgun_stats() -> GunStats {
         mag_size: 6,
         reload_time: 0.5,
         fire_rate: 1.,
-        ..Default::default()
-    }
-}
-
-pub fn sniper_stats() -> GunStats {
-    GunStats {
-        handle_position: Vec2::new(2., 2.),
-        barrel_length: 12.,
-        barrel_height: 5.5,
-        timer: Stopwatch::new(),
-        shoot: manual_shoot_fn,
-        reload: basic_reload_fn,
-        damage: 100.,
-        speed: 1000.,
-        distance: 1000.,
-        ammo: 4,
-        max_ammo: 4,
-        infinite: false,
-        mag_ammo: 2,
-        mag_size: 2,
-        reload_time: 5.,
-        fire_rate: 2.,
         ..Default::default()
     }
 }
@@ -244,28 +187,6 @@ pub fn flamethrower_stats() -> GunStats {
 
 #[derive(Component, Clone, Reflect)]
 pub struct GunEntity(pub Entity);
-
-impl GunBundle {
-    pub fn setup(guns: &Res<GunAssets>) -> Self {
-        let mut stats = flamethrower_stats();
-        stats.timer.set_elapsed(Duration::new(1, 0));
-        GunBundle {
-            name: Name::new("Gun"),
-            sprite: SpriteBundle {
-                texture: guns.sniper.clone(),
-                transform: Transform::from_translation(Vec3::new(8., 0., 50.)),
-                sprite: Sprite {
-                    anchor: set_anchor(stats.handle_position, stats.size),
-                    ..default()
-                },
-                ..default()
-            },
-            stats,
-            angle: Angle(0.),
-            zindex: Zindex(50.),
-        }
-    }
-}
 
 pub fn basic_reload_fn(
     time: &Res<Time>,
