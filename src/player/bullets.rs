@@ -21,6 +21,7 @@ pub struct BulletStats {
     pub distance: f32,
     pub distance_traveled: f32,
     pub speed: f32,
+    pub dmg: f32,
     pub mercury_amount: usize,
     pub owner: Entity,
 }
@@ -70,6 +71,7 @@ impl BulletBundle {
         player: Entity,
         spd: f32,
         dist: f32,
+        damage: f32,
     ) -> Self {
         BulletBundle {
             name: Name::new("Marine bullet"),
@@ -80,6 +82,7 @@ impl BulletBundle {
                 angle,
                 distance: dist,
                 speed: spd / (inventory.amount(Items::Mercury) as f32 * 3. + 1.),
+                dmg: damage,
                 mercury_amount: inventory.amount(Items::Mercury),
             },
             sprite: SpriteBundle {
@@ -113,7 +116,7 @@ pub fn detect_collision_bullets(
                                 if bullet_stats.owner != id {
                                     commands.entity(bullet_id).despawn();
                                     stats.current_health -=
-                                        (gun_stats.damage + stats.damages_added) * stats.damages_multiplier;
+                                        (bullet_stats.dmg + stats.damages_added) * stats.damages_multiplier;
                                 }
                             }
                         }
