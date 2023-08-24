@@ -16,7 +16,6 @@ use crate::{
 };
 
 use super::{
-    armory_manager::Armory,
     assets::ItemsAssets,
     weapon_manager::{GunAssets, Guns},
     PickupItemEvent, PickupWeaponEvent,
@@ -42,7 +41,6 @@ pub fn update_pickup(
         Entity,
         &mut Transform,
         &mut Inventory,
-        &mut Armory,
         &ActionState<PlayerActions>,
         With<PlayerStats>,
     )>,
@@ -57,7 +55,7 @@ pub fn update_pickup(
         }
     }
 
-    for (entity, player_pos, mut inventory, mut armory, actions, _) in &mut players {
+    for (entity, player_pos, mut inventory, actions, _) in &mut players {
         let mut nearest: Option<Entity> = None;
         let mut distance: f32 = INFINITY;
 
@@ -78,21 +76,22 @@ pub fn update_pickup(
                 if actions.just_pressed(PlayerActions::Pickup) {
                     match &pickup.pickup_type {
                         PickupType::Gun(gun) => {
-                            ev_pickup_w.send(PickupWeaponEvent(*gun, entity));
-                            armory.add(*gun);
-                            armory.current_weapon_index = armory.content.len() - 1;
+                            ev_pickup_w.send(PickupWeaponEvent(*gun, entity, valid_pickup));
                         }
                         PickupType::Item(item) => {
                             ev_pickup_i.send(PickupItemEvent(*item, entity));
                             inventory.add(*item);
+                            commands.entity(valid_pickup).despawn_recursive();
                         }
                     }
-                    commands.entity(valid_pickup).despawn_recursive();
                 }
             }
         }
     }
 }
+
+#[derive(Component)]
+pub struct Ground;
 
 pub fn spawn_items(
     mut commands: Commands,
@@ -101,29 +100,35 @@ pub fn spawn_items(
     assets: Res<ItemsAssets>,
     gun_assets: Res<GunAssets>,
 ) {
-    let len = Items::iter().count();
-    for (x, item) in Items::iter().enumerate() {
-        for _ in 0..10 {
-            commands.spawn(item.to_pickup(
-                Vec2::new(-(len as f32 * 30.) / 2. + x as f32 * 30. + 15., 80.),
-                &mut meshes,
-                &mut materials,
-                &assets,
-            ));
+    commands.spawn(Ground)
+        .insert(SpatialBundle::default())
+        .insert(Name::new("Ground"))
+        .with_children(|parent| {
+        let len = Items::iter().count();
+        for (x, item) in Items::iter().enumerate() {
+            for _ in 0..10 {
+                parent.spawn(item.to_pickup(
+                    Vec2::new(-(len as f32 * 30.) / 2. + x as f32 * 30. + 15., 80.),
+                    &mut meshes,
+                    &mut materials,
+                    &assets,
+                ));
+            }
         }
-    }
 
-    let len: usize = Guns::iter().count();
-    for (x, gun) in Guns::iter().enumerate() {
-        for _ in 0..10 {
-            commands.spawn(gun.to_pickup(
-                Vec2::new(-(len as f32 * 30.) / 2. + x as f32 * 30. + 15., 110.),
-                &mut meshes,
-                &mut materials,
-                &gun_assets,
-            ));
+        let len: usize = Guns::iter().count();
+        for (x, gun) in Guns::iter().enumerate() {
+            for _ in 0..10 {
+                parent.spawn(gun.to_pickup(
+                    Vec2::new(-(len as f32 * 30.) / 2. + x as f32 * 30. + 15., 110.),
+                    &mut meshes,
+                    &mut materials,
+                    &gun_assets,
+                ));
+            }
         }
     }
+    );
 }
 
 pub enum PickupType {

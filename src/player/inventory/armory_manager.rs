@@ -1,19 +1,20 @@
-use bevy::{math::Vec3Swizzles, prelude::*};
+use bevy::{math::Vec3Swizzles, prelude::*, sprite::{MaterialMesh2dBundle, Mesh2dHandle}, render::view::visibility};
 use leafwing_input_manager::prelude::ActionState;
+use rand::Rng;
 
 use crate::{
-    player::{input::PlayerActions, weapon::GunEntity},
-    rendering::outline::Outline,
+    player::{input::PlayerActions, weapon::{GunEntity, GunStats}, stats::PlayerStats, inventory::pickup::PickupType},
+    rendering::{outline::Outline, utils::set_anchor},
 };
 
 use super::{
     weapon_manager::{GunAssets, Guns},
-    DroppedWeaponEvent, PickupWeaponEvent,
+    DroppedWeaponEvent, PickupWeaponEvent, pickup::{Pickup, Ground},
 };
 
 #[derive(Component)]
 pub struct Armory {
-    pub content: Vec<Guns>,
+    pub content: Vec<(Guns, Entity)>,
     pub current_weapon_index: usize,
 }
 
@@ -25,8 +26,8 @@ impl Armory {
         }
     }
 
-    pub fn add(&mut self, name: Guns) {
-        self.content.push(name);
+    pub fn add(&mut self, name: Guns, entity: Entity) {
+        self.content.push((name, entity));
     }
 
     pub fn next(&mut self) -> usize {
@@ -40,35 +41,64 @@ impl Armory {
 
 pub fn pickup_weapon(
     mut commands: Commands,
-    mut pickup: EventReader<PickupWeaponEvent>,
-    mut players: Query<Option<&mut GunEntity>>,
+    mut pickup_event: EventReader<PickupWeaponEvent>,
+    mut materials: ResMut<Assets<Outline>>,
+    mut guns: Query<(&mut Visibility,(Without<Pickup>, With<GunStats>))>,
+    mut pickups: Query<(
+        &Handle<Outline>,
+        &mut Transform,
+        &GunStats,
+        Without<PlayerStats>,
+    )>,
+    mut players: Query<(&mut Armory, Option<&mut GunEntity>)>,
     assets: Res<GunAssets>,
 ) {
-    for PickupWeaponEvent(gun_name, player_id) in pickup.iter() {
-        let id = commands.spawn(gun_name.to_gun_bundle(&assets)).id();
-        commands.entity(*player_id).add_child(id);
-        if let Ok(player) = players.get_mut(*player_id) {
-            if let Some(mut holster) = player {
-                commands.entity(holster.0).despawn_recursive();
-                holster.0 = id;
+    for PickupWeaponEvent(gun_name, player_id, pickup_id) in pickup_event.iter() {
+        if let Ok((mut armory, gun_entity, )) = players.get_mut(*player_id) {
+            armory.add(*gun_name, *pickup_id);
+            armory.current_weapon_index = armory.content.len() - 1;
+            commands.entity(*player_id).add_child(*pickup_id);
+            if let Ok((outline, mut transfrom, stats, _)) = pickups.get_mut(*pickup_id) {
+                if let Some(material) = materials.get_mut(outline) {
+                    let texture = material.color_texture.clone();
+                    material.color = Color::WHITE.with_a(0.);
+                    transfrom.translation = Vec3::new(8., 0., 50.);
+                    commands.entity(*pickup_id)
+                        .insert(SpriteBundle {
+                            sprite: Sprite {
+                                anchor: set_anchor(stats.handle_position, stats.size),
+                                ..default()
+                            },
+                            transform: Transform::from_translation(Vec3::new(8., 0., 50.)),
+                            texture,
+                            ..default()
+                        })
+                        .remove::<Pickup>()
+                        .remove::<Handle<Outline>>()
+                        .remove::<Mesh2dHandle>();
+                }
+            }
+            if let Some(mut holster) = gun_entity {
+                if let Ok((mut visibility, _)) = guns.get_mut(holster.0) {
+                    *visibility = Visibility::Hidden;
+                }
+                holster.0 = *pickup_id;
             } else {
-                commands.entity(*player_id).insert(GunEntity(id));
+                commands.entity(*player_id).insert(GunEntity(*pickup_id));
             }
         }
     }
 }
 
 pub fn switch_weapon(
-    mut commands: Commands,
-    sprites: Res<GunAssets>,
+    mut guns: Query<(&mut Visibility,(Without<Pickup>, With<GunStats>))>,
     mut query: Query<(
-        Entity,
         &ActionState<PlayerActions>,
         &mut Armory,
         &mut GunEntity,
     )>,
 ) {
-    for (entity, action, mut armory, mut holster) in &mut query {
+    for (action, mut armory, mut holster) in &mut query {
         if armory.content.len() <= 1 {
             return;
         }
@@ -86,13 +116,14 @@ pub fn switch_weapon(
         } else {
             return;
         }
-        if let Some(new_gun) = armory.content.get(armory.current_weapon_index) {
-            let spawned_id = commands
-                .spawn(new_gun.to_gun_bundle(&sprites))
-                .id();
-            commands.entity(entity).add_child(spawned_id);
-            commands.entity(holster.0).despawn_recursive();
-            holster.0 = spawned_id;
+        if let Some((_, other_entity)) = armory.content.get(armory.current_weapon_index) {
+            if let Ok((mut visibility, _)) = guns.get_mut(holster.0) {
+                *visibility = Visibility::Hidden;
+            }
+            if let Ok((mut visibility, _)) = guns.get_mut(*other_entity) {
+                *visibility = Visibility::Inherited;
+            }
+            holster.0 = *other_entity;
         }
     }
 }
@@ -102,7 +133,8 @@ pub fn drop_weapon(
     mut ev_drop: EventWriter<DroppedWeaponEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Outline>>,
-    sprites: Res<GunAssets>,
+    mut guns: Query<(&mut Visibility, &Handle<Image>, &GunStats, Without<Pickup>)>,
+    ground: Query<(Entity, With<Ground>)>,
     mut query: Query<(
         Entity,
         &ActionState<PlayerActions>,
@@ -113,37 +145,54 @@ pub fn drop_weapon(
 ) {
     for (entity, action, pos, mut armory, holster_maybe) in &mut query {
         if action.just_pressed(PlayerActions::DropWeapon) {
+            let mut rng = rand::thread_rng();
+            let place_rng = rng.gen::<f32>() * 100.;
+
             if armory.content.len() < 1 {
                 return
             }
             let current_index = armory.current_weapon_index;
             let gun = armory.content.remove(current_index);
 
-            ev_drop.send(DroppedWeaponEvent(gun, entity));
-            commands.spawn(gun.to_pickup(
-                pos.translation.xy(),
-                &mut meshes,
-                &mut materials,
-                &sprites,
-            ));
+            ev_drop.send(DroppedWeaponEvent(gun.0, entity, gun.1));
+            let (_, moved_sprite, moved_gun_stats, _) = guns.get(gun.1).expect("Gun hold innacessible");
+            commands.entity(gun.1)
+                .insert(Pickup {
+                    anim_offset: place_rng,
+                    pickup_type: PickupType::Gun(gun.0),
+                })
+                .insert(MaterialMesh2dBundle {
+                    transform: Transform::default()
+                        .with_scale(moved_gun_stats.size.extend(0.))
+                        .with_translation(pos.translation.floor()),
+                    mesh: meshes
+                        .add(Mesh::from(shape::Quad::new(Vec2::splat(2.))))
+                        .into(),
+                    material: materials.add(Outline {
+                        color: Color::WHITE,
+                        size: moved_gun_stats.size,
+                        thickness: 1.,
+                        color_texture: moved_sprite.clone(),
+                    }),
+                    ..default()
+                })
+                .remove::<Sprite>()
+                .remove::<Handle<Image>>();
+            let ground_id = ground.single().0;
+            commands.entity(ground_id).add_child(gun.1);
 
             if armory.current_weapon_index as i32 >= armory.content.len() as i32 - 1 {
                 armory.current_weapon_index = 0;
             }
             if let Some(new_gun) = armory.content.get(armory.current_weapon_index) {
-                let spawned_id = commands
-                    .spawn(new_gun.to_gun_bundle(&sprites))
-                    .id();
-
-                commands.entity(entity).add_child(spawned_id);
                 if let Some(mut holster) = holster_maybe {
-                    commands.entity(holster.0).despawn_recursive();
-                    holster.0 = spawned_id;
+                    holster.0 = new_gun.1;
                 } else {
-                    commands.entity(entity).insert(GunEntity(spawned_id));
+                    commands.entity(entity).insert(GunEntity(new_gun.1));
                 }
-            } else if let Some(holster) = holster_maybe {
-                commands.entity(holster.0).despawn_recursive();
+                let (mut visibility, _, _, _) = guns.get_mut(new_gun.1).expect("New gun cant be tracked");
+                *visibility = Visibility::Inherited;
+            } else {
                 commands.entity(entity).remove::<GunEntity>();
             }
         }

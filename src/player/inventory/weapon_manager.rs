@@ -4,8 +4,12 @@ use strum_macros::EnumIter;
 
 use super::pickup::PickupBundle;
 use crate::player::guns::GunBundle;
+use crate::player::guns::revolver::revolver_stats;
+use crate::player::guns::sniper::sniper_stats;
 use crate::player::guns::{revolver::create_revolver_pickup, sniper::create_sniper_pickup};
+use crate::player::weapon::GunStats;
 use crate::rendering::outline::Outline;
+use crate::rendering::utils::Angle;
 
 #[derive(AssetCollection, Resource)]
 pub struct GunAssets {
@@ -40,10 +44,10 @@ impl Guns {
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<Outline>>,
         sprites: &Res<GunAssets>,
-    ) -> PickupBundle {
+    ) -> (PickupBundle, Angle, GunStats) {
         match self {
-            Guns::Revolver => create_revolver_pickup(pos, meshes, materials, sprites),
-            Guns::Sniper => create_sniper_pickup(pos, meshes, materials, sprites),
+            Guns::Revolver => (create_revolver_pickup(pos, meshes, materials, sprites), Angle(0.), revolver_stats()),
+            Guns::Sniper => (create_sniper_pickup(pos, meshes, materials, sprites), Angle(0.), sniper_stats()),
         }
     }
 

@@ -26,10 +26,10 @@ pub struct PickupItemEvent(Items, Entity);
 pub struct DroppedItemEvent(Items, Entity);
 
 #[derive(Event)]
-pub struct PickupWeaponEvent(Guns, Entity);
+pub struct PickupWeaponEvent(Guns, Entity, Entity); // player then pickup entity
 
 #[derive(Event)]
-pub struct DroppedWeaponEvent(Guns, Entity);
+pub struct DroppedWeaponEvent(Guns, Entity, Entity);
 
 pub struct ItemsPlugin;
 
