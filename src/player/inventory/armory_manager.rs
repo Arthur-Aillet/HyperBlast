@@ -58,6 +58,45 @@ pub fn pickup_weapon(
     }
 }
 
+pub fn switch_weapon(
+    mut commands: Commands,
+    sprites: Res<GunAssets>,
+    mut query: Query<(
+        Entity,
+        &ActionState<PlayerActions>,
+        &mut Armory,
+        &mut GunEntity,
+    )>,
+) {
+    for (entity, action, mut armory, mut holster) in &mut query {
+        if armory.content.len() <= 1 {
+            return;
+        }
+        if action.just_pressed(PlayerActions::NextWeapon) {
+            armory.current_weapon_index += 1;
+            if armory.current_weapon_index >= armory.content.len() {
+                armory.current_weapon_index = 0;
+            }
+        } else if action.just_pressed(PlayerActions::LastWeapon) {
+            if armory.current_weapon_index == 0 {
+                armory.current_weapon_index = armory.content.len() - 1;
+            } else {
+                armory.current_weapon_index -= 1;
+            }
+        } else {
+            return;
+        }
+        if let Some(new_gun) = armory.content.get(armory.current_weapon_index) {
+            let spawned_id = commands
+                .spawn(new_gun.to_gun_bundle(&sprites))
+                .id();
+            commands.entity(entity).add_child(spawned_id);
+            commands.entity(holster.0).despawn_recursive();
+            holster.0 = spawned_id;
+        }
+    }
+}
+
 pub fn drop_weapon(
     mut commands: Commands,
     mut ev_drop: EventWriter<DroppedWeaponEvent>,
@@ -73,8 +112,6 @@ pub fn drop_weapon(
     )>,
 ) {
     for (entity, action, pos, mut armory, holster_maybe) in &mut query {
-        println!("content = {:?}", armory.content);
-        println!("armory.current_weapon_index = {}", armory.current_weapon_index);
         if action.just_pressed(PlayerActions::DropWeapon) {
             if armory.content.len() < 1 {
                 return
@@ -90,7 +127,7 @@ pub fn drop_weapon(
                 &sprites,
             ));
 
-            if armory.current_weapon_index >= armory.content.len() - 1 {
+            if armory.current_weapon_index as i32 >= armory.content.len() as i32 - 1 {
                 armory.current_weapon_index = 0;
             }
             if let Some(new_gun) = armory.content.get(armory.current_weapon_index) {
@@ -105,11 +142,9 @@ pub fn drop_weapon(
                 } else {
                     commands.entity(entity).insert(GunEntity(spawned_id));
                 }
-            } else {
-                if let Some(holster) = holster_maybe {
-                    commands.entity(holster.0).despawn_recursive();
-                    commands.entity(entity).remove::<GunEntity>();
-                }
+            } else if let Some(holster) = holster_maybe {
+                commands.entity(holster.0).despawn_recursive();
+                commands.entity(entity).remove::<GunEntity>();
             }
         }
     }

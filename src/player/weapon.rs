@@ -304,49 +304,44 @@ pub fn manual_shoot_fn(
         && reload.is_none()
         && stats.left_to_fire == 0
         && !stats.broken
-    {
-        if stats.mag_ammo > 0 {
-            if stats.timer.elapsed_secs() >= 1. / stats.fire_rate {
-                stats.timer.reset();
-                stats.left_to_fire = if stats.min_shot < stats.mag_ammo {
-                    stats.min_shot
-                } else {
-                    stats.mag_ammo
-                };
-            }
-        }
+        && stats.mag_ammo > 0
+        && stats.timer.elapsed_secs() >= 1. / stats.fire_rate {
+        stats.timer.reset();
+        stats.left_to_fire = if stats.min_shot < stats.mag_ammo {
+            stats.min_shot
+        } else {
+                stats.mag_ammo
+        };
     }
-    if stats.left_to_fire != 0 {
-        if stats.left_to_fire == stats.min_shot
-            || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate
+    if stats.left_to_fire != 0 && (stats.left_to_fire == stats.min_shot
+            || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate)
         {
-            stats.timer.reset();
-            let mut rng = rand::thread_rng();
-            for _ in 0..stats.salve {
-                commands.spawn(BulletBundle::marine_bullet(
-                    assets,
-                    barrel_end,
-                    angle
-                        + (if stats.spread == 0. {
-                            0.
-                        } else {
-                            rng.gen_range((stats.spread * -1.)..stats.spread)
-                        }),
-                    inventory,
-                    &stats,
-                    player,
-                    owner,
-                    stats.speed
-                        + (if stats.spread == 0. {
-                            0.
-                        } else {
-                            rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)
-                        }),
-                ));
-            }
-            stats.mag_ammo -= 1;
-            stats.left_to_fire -= 1;
+        stats.timer.reset();
+        let mut rng = rand::thread_rng();
+        for _ in 0..stats.salve {
+            commands.spawn(BulletBundle::marine_bullet(
+                assets,
+                barrel_end,
+                angle
+                    + (if stats.spread == 0. {
+                        0.
+                    } else {
+                        rng.gen_range((stats.spread * -1.)..stats.spread)
+                    }),
+                inventory,
+                &stats,
+                player,
+                owner,
+                stats.speed
+                    + (if stats.spread == 0. {
+                        0.
+                    } else {
+                        rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)
+                    }),
+            ));
         }
+        stats.mag_ammo -= 1;
+        stats.left_to_fire -= 1;
     }
 }
 

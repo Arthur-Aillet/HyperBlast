@@ -3,13 +3,13 @@ use bevy::{prelude::*, reflect::TypePath};
 use bevy_prototype_debug_lines::*;
 use bevy_rapier2d::render::DebugRenderContext;
 use leafwing_input_manager::prelude::*;
-
 pub struct DebugPlugin;
 
 impl Plugin for DebugPlugin {
     #[cfg(feature = "editor")]
     fn build(&self, app: &mut App) {
         app.add_plugins(bevy_editor_pls::prelude::EditorPlugin::default())
+            .insert_resource(editor_controls())
             .add_plugins(DebugLinesPlugin::default())
             .add_plugins((FrameTimeDiagnosticsPlugin, EntityCountDiagnosticsPlugin))
             .add_plugins(InputManagerPlugin::<DebugAction>::default())
@@ -24,6 +24,22 @@ impl Plugin for DebugPlugin {
             .add_systems(Startup, setup_debug)
             .add_systems(Update, switch_debug);
     }
+}
+#[cfg(feature = "editor")]
+fn editor_controls() -> bevy_editor_pls::controls::EditorControls {
+    use bevy_editor_pls::controls;
+    let mut editor_controls = controls::EditorControls::default_bindings();
+    editor_controls.unbind(controls::Action::PlayPauseEditor);
+
+    editor_controls.insert(
+        controls::Action::PlayPauseEditor,
+        controls::Binding {
+            input: controls::UserInput::Single(controls::Button::Keyboard(KeyCode::Escape)),
+            conditions: vec![controls::BindingCondition::ListeningForText(false)],
+        },
+    );
+
+    editor_controls
 }
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, TypePath)]

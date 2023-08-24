@@ -10,7 +10,7 @@ use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
 use self::{
-    armory_manager::{pickup_weapon, drop_weapon},
+    armory_manager::{pickup_weapon, drop_weapon, switch_weapon},
     assets::ItemsAssets,
     inventory_manager::drop_item,
     item_manager::Items,
@@ -46,6 +46,7 @@ impl Plugin for ItemsPlugin {
             .add_systems(Update, pickup_events)
             .add_systems(Update, pickup_weapon)
             .add_systems(Update, drop_weapon)
+            .add_systems(Update, switch_weapon)
             .add_systems(Update, drop_events);
     }
 }

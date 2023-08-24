@@ -216,6 +216,8 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
             (KeyCode::E, PlayerActions::Pickup),
             (KeyCode::W, PlayerActions::DropItem),
             (KeyCode::X, PlayerActions::DropWeapon),
+            (KeyCode::Key1, PlayerActions::LastWeapon),
+            (KeyCode::Key2, PlayerActions::NextWeapon),
         ]);
         input_map
             .insert(MouseButton::Left, PlayerActions::Shoot)
