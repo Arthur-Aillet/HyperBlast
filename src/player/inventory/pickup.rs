@@ -9,9 +9,9 @@ use crate::{
     player::{
         input::PlayerActions,
         inventory::{inventory_manager::Inventory, item_manager::Items},
-        stats::PlayerStats,
+        stats::PlayerStats, weapon::GunStats,
     },
-    rendering::outline::Outline,
+    rendering::{outline::Outline, utils::Angle},
     rendering::utils::Zindex,
 };
 
@@ -75,8 +75,8 @@ pub fn update_pickup(
                 }
                 if actions.just_pressed(PlayerActions::Pickup) {
                     match &pickup.pickup_type {
-                        PickupType::Gun(gun) => {
-                            ev_pickup_w.send(PickupWeaponEvent(*gun, entity, valid_pickup));
+                        PickupType::Gun => {
+                            ev_pickup_w.send(PickupWeaponEvent(entity, valid_pickup));
                         }
                         PickupType::Item(item) => {
                             ev_pickup_i.send(PickupItemEvent(*item, entity));
@@ -132,7 +132,7 @@ pub fn spawn_items(
 }
 
 pub enum PickupType {
-    Gun(Guns),
+    Gun,
     Item(Items),
 }
 
@@ -140,6 +140,56 @@ pub enum PickupType {
 pub struct Pickup {
     pub anim_offset: f32,
     pub pickup_type: PickupType,
+}
+
+#[derive(Bundle)]
+pub struct GunPickupBundle {
+    pub name: bevy::core::Name,
+    pub material: MaterialMesh2dBundle<Outline>,
+    pub zindex: Zindex,
+    pub angle: Angle,
+    pub stats: GunStats,
+    pub pickup: Pickup,
+}
+
+impl GunPickupBundle {
+    pub fn create(
+        meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<Outline>>,
+        sprite: Handle<Image>,
+        name: String,
+        pos: Vec2,
+        gun_stats: GunStats
+    ) -> GunPickupBundle{
+        let mut rng = rand::thread_rng();
+        let place_rng = rng.gen::<f32>() * 100.;
+
+        GunPickupBundle {
+            name: bevy::core::Name::new(name),
+            material: MaterialMesh2dBundle {
+                transform: Transform::default()
+                    .with_scale(gun_stats.size.extend(0.))
+                    .with_translation(pos.floor().extend(0.)),
+                mesh: meshes
+                    .add(Mesh::from(shape::Quad::new(Vec2::splat(2.))))
+                    .into(),
+                material: materials.add(Outline {
+                    color: Color::WHITE,
+                    size: gun_stats.size,
+                    thickness: 1.,
+                    color_texture: sprite,
+                }),
+                ..default()
+            },
+            zindex: Zindex(0.),
+            pickup: Pickup {
+                anim_offset: place_rng,
+                pickup_type: PickupType::Gun,
+            },
+            angle: Angle(0.),
+            stats: gun_stats,
+        }
+    }
 }
 
 #[derive(Bundle)]

@@ -16,7 +16,6 @@ use self::{
     item_manager::Items,
     pickup::{spawn_items, update_pickup},
     stats::{drop_events, pickup_events},
-    weapon_manager::Guns,
 };
 
 #[derive(Event)]
@@ -26,10 +25,10 @@ pub struct PickupItemEvent(Items, Entity);
 pub struct DroppedItemEvent(Items, Entity);
 
 #[derive(Event)]
-pub struct PickupWeaponEvent(Guns, Entity, Entity); // player then pickup entity
+pub struct PickupWeaponEvent(Entity, Entity); // player then pickup entity
 
 #[derive(Event)]
-pub struct DroppedWeaponEvent(Guns, Entity, Entity);
+pub struct DroppedWeaponEvent(Entity, Entity);
 
 pub struct ItemsPlugin;
 

@@ -1,4 +1,4 @@
-use bevy::{math::Vec3Swizzles, prelude::*, sprite::{MaterialMesh2dBundle, Mesh2dHandle}, render::view::visibility};
+use bevy::{prelude::*, sprite::{MaterialMesh2dBundle, Mesh2dHandle}};
 use leafwing_input_manager::prelude::ActionState;
 use rand::Rng;
 
@@ -8,13 +8,12 @@ use crate::{
 };
 
 use super::{
-    weapon_manager::{GunAssets, Guns},
     DroppedWeaponEvent, PickupWeaponEvent, pickup::{Pickup, Ground},
 };
 
 #[derive(Component)]
 pub struct Armory {
-    pub content: Vec<(Guns, Entity)>,
+    pub content: Vec<Entity>,
     pub current_weapon_index: usize,
 }
 
@@ -26,8 +25,8 @@ impl Armory {
         }
     }
 
-    pub fn add(&mut self, name: Guns, entity: Entity) {
-        self.content.push((name, entity));
+    pub fn add(&mut self, entity: Entity) {
+        self.content.push(entity);
     }
 
     pub fn next(&mut self) -> usize {
@@ -51,11 +50,10 @@ pub fn pickup_weapon(
         Without<PlayerStats>,
     )>,
     mut players: Query<(&mut Armory, Option<&mut GunEntity>)>,
-    assets: Res<GunAssets>,
 ) {
-    for PickupWeaponEvent(gun_name, player_id, pickup_id) in pickup_event.iter() {
+    for PickupWeaponEvent(player_id, pickup_id) in pickup_event.iter() {
         if let Ok((mut armory, gun_entity, )) = players.get_mut(*player_id) {
-            armory.add(*gun_name, *pickup_id);
+            armory.add(*pickup_id);
             armory.current_weapon_index = armory.content.len() - 1;
             commands.entity(*player_id).add_child(*pickup_id);
             if let Ok((outline, mut transfrom, stats, _)) = pickups.get_mut(*pickup_id) {
@@ -116,7 +114,7 @@ pub fn switch_weapon(
         } else {
             return;
         }
-        if let Some((_, other_entity)) = armory.content.get(armory.current_weapon_index) {
+        if let Some(other_entity) = armory.content.get(armory.current_weapon_index) {
             if let Ok((mut visibility, _)) = guns.get_mut(holster.0) {
                 *visibility = Visibility::Hidden;
             }
@@ -154,12 +152,12 @@ pub fn drop_weapon(
             let current_index = armory.current_weapon_index;
             let gun = armory.content.remove(current_index);
 
-            ev_drop.send(DroppedWeaponEvent(gun.0, entity, gun.1));
-            let (_, moved_sprite, moved_gun_stats, _) = guns.get(gun.1).expect("Gun hold innacessible");
-            commands.entity(gun.1)
+            ev_drop.send(DroppedWeaponEvent(entity, gun));
+            let (_, moved_sprite, moved_gun_stats, _) = guns.get(gun).expect("Gun hold innacessible");
+            commands.entity(gun)
                 .insert(Pickup {
                     anim_offset: place_rng,
-                    pickup_type: PickupType::Gun(gun.0),
+                    pickup_type: PickupType::Gun,
                 })
                 .insert(MaterialMesh2dBundle {
                     transform: Transform::default()
@@ -179,18 +177,18 @@ pub fn drop_weapon(
                 .remove::<Sprite>()
                 .remove::<Handle<Image>>();
             let ground_id = ground.single().0;
-            commands.entity(ground_id).add_child(gun.1);
+            commands.entity(ground_id).add_child(gun);
 
             if armory.current_weapon_index as i32 >= armory.content.len() as i32 - 1 {
                 armory.current_weapon_index = 0;
             }
-            if let Some(new_gun) = armory.content.get(armory.current_weapon_index) {
+            if let Some(&new_gun) = armory.content.get(armory.current_weapon_index) {
                 if let Some(mut holster) = holster_maybe {
-                    holster.0 = new_gun.1;
+                    holster.0 = new_gun;
                 } else {
-                    commands.entity(entity).insert(GunEntity(new_gun.1));
+                    commands.entity(entity).insert(GunEntity(new_gun));
                 }
-                let (mut visibility, _, _, _) = guns.get_mut(new_gun.1).expect("New gun cant be tracked");
+                let (mut visibility, _, _, _) = guns.get_mut(new_gun).expect("New gun cant be tracked");
                 *visibility = Visibility::Inherited;
             } else {
                 commands.entity(entity).remove::<GunEntity>();

@@ -5,18 +5,13 @@ use bevy::{prelude::*, time::Stopwatch};
 use crate::{
     player::{
         inventory::{
-            pickup::{PickupBundle, PickupType},
-            weapon_manager::{GunAssets, Guns},
+            pickup::GunPickupBundle,
+            weapon_manager::GunAssets,
         },
         weapon::{auto_shoot_fn, basic_reload_fn, GunStats},
     },
-    rendering::{
-        outline::Outline,
-        utils::{set_anchor, Angle, Zindex},
-    },
+    rendering::outline::Outline,
 };
-
-use super::GunBundle;
 
 pub fn revolver_stats() -> GunStats {
     GunStats {
@@ -43,41 +38,20 @@ pub fn revolver_stats() -> GunStats {
     }
 }
 
-impl GunBundle {
-    pub fn revolver(guns: &Res<GunAssets>) -> Self {
-        let mut stats = revolver_stats();
-        stats.timer.set_elapsed(Duration::new(1, 0));
-        GunBundle {
-            name: Name::new("Revolver"),
-            sprite: SpriteBundle {
-                texture: guns.revolver.clone(),
-                transform: Transform::from_translation(Vec3::new(8., 0., 50.)),
-                sprite: Sprite {
-                    anchor: set_anchor(stats.handle_position, stats.size),
-                    ..default()
-                },
-                ..default()
-            },
-            stats,
-            angle: Angle(0.),
-            zindex: Zindex(50.),
-        }
-    }
-}
-
 pub fn create_revolver_pickup(
     pos: Vec2,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<Outline>>,
     sprites: &Res<GunAssets>,
-) -> PickupBundle {
-    PickupBundle::create(
+) -> GunPickupBundle {
+    let mut stats = revolver_stats();
+    stats.timer.set_elapsed(Duration::new(1, 0));
+    GunPickupBundle::create(
         meshes,
         materials,
         sprites.revolver.clone(),
-        Vec2::new(14., 10.),
         "Revolver".to_string(),
         pos,
-        PickupType::Gun(Guns::Revolver),
+        stats,
     )
 }
