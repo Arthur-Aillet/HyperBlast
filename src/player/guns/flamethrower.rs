@@ -25,7 +25,7 @@ pub fn flamethrower_stats() -> GunStats {
         spread: (10_f32).to_radians(),
         speed: 60.,
         speed_spread: 40.,
-        distance: 40.,
+        distance: 50.,
         salve: 3,
         ammo: 900,
         max_ammo: 900,

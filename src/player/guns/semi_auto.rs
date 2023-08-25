@@ -17,7 +17,7 @@ pub fn semi_automatic_stats() -> GunStats {
     GunStats {
         handle_position: Vec2::new(10., 4.),
         size: Vec2::new(30., 8.),
-        barrel_length: 21.,
+        barrel_length: 20.,
         barrel_height: 1.,
         shoot: manual_shoot_fn,
         reload: basic_reload_fn,

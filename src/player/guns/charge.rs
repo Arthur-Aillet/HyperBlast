@@ -23,13 +23,13 @@ pub fn charged_stats() -> GunStats {
         mag_size: 5,
         max_ammo: 50,
         max_heat: INFINITY,
-        min_heat: 1.,
-        speed_spread: 1.,
+        min_heat: 0.5,
+        speed_spread: 10.,
         reload: basic_reload_fn,
         reload_time: 5.,
         shoot: charging_shoot_fn,
-        speed: 100.,
-        spread: (10_f32).to_radians(),
+        speed: 200.,
+        spread: (30_f32).to_radians(),
         ..default()
     }
 }
