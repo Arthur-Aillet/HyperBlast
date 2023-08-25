@@ -53,6 +53,10 @@ pub struct AnimationStateMachine {
 }
 
 impl AnimationStateMachine {
+    pub fn default() -> Self {
+        Self::new()
+    }
+
     pub fn new() -> Self {
         AnimationStateMachine {
             map: HashMap::new(),

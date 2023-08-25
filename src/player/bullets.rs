@@ -39,6 +39,10 @@ pub struct SphereCollider {
 }
 
 impl SphereCollider {
+    pub fn default() -> Self {
+        Self::new()
+    }
+
     pub fn new() -> SphereCollider {
         SphereCollider {
             collider: Collider::ball(3.5),
@@ -93,7 +97,7 @@ impl BulletBundle {
                 transform: Transform::from_translation(barrel_end.extend(150.)),
                 ..default()
             },
-            collider: SphereCollider::new(),
+            collider: SphereCollider::default(),
         }
     }
 }
@@ -109,7 +113,7 @@ pub fn detect_collision_bullets(
     for collision_event in collision_events.iter() {
         if let CollisionEvent::Started(entity1, entity2, _) = collision_event {
             if let Some((bullet_id, bullet_stats)) = collision_get!(bullets, entity1, entity2) {
-                if let Some(_) = collision_get!(walls, entity1, entity2) {
+                if collision_get!(walls, entity1, entity2).is_some() {
                     commands.entity(bullet_id).despawn();
                 } else if let Some((player, _)) = collision_get!(player_collider, entity1, entity2) {
                     if let Ok((id, mut stats, _)) = players.get_mut(player.get()) {

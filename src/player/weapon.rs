@@ -273,53 +273,43 @@ pub fn auto_shoot_fn(
     if player_actions.pressed(PlayerActions::Shoot)
         && roll.is_none()
         && reload.is_none()
-        && stats.left_to_fire == 0
-        && !stats.broken
-    {
-        if stats.mag_ammo > 0 {
-            if stats.timer.elapsed_secs() >= 1. / stats.fire_rate {
-                stats.timer.reset();
-                stats.left_to_fire = if stats.min_shot < stats.mag_ammo {
-                    stats.min_shot
-                } else {
-                    stats.mag_ammo
-                };
-            }
-        }
+        && stats.left_to_fire == 0 && !stats.broken && stats.mag_ammo > 0 && stats.timer.elapsed_secs() >= 1. / stats.fire_rate {
+        stats.timer.reset();
+        stats.left_to_fire = if stats.min_shot < stats.mag_ammo {
+            stats.min_shot
+        } else {
+            stats.mag_ammo
+        };
     }
-    if stats.left_to_fire != 0 {
-        if stats.left_to_fire == stats.min_shot
-            || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate
-        {
-            stats.timer.reset();
-            let mut rng = rand::thread_rng();
-            for _ in 0..stats.salve {
-                commands.spawn(BulletBundle::marine_bullet(
-                    assets,
-                    barrel_end,
-                    angle
-                        + (if stats.spread == 0. {
-                            0.
-                        } else {
-                            rng.gen_range((stats.spread * -1.)..stats.spread)
-                        }),
-                    inventory,
-                    &stats,
-                    player,
-                    owner,
-                    stats.speed + (
-                        if stats.spread == 0. {
-                            0.
-                        } else {
-                            rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)
-                        }),
-                    stats.distance,
-                    stats.damage,
-                ));
-            }
-            stats.mag_ammo -= 1;
-            stats.left_to_fire -= 1;
+    if stats.left_to_fire != 0 && (stats.left_to_fire == stats.min_shot || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate) {
+        stats.timer.reset();
+        let mut rng = rand::thread_rng();
+        for _ in 0..stats.salve {
+            commands.spawn(BulletBundle::marine_bullet(
+                assets,
+                barrel_end,
+                angle
+                    + (if stats.spread == 0. {
+                        0.
+                    } else {
+                        rng.gen_range((stats.spread * -1.)..stats.spread)
+                    }),
+                inventory,
+                stats,
+                player,
+                owner,
+                stats.speed + (
+                    if stats.spread == 0. {
+                        0.
+                    } else {
+                        rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)
+                    }),
+                stats.distance,
+                stats.damage,
+            ));
         }
+        stats.mag_ammo -= 1;
+        stats.left_to_fire -= 1;
     }
 }
 
@@ -346,53 +336,45 @@ pub fn charging_shoot_fn(
             stats.broken = false;
         }
     }
-    if player_actions.pressed(PlayerActions::Shoot) && roll.is_none() && reload.is_none() && stats.left_to_fire == 0 && !stats.broken {
-        if stats.mag_ammo > 0 {
-            if stats.timer.elapsed_secs() >= 1. / stats.fire_rate {
-                stats.heat += stats.timer.elapsed_secs();
-                stats.timer.reset();
-                if stats.heat > stats.max_heat {stats.broken = true};
-            }
-        }
+    if player_actions.pressed(PlayerActions::Shoot) && roll.is_none() && reload.is_none() && stats.left_to_fire == 0 && !stats.broken && stats.mag_ammo > 0 && stats.timer.elapsed_secs() >= 1. / stats.fire_rate {
+        stats.heat += stats.timer.elapsed_secs();
+        stats.timer.reset();
+        if stats.heat > stats.max_heat {stats.broken = true};
     }
-    if player_actions.released(PlayerActions::Shoot) && stats.heat >= stats.min_heat && reload.is_none() && roll.is_none() && !stats.broken && stats.left_to_fire == 0 {
-        if stats.heat >= stats.min_heat {
-            stats.left_to_fire = stats.min_shot;
-        }
+    if player_actions.released(PlayerActions::Shoot) && stats.heat >= stats.min_heat && reload.is_none() && roll.is_none() && !stats.broken && stats.left_to_fire == 0 && stats.heat >= stats.min_heat {
+        stats.left_to_fire = stats.min_shot;
     }
-    if stats.left_to_fire != 0 {
-        if stats.left_to_fire == stats.min_shot || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate {
-            stats.timer.reset();
-            let mut rng = rand::thread_rng();
-            for _ in 0..stats.salve {
-                commands.spawn(BulletBundle::marine_bullet(
-                    assets,
-                    barrel_end,
-                    angle + (
-                        if stats.spread == 0. {
-                            0.
-                        } else {
-                            rng.gen_range(((stats.spread / stats.heat.log2()) * -1.)..(stats.spread / stats.heat.log2()))
-                        }),
-                    inventory,
-                    stats,
-                    player,
-                    owner,
-                    (stats.speed + (
-                        if stats.spread == 0. {
-                            0.
-                        } else {
-                            rng.gen_range(((stats.speed_spread / stats.heat.log2()) * -1.)..(stats.speed_spread / stats.heat.log2()))
-                        })) * stats.heat.log2(),
-                    stats.distance * stats.heat,
-                    stats.damage * stats.heat.log2(),
-                ));
-            }
-            stats.mag_ammo -= 1;
-            stats.left_to_fire -= 1;
-            if stats.left_to_fire == 0 {
-                stats.heat = 0.;
-            }
+    if stats.left_to_fire != 0 && (stats.left_to_fire == stats.min_shot || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate) {
+        stats.timer.reset();
+        let mut rng = rand::thread_rng();
+        for _ in 0..stats.salve {
+            commands.spawn(BulletBundle::marine_bullet(
+                assets,
+                barrel_end,
+                angle + (
+                    if stats.spread == 0. {
+                        0.
+                    } else {
+                        rng.gen_range(((stats.spread / stats.heat.log2()) * -1.)..(stats.spread / stats.heat.log2()))
+                    }),
+                inventory,
+                stats,
+                player,
+                owner,
+                (stats.speed + (
+                    if stats.spread == 0. {
+                        0.
+                    } else {
+                        rng.gen_range(((stats.speed_spread / stats.heat.log2()) * -1.)..(stats.speed_spread / stats.heat.log2()))
+                    })) * stats.heat.log2(),
+                stats.distance * stats.heat,
+                stats.damage * stats.heat.log2(),
+            ));
+        }
+        stats.mag_ammo -= 1;
+        stats.left_to_fire -= 1;
+        if stats.left_to_fire == 0 {
+            stats.heat = 0.;
         }
     }
 }
@@ -426,25 +408,19 @@ pub fn overheat_shoot_fn(
     if player_actions.pressed(PlayerActions::Shoot)
         && roll.is_none()
         && reload.is_none()
-        && stats.left_to_fire == 0
-        && !stats.broken
-    {
-        if stats.mag_ammo > 0 {
-            if stats.timer.elapsed_secs() >= 1. / stats.fire_rate {
-                stats.heat += stats.timer.elapsed_secs();
-                stats.timer.reset();
-                if stats.heat >= stats.min_heat && stats.heat < stats.max_heat {
-                    stats.left_to_fire = if stats.min_shot < stats.mag_ammo {
-                        stats.min_shot
-                    } else {
-                        stats.mag_ammo
-                    };
-                }
-                if stats.heat > stats.max_heat {
-                    stats.broken = true
-                };
-            }
+        && stats.left_to_fire == 0 && !stats.broken && stats.mag_ammo > 0 && stats.timer.elapsed_secs() >= 1. / stats.fire_rate {
+        stats.heat += stats.timer.elapsed_secs();
+        stats.timer.reset();
+        if stats.heat >= stats.min_heat && stats.heat < stats.max_heat {
+            stats.left_to_fire = if stats.min_shot < stats.mag_ammo {
+                stats.min_shot
+            } else {
+                stats.mag_ammo
+            };
         }
+        if stats.heat > stats.max_heat {
+            stats.broken = true
+        };
     }
     if !player_actions.pressed(PlayerActions::Shoot) {
         if stats.heat > 0. {
@@ -455,38 +431,34 @@ pub fn overheat_shoot_fn(
             stats.heat = 0.
         }
     }
-    if stats.left_to_fire != 0 {
-        if stats.left_to_fire == stats.min_shot
-            || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate
-        {
-            stats.timer.reset();
-            let mut rng = rand::thread_rng();
-            for _ in 0..stats.salve {
-                commands.spawn(BulletBundle::marine_bullet(
-                    assets,
-                    barrel_end,
-                    angle
-                        + (if stats.spread == 0. {
-                            0.
-                        } else {
-                            rng.gen_range((stats.spread * -1.)..stats.spread)
-                        }),
-                    inventory,
-                    &stats,
-                    player,
-                    owner,
-                    stats.speed + (
-                        if stats.spread == 0. {
-                            0.
-                        } else {
-                            rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)
-                        }),
-                    stats.distance,
-                    stats.damage,
-                ));
-            }
-            stats.mag_ammo -= 1;
-            stats.left_to_fire -= 1;
+    if stats.left_to_fire != 0 && (stats.left_to_fire == stats.min_shot || stats.timer.elapsed_secs() >= 1. / stats.sub_fire_rate) {
+        stats.timer.reset();
+        let mut rng = rand::thread_rng();
+        for _ in 0..stats.salve {
+            commands.spawn(BulletBundle::marine_bullet(
+                assets,
+                barrel_end,
+                angle
+                    + (if stats.spread == 0. {
+                        0.
+                    } else {
+                        rng.gen_range((stats.spread * -1.)..stats.spread)
+                    }),
+                inventory,
+                stats,
+                player,
+                owner,
+                stats.speed + (
+                    if stats.spread == 0. {
+                        0.
+                    } else {
+                        rng.gen_range((stats.speed_spread * -1.)..stats.speed_spread)
+                    }),
+                stats.distance,
+                stats.damage,
+            ));
         }
+        stats.mag_ammo -= 1;
+        stats.left_to_fire -= 1;
     }
 }

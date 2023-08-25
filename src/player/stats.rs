@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-#[derive(Component, Reflect)]
+#[derive(Component, Reflect, Default)]
 pub struct PlayerStats {
     pub speed: f32,
     pub current_health: f32,

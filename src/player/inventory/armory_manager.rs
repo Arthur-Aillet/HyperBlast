@@ -146,7 +146,7 @@ pub fn drop_weapon(
             let mut rng = rand::thread_rng();
             let place_rng = rng.gen::<f32>() * 100.;
 
-            if armory.content.len() < 1 {
+            if armory.content.is_empty() {
                 return
             }
             let current_index = armory.current_weapon_index;

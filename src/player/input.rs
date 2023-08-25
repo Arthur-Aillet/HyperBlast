@@ -150,7 +150,7 @@ pub fn shooting_system(
             );
             let angle = gun_angle.0;
             let direction = Vec2::from_angle(angle).normalize();
-            let barrel_position = if sprite.flip_y == false {
+            let barrel_position = if !sprite.flip_y {
                 gun_pos + direction.perp() * gun_stats.barrel_height
             } else {
                 gun_pos + direction.perp() * -gun_stats.barrel_height
