@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::{prelude::*, time::Stopwatch};
+use bevy::prelude::*;
 
 use crate::{
     player::{
@@ -31,7 +31,7 @@ pub fn sniper_stats() -> GunStats {
         mag_size: 2,
         reload_time: 5.,
         fire_rate: 2.,
-        ..Default::default()
+        ..default()
     }
 }
 

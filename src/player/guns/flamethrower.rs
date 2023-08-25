@@ -1,6 +1,6 @@
-use std::{time::Duration, f32::INFINITY};
+use std::time::Duration;
 
-use bevy::{prelude::*, time::Stopwatch};
+use bevy::prelude::*;
 
 use crate::{
     player::{
@@ -35,7 +35,7 @@ pub fn flamethrower_stats() -> GunStats {
         reload_time: 5.,
         fire_rate: 30.,
         max_heat: 20.,
-        ..Default::default()
+        ..default()
     }
 }
 

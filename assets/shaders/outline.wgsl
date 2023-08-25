@@ -45,15 +45,19 @@ fn fragment(
     var thick_x = material.thickness/material.size.x;
     var thick_y = material.thickness/material.size.y;
 
-    var outline : f32 = textureSample(base_color_texture, base_color_sampler, selected_uv + vec2<f32>(thick_x,0.0)).a;
-    outline += textureSample(base_color_texture, base_color_sampler, selected_uv + vec2<f32>(-thick_x,0.0)).a;
-    outline += textureSample(base_color_texture, base_color_sampler, selected_uv + vec2<f32>(0.0,thick_y)).a;
-    outline += textureSample(base_color_texture, base_color_sampler, selected_uv + vec2<f32>(0.0,-thick_y)).a;
+    var outline: f32 = textureSample(base_color_texture, base_color_sampler, selected_uv).a;
+    outline += textureSample(base_color_texture, base_color_sampler, selected_uv + vec2<f32>(-thick_x,0.)).a;
+    outline += textureSample(base_color_texture, base_color_sampler, selected_uv + vec2<f32>(0.,thick_y)).a;
+    outline += textureSample(base_color_texture, base_color_sampler, selected_uv + vec2<f32>(0.,-thick_y)).a;
     outline += textureSample(base_color_texture, base_color_sampler, selected_uv + vec2<f32>(thick_x,-thick_y)).a;
     outline += textureSample(base_color_texture, base_color_sampler, selected_uv + vec2<f32>(-thick_x,thick_y)).a;
     outline += textureSample(base_color_texture, base_color_sampler, selected_uv + vec2<f32>(thick_x,thick_y)).a;
     outline += textureSample(base_color_texture, base_color_sampler, selected_uv + vec2<f32>(-thick_x,-thick_y)).a;
     outline = min(outline, 1.0);
+    outline *= f32(uv.x > (material.size.x * 2. * 0.25 - material.thickness) / (material.size.x * 2.));
+    outline *= f32(uv.y > (material.size.y * 2. * 0.25 - material.thickness) / (material.size.y * 2.));
+    outline *= f32(uv.x < (material.size.x * 2. * 0.75 + material.thickness) / (material.size.x * 2.));
+    outline *= f32(uv.y < (material.size.y * 2. * 0.75 + material.thickness) / (material.size.y * 2.));
 
     var outside_uv = selected_uv * f32(uv.x < 0.25 || uv.x > 0.75 || uv.y < 0.25 || uv.y > 0.75);
     var outside_color : vec4<f32> = textureSample(base_color_texture, base_color_sampler, outside_uv);
