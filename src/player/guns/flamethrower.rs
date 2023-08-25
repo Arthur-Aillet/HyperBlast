@@ -15,6 +15,10 @@ use crate::{
 
 pub fn flamethrower_stats() -> GunStats {
     GunStats {
+        handle_position: Vec2::new(1., 1.),
+        size: Vec2::new(16., 5.),
+        barrel_length: 18.,
+        barrel_height: 3.,
         shoot: overheat_shoot_fn,
         reload: no_reload,
         damage: 5.,

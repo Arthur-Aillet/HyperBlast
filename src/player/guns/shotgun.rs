@@ -16,6 +16,10 @@ use crate::{
 
 pub fn shotgun_stats() -> GunStats {
     GunStats {
+        handle_position: Vec2::new(10., 3.),
+        size: Vec2::new(27., 7.),
+        barrel_length: 19.,
+        barrel_height: 2.5,
         shoot: manual_shoot_fn,
         reload: shotgun_reload_fn,
         damage: 6.,

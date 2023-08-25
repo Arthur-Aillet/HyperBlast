@@ -15,6 +15,10 @@ use crate::{
 
 pub fn sniper_stats() -> GunStats {
     GunStats {
+        handle_position: Vec2::new(10., 4.),
+        size: Vec2::new(30., 10.),
+        barrel_length: 20.,
+        barrel_height: 1.5,
         shoot: manual_shoot_fn,
         reload: basic_reload_fn,
         damage: 100.,

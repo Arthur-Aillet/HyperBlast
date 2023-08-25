@@ -68,7 +68,7 @@ impl BulletBundle {
         barrel_end: Vec2,
         angle: f32,
         inventory: &Inventory,
-        gun_stats: &GunStats,
+        _gun_stats: &GunStats,
         player_stats: &PlayerStats,
         player: Entity,
         spd: f32,
@@ -82,10 +82,10 @@ impl BulletBundle {
                 owner: player,
                 distance_traveled: 0.,
                 angle,
-                distance: gun_stats.distance,
+                distance: dist,
                 speed: spd / (inventory.amount(Items::Mercury) as f32 * 3. + 1.),
                 mercury_amount: inventory.amount(Items::Mercury),
-                damages: (gun_stats.damage + player_stats.damages_added)
+                damages: (damage + player_stats.damages_added)
                     * player_stats.damages_multiplier,
             },
             sprite: SpriteBundle {
