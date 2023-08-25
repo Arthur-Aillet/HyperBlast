@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
-use crate::player::{stats::PlayerStats, weapon::{GunEntity, GunStats}};
+use crate::player::{
+    stats::PlayerStats,
+    weapon::{GunEntity, GunStats},
+};
 
 pub struct UiPlugin;
 
@@ -19,7 +22,6 @@ pub struct UiRoot;
 
 #[derive(Component)]
 pub struct HealthBarFg;
-
 
 #[derive(Component)]
 pub struct HealthBar {
@@ -57,63 +59,72 @@ fn spawn_player_ui(
         let fg_handle = asset_server.load("ui/healthbar_fg.png");
         let fg_atlas = TextureAtlas::from_grid(fg_handle, Vec2::new(100.0, 10.0), 1, 1, None, None);
         let fg_atlas_handle = texture_atlases.add(fg_atlas);
-        let hb_id = commands.spawn((
-            HealthBar {player_id: id, health_bar_fg: fg_atlas_handle.clone()},
-            NodeBundle {
-                style: Style {
-                    width: Val::Px(108. * 3.),
-                    height: Val::Px(10. * 3.),
-                    padding: UiRect::left(Val::Px(8. * 3.)),
-                    ..default()
+        let hb_id = commands
+            .spawn((
+                HealthBar {
+                    player_id: id,
+                    health_bar_fg: fg_atlas_handle.clone(),
                 },
-                background_color: Color::WHITE.into(),
-                ..default()
-            },
-            UiImage::new(ui_assets.health_bar_bg.clone()),
-        ))
-            .with_children(|healthbar_bg| {
-                healthbar_bg.spawn((AtlasImageBundle {
+                NodeBundle {
                     style: Style {
-                        width: Val::Px(100. * 3.),
+                        width: Val::Px(108. * 3.),
                         height: Val::Px(10. * 3.),
+                        padding: UiRect::left(Val::Px(8. * 3.)),
                         ..default()
                     },
-                    texture_atlas: fg_atlas_handle.clone(),
-                    texture_atlas_image: UiTextureAtlasImage::default(),
+                    background_color: Color::WHITE.into(),
                     ..default()
                 },
-                HealthBarFg,
-            ));
-        }).id();
+                UiImage::new(ui_assets.health_bar_bg.clone()),
+            ))
+            .with_children(|healthbar_bg| {
+                healthbar_bg.spawn((
+                    AtlasImageBundle {
+                        style: Style {
+                            width: Val::Px(100. * 3.),
+                            height: Val::Px(10. * 3.),
+                            ..default()
+                        },
+                        texture_atlas: fg_atlas_handle.clone(),
+                        texture_atlas_image: UiTextureAtlasImage::default(),
+                        ..default()
+                    },
+                    HealthBarFg,
+                ));
+            })
+            .id();
         // Create Ammo count:
-        let count_id = commands.spawn((
-            TextBundle::from_sections([
-                TextSection::from_style(TextStyle {
-                    font: asset_server.load("fonts/Extended_font.ttf"),
-                    font_size: 20.0,
-                    color: Color::WHITE,
-                    ..default()
-                }),
-                TextSection::from_style(TextStyle {
-                    font: asset_server.load("fonts/Extended_font.ttf"),
-                    font_size: 20.0,
-                    color: Color::WHITE,
-                    ..default()
-                }),
-                TextSection::from_style(TextStyle {
-                    font: asset_server.load("fonts/Extended_font.ttf"),
-                    font_size: 20.0,
-                    color: Color::WHITE,
-                    ..default()
-                }),
-                TextSection::from_style(TextStyle {
-                    font: asset_server.load("fonts/Extended_font.ttf"),
-                    font_size: 15.0,
-                    color: Color::WHITE,
-                    ..default()
-                }),
-            ]), AmmoCounter {player_id: id},
-        )).id();
+        let count_id = commands
+            .spawn((
+                TextBundle::from_sections([
+                    TextSection::from_style(TextStyle {
+                        font: asset_server.load("fonts/Extended_font.ttf"),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                        ..default()
+                    }),
+                    TextSection::from_style(TextStyle {
+                        font: asset_server.load("fonts/Extended_font.ttf"),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                        ..default()
+                    }),
+                    TextSection::from_style(TextStyle {
+                        font: asset_server.load("fonts/Extended_font.ttf"),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                        ..default()
+                    }),
+                    TextSection::from_style(TextStyle {
+                        font: asset_server.load("fonts/Extended_font.ttf"),
+                        font_size: 15.0,
+                        color: Color::WHITE,
+                        ..default()
+                    }),
+                ]),
+                AmmoCounter { player_id: id },
+            ))
+            .id();
         let player_ui_id = commands
             .spawn(NodeBundle {
                 style: Style {
@@ -127,13 +138,15 @@ fn spawn_player_ui(
             })
             .insert(Name::new("PlayerUI"))
             .add_child(hb_id)
-            .add_child(count_id).id();
-        commands.entity(ui_root.single().0)
-            .add_child(player_ui_id);
-        commands.entity(id).insert(PlayerUiAccess { health_bar_id: hb_id, ammo_counter_id: count_id });
+            .add_child(count_id)
+            .id();
+        commands.entity(ui_root.single().0).add_child(player_ui_id);
+        commands.entity(id).insert(PlayerUiAccess {
+            health_bar_id: hb_id,
+            ammo_counter_id: count_id,
+        });
     }
 }
-
 
 fn manage_health_bars(
     mut commands: Commands,
@@ -164,24 +177,32 @@ fn manage_health_bars(
 fn manage_ammo_count(
     players: Query<(&PlayerStats, &GunEntity)>,
     guns: Query<&GunStats, Without<PlayerStats>>,
-    mut texts: Query<( &mut Text, &mut AmmoCounter)>
+    mut texts: Query<(&mut Text, &mut AmmoCounter)>,
 ) {
     for (mut text, count) in &mut texts {
-        if let Ok((_, gunentity)) =players.get(count.player_id) {
-            if let Ok(gunstats) = guns.get(gunentity.0) {
+        if let Ok((_, gun_entity)) = players.get(count.player_id) {
+            if let Ok(gunstats) = guns.get(gun_entity.0) {
                 text.sections[0].value = format!("ammo: ");
                 text.sections[1].value = format!("{}", gunstats.mag_ammo);
                 text.sections[1].style.color =
-                    if (gunstats.mag_ammo as f32) / (gunstats.mag_size as f32) > 1./3. { Color::WHITE
-                } else if (gunstats.mag_ammo as f32) / (gunstats.mag_size as f32) > 1./5. { Color::YELLOW}
-                else {Color::RED};
+                    if (gunstats.mag_ammo as f32) / (gunstats.mag_size as f32) > 1. / 3. {
+                        Color::WHITE
+                    } else if (gunstats.mag_ammo as f32) / (gunstats.mag_size as f32) > 1. / 5. {
+                        Color::YELLOW
+                    } else {
+                        Color::RED
+                    };
                 text.sections[2].value = format!("/{}\n", gunstats.mag_size);
                 if !gunstats.infinite {
                     text.sections[3].value = format!("{}", gunstats.ammo);
                     text.sections[3].style.color =
-                        if (gunstats.ammo as f32) / (gunstats.max_ammo as f32) > 1./3. { Color::WHITE
-                    } else if (gunstats.ammo as f32) / (gunstats.max_ammo as f32) > 1./5. { Color::YELLOW}
-                    else {Color::RED};
+                        if (gunstats.ammo as f32) / (gunstats.max_ammo as f32) > 1. / 3. {
+                            Color::WHITE
+                        } else if (gunstats.ammo as f32) / (gunstats.max_ammo as f32) > 1. / 5. {
+                            Color::YELLOW
+                        } else {
+                            Color::RED
+                        };
                 } else {
                     text.sections[3].value = format!("\u{ec}");
                     text.sections[3].style.color = Color::WHITE;
@@ -191,10 +212,9 @@ fn manage_ammo_count(
     }
 }
 
-pub fn setup_ui(
-    mut commands: Commands,
-) {
-    commands.spawn(NodeBundle {
+pub fn setup_ui(mut commands: Commands) {
+    commands
+        .spawn(NodeBundle {
             style: Style {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
@@ -202,7 +222,7 @@ pub fn setup_ui(
                 ..default()
             },
             ..default()
-    })
+        })
         .insert(Name::new("UI Root"))
         .insert(UiRoot);
 }

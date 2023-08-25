@@ -1,19 +1,20 @@
-use bevy::{prelude::*, math::Vec3Swizzles};
+use bevy::{math::Vec3Swizzles, prelude::*};
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
-    rendering::outline::Outline,
     player::{input::PlayerActions, inventory::item_manager::Items},
+    rendering::outline::Outline,
 };
 
-use super::{assets::ItemsAssets, DroppedEvent};
+use super::{assets::ItemsAssets, DroppedItemEvent, pickup::Ground};
 
 pub fn drop_item(
     mut commands: Commands,
-    mut ev_drop: EventWriter<DroppedEvent>,
+    mut ev_drop: EventWriter<DroppedItemEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Outline>>,
     sprites: Res<ItemsAssets>,
+    ground: Query<(Entity, With<Ground>)>,
     mut query: Query<(
         Entity,
         &ActionState<PlayerActions>,
@@ -22,10 +23,17 @@ pub fn drop_item(
     )>,
 ) {
     for (entity, action, pos, mut inventory) in &mut query {
-        if action.just_pressed(PlayerActions::Drop) {
+        if action.just_pressed(PlayerActions::DropItem) {
             if let Some(item) = inventory.content.pop() {
-                ev_drop.send(DroppedEvent(item, entity));
-                commands.spawn(item.to_pickup(pos.translation.xy(), &mut meshes, &mut materials, &sprites));
+                ev_drop.send(DroppedItemEvent(item, entity));
+                let id_new = commands.spawn(item.to_pickup(
+                    pos.translation.xy(),
+                    &mut meshes,
+                    &mut materials,
+                    &sprites,
+                )).id();
+                let ground_id = ground.single().0;
+                commands.entity(ground_id).add_child(id_new);
             }
         }
     }

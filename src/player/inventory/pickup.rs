@@ -1,27 +1,32 @@
 use std::f32::INFINITY;
 
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle, math::Vec3Swizzles};
+use bevy::{math::Vec3Swizzles, prelude::*, sprite::MaterialMesh2dBundle};
 use leafwing_input_manager::prelude::ActionState;
 use rand::Rng;
 use strum::IntoEnumIterator;
 
 use crate::{
-    rendering::outline::Outline,
     player::{
         input::PlayerActions,
         inventory::{inventory_manager::Inventory, item_manager::Items},
-        stats::PlayerStats,
+        stats::PlayerStats, weapon::GunStats,
     },
+    rendering::{outline::Outline, utils::Angle},
     rendering::utils::Zindex,
 };
 
-use super::{assets::ItemsAssets, PickupEvent};
+use super::{
+    assets::ItemsAssets,
+    weapon_manager::{GunAssets, Guns},
+    PickupItemEvent, PickupWeaponEvent,
+};
 
 const PICKUP_RANGE: f32 = 25. * 1.5;
 
 pub fn update_pickup(
     time: Res<Time>,
-    mut ev_pickup: EventWriter<PickupEvent>,
+    mut ev_pickup_i: EventWriter<PickupItemEvent>,
+    mut ev_pickup_w: EventWriter<PickupWeaponEvent>,
     mut commands: Commands,
     mut materials: ResMut<Assets<Outline>>,
     mut pickups: Query<(
@@ -70,40 +75,64 @@ pub fn update_pickup(
                 }
                 if actions.just_pressed(PlayerActions::Pickup) {
                     match &pickup.pickup_type {
-                        PickupType::Weapon => todo!(),
+                        PickupType::Gun => {
+                            ev_pickup_w.send(PickupWeaponEvent(entity, valid_pickup));
+                        }
                         PickupType::Item(item) => {
-                            ev_pickup.send(PickupEvent(*item, entity));
+                            ev_pickup_i.send(PickupItemEvent(*item, entity));
                             inventory.add(*item);
+                            commands.entity(valid_pickup).despawn_recursive();
                         }
                     }
-                    commands.entity(valid_pickup).despawn_recursive();
                 }
             }
         }
     }
 }
 
+#[derive(Component)]
+pub struct Ground;
+
 pub fn spawn_items(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Outline>>,
     assets: Res<ItemsAssets>,
+    gun_assets: Res<GunAssets>,
 ) {
-    let len = Items::iter().count();
-    for (x, item) in Items::iter().enumerate() {
-        for _ in 0..10 {
-            commands.spawn(item.to_pickup(
-                Vec2::new(-(len as f32 * 30.) / 2. + x as f32 * 30. + 15., 80.),
-                &mut meshes,
-                &mut materials,
-                &assets,
-            ));
+    commands.spawn(Ground)
+        .insert(SpatialBundle::default())
+        .insert(Name::new("Ground"))
+        .with_children(|parent| {
+        let len = Items::iter().count();
+        for (x, item) in Items::iter().enumerate() {
+            for _ in 0..10 {
+                parent.spawn(item.to_pickup(
+                    Vec2::new(-(len as f32 * 30.) / 2. + x as f32 * 30. + 15., 80.),
+                    &mut meshes,
+                    &mut materials,
+                    &assets,
+                ));
+            }
+        }
+
+        let len: usize = Guns::iter().count();
+        for (x, gun) in Guns::iter().enumerate() {
+            for _ in 0..10 {
+                parent.spawn(gun.to_pickup(
+                    Vec2::new(-(len as f32 * 30.) / 2. + x as f32 * 30. + 15., 110.),
+                    &mut meshes,
+                    &mut materials,
+                    &gun_assets,
+                ));
+            }
         }
     }
+    );
 }
 
 pub enum PickupType {
-    Weapon,
+    Gun,
     Item(Items),
 }
 
@@ -111,6 +140,56 @@ pub enum PickupType {
 pub struct Pickup {
     pub anim_offset: f32,
     pub pickup_type: PickupType,
+}
+
+#[derive(Bundle)]
+pub struct GunPickupBundle {
+    pub name: bevy::core::Name,
+    pub material: MaterialMesh2dBundle<Outline>,
+    pub zindex: Zindex,
+    pub angle: Angle,
+    pub stats: GunStats,
+    pub pickup: Pickup,
+}
+
+impl GunPickupBundle {
+    pub fn create(
+        meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<Outline>>,
+        sprite: Handle<Image>,
+        name: String,
+        pos: Vec2,
+        gun_stats: GunStats
+    ) -> GunPickupBundle{
+        let mut rng = rand::thread_rng();
+        let place_rng = rng.gen::<f32>() * 100.;
+
+        GunPickupBundle {
+            name: bevy::core::Name::new(name),
+            material: MaterialMesh2dBundle {
+                transform: Transform::default()
+                    .with_scale(gun_stats.size.extend(0.))
+                    .with_translation(pos.floor().extend(0.)),
+                mesh: meshes
+                    .add(Mesh::from(shape::Quad::new(Vec2::splat(2.))))
+                    .into(),
+                material: materials.add(Outline {
+                    color: Color::WHITE,
+                    size: gun_stats.size,
+                    thickness: 1.,
+                    color_texture: sprite,
+                }),
+                ..default()
+            },
+            zindex: Zindex(0.),
+            pickup: Pickup {
+                anim_offset: place_rng,
+                pickup_type: PickupType::Gun,
+            },
+            angle: Angle(0.),
+            stats: gun_stats,
+        }
+    }
 }
 
 #[derive(Bundle)]
@@ -129,7 +208,7 @@ impl PickupBundle {
         size: Vec2,
         name: String,
         pos: Vec2,
-        item_type: Items,
+        object_type: PickupType,
     ) -> PickupBundle {
         let mut rng = rand::thread_rng();
         let place_rng = rng.gen::<f32>() * 100.;
@@ -154,7 +233,7 @@ impl PickupBundle {
             zindex: Zindex(0.),
             pickup: Pickup {
                 anim_offset: place_rng,
-                pickup_type: PickupType::Item(item_type),
+                pickup_type: object_type,
             },
         }
     }

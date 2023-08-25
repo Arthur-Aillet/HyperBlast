@@ -8,20 +8,20 @@ use crate::rendering::utils::Zindex;
 use crate::player::inventory::item_manager::Items;
 
 use super::{
-    assets::GunAssets,
-    inventory::inventory_manager::Inventory,
+    inventory::{inventory_manager::Inventory, weapon_manager::GunAssets},
     roll::RollStats,
+    setup::PlayerCollider,
     stats::PlayerStats,
-    weapon::{GunEntity, GunStats}, setup::PlayerCollider,
+    weapon::GunStats,
 };
 
 #[derive(Component)]
 pub struct BulletStats {
     pub angle: f32,
+    pub damages: f32,
     pub distance: f32,
     pub distance_traveled: f32,
     pub speed: f32,
-    pub dmg: f32,
     pub mercury_amount: usize,
     pub owner: Entity,
 }
@@ -68,6 +68,8 @@ impl BulletBundle {
         barrel_end: Vec2,
         angle: f32,
         inventory: &Inventory,
+        gun_stats: &GunStats,
+        player_stats: &PlayerStats,
         player: Entity,
         spd: f32,
         dist: f32,
@@ -80,10 +82,11 @@ impl BulletBundle {
                 owner: player,
                 distance_traveled: 0.,
                 angle,
-                distance: dist,
+                distance: gun_stats.distance,
                 speed: spd / (inventory.amount(Items::Mercury) as f32 * 3. + 1.),
-                dmg: damage,
                 mercury_amount: inventory.amount(Items::Mercury),
+                damages: (gun_stats.damage + player_stats.damages_added)
+                    * player_stats.damages_multiplier,
             },
             sprite: SpriteBundle {
                 texture: assets.marine_bullet.clone(),
@@ -99,26 +102,20 @@ pub fn detect_collision_bullets(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
     mut bullets: Query<(Entity, &mut BulletStats)>,
-    mut players: Query<(Entity, &GunEntity, &mut PlayerStats, Without<RollStats>)>,
+    mut players: Query<(Entity, &mut PlayerStats, Without<RollStats>)>,
     mut player_collider: Query<(&Parent, With<PlayerCollider>)>,
     mut walls: Query<With<WallCollider>>,
-    mut guns: Query<&mut GunStats>,
 ) {
     for collision_event in collision_events.iter() {
         if let CollisionEvent::Started(entity1, entity2, _) = collision_event {
             if let Some((bullet_id, bullet_stats)) = collision_get!(bullets, entity1, entity2) {
                 if let Some(_) = collision_get!(walls, entity1, entity2) {
                     commands.entity(bullet_id).despawn();
-                } else {
-                    if let Some((player, _)) = collision_get!(player_collider, entity1, entity2) {
-                        if let Ok((id, gun, mut stats, _)) = players.get_mut(player.get()) {
-                            if let Ok(gun_stats) = guns.get_mut(gun.0) {
-                                if bullet_stats.owner != id {
-                                    commands.entity(bullet_id).despawn();
-                                    stats.current_health -=
-                                        (bullet_stats.dmg + stats.damages_added) * stats.damages_multiplier;
-                                }
-                            }
+                } else if let Some((player, _)) = collision_get!(player_collider, entity1, entity2) {
+                    if let Ok((id, mut stats, _)) = players.get_mut(player.get()) {
+                        if bullet_stats.owner != id {
+                            commands.entity(bullet_id).despawn();
+                            stats.current_health -= bullet_stats.damages;
                         }
                     }
                 }

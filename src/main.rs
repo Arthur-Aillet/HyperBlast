@@ -3,12 +3,12 @@
 pub mod animation;
 pub mod camera;
 pub mod debug;
+pub mod map;
 pub mod mouse;
 pub mod physics;
 pub mod player;
 pub mod rendering;
 pub mod ui;
-pub mod map;
 
 use leafwing_input_manager::plugin::InputManagerSystem;
 
@@ -24,7 +24,7 @@ fn main() {
             ui::UiPlugin,
             camera::CameraPlugin,
             player::PlayerPlugin,
-            map::MapPlugin
+            map::MapPlugin,
         ))
         .add_systems(Startup, setup)
         .add_systems(
@@ -39,7 +39,4 @@ fn main() {
         .run();
 }
 
-fn setup() {
-
-}
-
+fn setup() {}

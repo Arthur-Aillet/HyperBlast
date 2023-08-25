@@ -21,7 +21,8 @@ pub fn update_cursor_state_from_window(
                     let center_mouse_vec = pos - center;
                     let center_mouse_scaled = center_mouse_vec * settings.single().intensity;
 
-                    action_state.action_data_mut(driver.action).axis_pair = Some(DualAxisData::from_xy(center_mouse_scaled + center));
+                    action_state.action_data_mut(driver.action).axis_pair =
+                        Some(DualAxisData::from_xy(center_mouse_scaled + center));
                 }
             }
         }

@@ -1,8 +1,7 @@
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
+use bevy_rapier2d::prelude::*;
 use leafwing_input_manager::prelude::*;
-use bevy_rapier2d::prelude::Velocity;
-use leafwing_input_manager::prelude::ActionState;
 
 use crate::animation::{AnimationState, AnimationStateMachine};
 

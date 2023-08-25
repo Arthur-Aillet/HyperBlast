@@ -1,24 +1,23 @@
 use bevy::{prelude::*, window::PrimaryWindow};
-use bevy_rapier2d::{prelude::*, rapier::prelude::ColliderType};
+use bevy_rapier2d::prelude::*;
 use leafwing_input_manager::{prelude::ActionStateDriver, InputManagerBundle};
 use mouse::Mouse;
 
 use crate::{
     animation::{AnimationFlip, AnimationIndices, AnimationState, AnimationStateMachine},
     mouse,
-    rendering::utils::{AutoZindex, set_anchor},
+    rendering::utils::{set_anchor, AutoZindex},
 };
 
 use input::PlayerActions;
 
 use super::{
-    assets::{GunAssets, PlayerAssets},
+    assets::PlayerAssets,
     direction::CursorPosition,
     direction::MoveDirection,
     input::{self, IsController, PlayerState},
-    inventory::inventory_manager::Inventory,
+    inventory::{armory_manager::Armory, inventory_manager::Inventory},
     stats::PlayerStats,
-    weapon::{GunBundle, GunEntity},
 };
 
 #[derive(Bundle)]
@@ -31,10 +30,10 @@ pub struct PlayerBundle {
     pub action: InputManagerBundle<PlayerActions>,
     pub velocity: Velocity,
     pub zindex: AutoZindex,
-    pub current_gun: GunEntity,
     pub direction: MoveDirection,
     pub cursor: CursorPosition,
     pub inventory: Inventory,
+    pub armory: Armory,
     pub active: ActiveEvents,
     pub rigid_body: RigidBody,
     pub gravity: GravityScale,
@@ -50,7 +49,6 @@ impl PlayerBundle {
         window: &Query<Entity, With<PrimaryWindow>>,
         controller: bool,
         assets: &Res<PlayerAssets>,
-        guns_assets: &Res<GunAssets>,
     ) {
         let state_machine = AnimationStateMachine::new_filled([
             (
@@ -133,8 +131,6 @@ impl PlayerBundle {
             ),
         ]);
 
-        let gun_id = commands.spawn(GunBundle::setup(guns_assets)).id();
-
         let player = PlayerBundle {
             name: bevy::core::Name::new("Player"),
             state: AnimationState::new(&PlayerState::Idle),
@@ -145,7 +141,11 @@ impl PlayerBundle {
                     anchor: set_anchor(Vec2::new(17. / 2., 25. / 2. - 8.), Vec2::new(17., 25.)),
                     ..default()
                 },
-                transform: Transform::from_translation(Vec3::new(controller as i32 as f32 * 60., 0., 0.,)),
+                transform: Transform::from_translation(Vec3::new(
+                    controller as i32 as f32 * 60.,
+                    0.,
+                    0.,
+                )),
                 ..default()
             },
             state_machine,
@@ -156,29 +156,34 @@ impl PlayerBundle {
                 linvel: Vec2::new(0., 0.),
                 angvel: 0.0,
             },
-            current_gun: GunEntity(gun_id),
             direction: MoveDirection::default(),
             cursor: CursorPosition::default(),
             inventory: Inventory::new(),
+            armory: Armory::new(),
             active: ActiveEvents::COLLISION_EVENTS,
             rigid_body: RigidBody::Dynamic,
             gravity: GravityScale(0.0),
             locked_axes: LockedAxes::ROTATION_LOCKED,
         };
         if controller {
-            commands.spawn(player).with_children(|parent| {
-                parent.spawn((
-                    Collider::capsule_y(3.25, 13. / 2.),
-                    Sensor,
-                    TransformBundle::from(Transform::from_xyz(0., 6., 0.)),
-                    ColliderDebugColor(Color::BLUE),
-                    PlayerCollider,
-                ));
-                parent.spawn((
-                    Collider::capsule_y(0., 13. / 2.),
-                    TransformBundle::from(Transform::from_xyz(0., 0., 0.).with_scale(Vec3::new(1., 0.7, 1.))),
-                ));
-            }).insert(IsController);
+            commands
+                .spawn(player)
+                .with_children(|parent| {
+                    parent.spawn((
+                        Collider::capsule_y(3.25, 13. / 2.),
+                        Sensor,
+                        TransformBundle::from(Transform::from_xyz(0., 6., 0.)),
+                        ColliderDebugColor(Color::BLUE),
+                        PlayerCollider,
+                    ));
+                    parent.spawn((
+                        Collider::capsule_y(0., 13. / 2.),
+                        TransformBundle::from(
+                            Transform::from_xyz(0., 0., 0.).with_scale(Vec3::new(1., 0.7, 1.)),
+                        ),
+                    ));
+                })
+                .insert(IsController);
         } else {
             let player_id = commands
                 .spawn(player)
@@ -192,7 +197,9 @@ impl PlayerBundle {
                     ));
                     parent.spawn((
                         Collider::capsule_y(0., 13. / 2.),
-                        TransformBundle::from(Transform::from_xyz(0., 0., 0.).with_scale(Vec3::new(1., 0.7, 1.))),
+                        TransformBundle::from(
+                            Transform::from_xyz(0., 0., 0.).with_scale(Vec3::new(1., 0.7, 1.)),
+                        ),
                     ));
                 })
                 .insert(InputManagerBundle::<Mouse>::default())

@@ -2,8 +2,6 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use super::weapon::GunEntity;
-
 #[derive(Component, Reflect)]
 pub struct PlayerStats {
     pub speed: f32,
@@ -29,11 +27,10 @@ impl PlayerStats {
     }
 }
 
-pub fn player_death(mut commands: Commands, players: Query<(Entity, &GunEntity, &PlayerStats)>) {
-    for (entity, gun, stats) in &players {
+pub fn player_death(mut commands: Commands, players: Query<(Entity, &PlayerStats)>) {
+    for (entity, stats) in &players {
         if stats.current_health <= 0. {
             commands.entity(entity).despawn_recursive();
-            commands.entity(gun.0).despawn_recursive();
         }
     }
 }

@@ -1,19 +1,15 @@
-use bevy::{prelude::*, reflect::TypePath, math::Vec3Swizzles};
+use bevy::{math::Vec3Swizzles, prelude::*, reflect::TypePath};
 use bevy_rapier2d::prelude::Velocity;
 use leafwing_input_manager::{prelude::*, Actionlike};
 
 use crate::rendering::utils::set_anchor;
-use crate::{
-    animation::AnimationState,
-    debug::DebugLevel,
-    rendering::utils::Angle,
-};
+use crate::{animation::AnimationState, debug::DebugLevel, rendering::utils::Angle};
 
 use crate::player::{
+    reload::ReloadStats,
+    roll::RollStats,
     stats::PlayerStats,
     weapon::{GunEntity, GunStats},
-    roll::RollStats,
-    reload::ReloadStats,
 };
 
 use super::{
@@ -36,7 +32,10 @@ pub enum PlayerActions {
     Roll,
     Reload,
     Pickup,
-    Drop,
+    DropItem,
+    DropWeapon,
+    NextWeapon,
+    LastWeapon,
 }
 
 #[derive(Component, Debug, Reflect, Default)]
@@ -75,7 +74,13 @@ pub fn update_gun_angle(
         barrel_to_cursor = cursor_position - barrel_position;
         *gun_angle = Angle(barrel_to_cursor.y.atan2(barrel_to_cursor.x));
         sprite.flip_y = true;
-        sprite.anchor = set_anchor(Vec2 { x: gun_stats.handle_position.x, y: gun_stats.size.y - gun_stats.handle_position.y }, gun_stats.size);
+        sprite.anchor = set_anchor(
+            Vec2 {
+                x: gun_stats.handle_position.x,
+                y: gun_stats.size.y - gun_stats.handle_position.y,
+            },
+            gun_stats.size,
+        );
     } else {
         sprite.flip_y = false;
         sprite.anchor = set_anchor(gun_stats.handle_position, gun_stats.size);
@@ -106,7 +111,6 @@ pub fn shooting_system(
     time: Res<Time>,
     mut players: Query<(
         Entity,
-        &Transform,
         &GunEntity,
         &ActionState<PlayerActions>,
         &mut PlayerStats,
@@ -116,7 +120,7 @@ pub fn shooting_system(
         Option<&ReloadStats>,
     )>,
     mut gun: Query<(
-        &mut Transform,
+        &GlobalTransform,
         &mut Angle,
         &mut Sprite,
         &mut GunStats,
@@ -125,30 +129,20 @@ pub fn shooting_system(
     debug_level: Res<DebugLevel>,
     mut lines: ResMut<bevy_prototype_debug_lines::DebugLines>,
     mut commands: Commands,
-    gun_assets: Res<super::assets::GunAssets>,
+    gun_assets: Res<super::inventory::weapon_manager::GunAssets>,
 ) {
-    for (
-        entity,
-        transform,
-        gun_id,
-        player_actions,
-        mut stats,
-        inv,
-        cursor_position,
-        roll,
-        reload,
-    ) in &mut players
+    for (entity, gun_id, player_actions, mut stats, inv, cursor_position, roll, reload) in
+        &mut players
     {
-        if let Ok((mut gun_transform, mut gun_angle, mut sprite, mut gun_stats, _)) = gun.get_mut(gun_id.0)
+        if let Ok((gun_transform, mut gun_angle, mut sprite, mut gun_stats, _)) =
+            gun.get_mut(gun_id.0)
         {
-            gun_transform.translation.y = transform.translation.y;
-            gun_transform.translation.x = transform.translation.x + 8.;
-            let gun_pos = gun_transform.translation.xy();
+            let gun_pos = gun_transform.translation().xy();
 
             update_gun_angle(
                 (*debug_level).clone(),
                 &mut lines,
-                gun_transform.translation.xy(),
+                gun_pos,
                 cursor_position.value,
                 &gun_stats,
                 &mut gun_angle,
@@ -203,7 +197,10 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
             (GamepadButtonType::LeftTrigger2, PlayerActions::Roll),
             (GamepadButtonType::North, PlayerActions::Reload),
             (GamepadButtonType::South, PlayerActions::Pickup),
-            (GamepadButtonType::Start, PlayerActions::Drop),
+            (GamepadButtonType::Start, PlayerActions::DropItem),
+            (GamepadButtonType::Select, PlayerActions::DropWeapon),
+            (GamepadButtonType::DPadRight, PlayerActions::NextWeapon),
+            (GamepadButtonType::DPadLeft, PlayerActions::LastWeapon),
         ]);
         input_map
             .insert(DualAxis::left_stick(), PlayerActions::ControllerMove)
@@ -216,10 +213,16 @@ pub fn player_input_setup(is_controller: bool) -> InputManagerBundle<PlayerActio
             (KeyCode::S, PlayerActions::Down),
             (KeyCode::Space, PlayerActions::Roll),
             (KeyCode::R, PlayerActions::Reload),
-            (KeyCode::A, PlayerActions::Pickup),
-            (KeyCode::W, PlayerActions::Drop),
+            (KeyCode::E, PlayerActions::Pickup),
+            (KeyCode::W, PlayerActions::DropItem),
+            (KeyCode::X, PlayerActions::DropWeapon),
+            (KeyCode::Key1, PlayerActions::LastWeapon),
+            (KeyCode::Key2, PlayerActions::NextWeapon),
         ]);
-        input_map.insert(MouseButton::Left, PlayerActions::Shoot);
+        input_map
+            .insert(MouseButton::Left, PlayerActions::Shoot)
+            .insert(MouseWheelDirection::Up, PlayerActions::NextWeapon)
+            .insert(MouseWheelDirection::Down, PlayerActions::LastWeapon);
     }
 
     InputManagerBundle::<PlayerActions> {

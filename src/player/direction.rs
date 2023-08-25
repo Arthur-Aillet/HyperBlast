@@ -1,10 +1,11 @@
-use bevy::{prelude::*, math::Vec3Swizzles};
+use bevy::{math::Vec3Swizzles, prelude::*};
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
+    camera::CameraData,
     debug::DebugLevel,
     mouse::Mouse,
-    player::input::{IsController, PlayerActions}, camera::CameraData,
+    player::input::{IsController, PlayerActions},
 };
 
 #[derive(Component, Default, Clone)]

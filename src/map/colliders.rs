@@ -3,8 +3,6 @@ use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 use std::collections::{HashMap, HashSet};
 
-use crate::rendering::utils::AutoZindex;
-
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Component)]
 pub struct Wall;
 
@@ -149,10 +147,10 @@ pub fn spawn_wall_collision(
 
                 for wall_rect in wall_rects {
                     shapes.push((
-                        Vec2::new((wall_rect.left + wall_rect.right + 1) as f32 * grid_size as f32
-                        / 2.,
-                    (wall_rect.bottom + wall_rect.top + 1) as f32 * grid_size as f32
-                        / 2.,),
+                        Vec2::new(
+                            (wall_rect.left + wall_rect.right + 1) as f32 * grid_size as f32 / 2.,
+                            (wall_rect.bottom + wall_rect.top + 1) as f32 * grid_size as f32 / 2.,
+                        ),
                         0. as bevy_rapier2d::rapier::math::Real,
                         Collider::cuboid(
                             (wall_rect.right as f32 - wall_rect.left as f32 + 1.)
@@ -169,21 +167,19 @@ pub fn spawn_wall_collision(
                     // Making the collider a child of the level serves two purposes:
                     // 1. Adjusts the transforms to be relative to the level for free
                     // 2. the colliders will be despawned automatically when levels unload
-                        level
-                            .spawn((
-                                Name::new("Collider"),
-                                WallCollider,
-                                Collider::compound(shapes),
-                                ActiveEvents::COLLISION_EVENTS,
-                                RigidBody::Fixed,
-                                Transform::from_translation(Vec3::new(0., 0., 0.)),
-                                Friction::new(1.0),
-                                GravityScale(0.0),
-                                ColliderMassProperties::Density(0.0),
-                                GlobalTransform::default()
-                        ));
-                    }
-                );
+                    level.spawn((
+                        Name::new("Collider"),
+                        WallCollider,
+                        Collider::compound(shapes),
+                        ActiveEvents::COLLISION_EVENTS,
+                        RigidBody::Fixed,
+                        Transform::from_translation(Vec3::new(0., 0., 0.)),
+                        Friction::new(1.0),
+                        GravityScale(0.0),
+                        ColliderMassProperties::Density(0.0),
+                        GlobalTransform::default(),
+                    ));
+                });
             }
         });
     }
