@@ -101,25 +101,21 @@ fn spawn_player_ui(
                         font: asset_server.load("fonts/Extended_font.ttf"),
                         font_size: 20.0,
                         color: Color::WHITE,
-                        ..default()
                     }),
                     TextSection::from_style(TextStyle {
                         font: asset_server.load("fonts/Extended_font.ttf"),
                         font_size: 20.0,
                         color: Color::WHITE,
-                        ..default()
                     }),
                     TextSection::from_style(TextStyle {
                         font: asset_server.load("fonts/Extended_font.ttf"),
                         font_size: 20.0,
                         color: Color::WHITE,
-                        ..default()
                     }),
                     TextSection::from_style(TextStyle {
                         font: asset_server.load("fonts/Extended_font.ttf"),
                         font_size: 15.0,
                         color: Color::WHITE,
-                        ..default()
                     }),
                 ]),
                 AmmoCounter { player_id: id },
@@ -182,7 +178,7 @@ fn manage_ammo_count(
     for (mut text, count) in &mut texts {
         if let Ok((_, gun_entity)) = players.get(count.player_id) {
             if let Ok(gunstats) = guns.get(gun_entity.0) {
-                text.sections[0].value = format!("ammo: ");
+                text.sections[0].value = "ammo: ".to_string();
                 text.sections[1].value = format!("{}", gunstats.mag_ammo);
                 text.sections[1].style.color =
                     if (gunstats.mag_ammo as f32) / (gunstats.mag_size as f32) > 1. / 3. {
@@ -204,7 +200,7 @@ fn manage_ammo_count(
                             Color::RED
                         };
                 } else {
-                    text.sections[3].value = format!("\u{ec}");
+                    text.sections[3].value = "\u{ec}".to_string();
                     text.sections[3].style.color = Color::WHITE;
                 }
             }

@@ -7,8 +7,7 @@ pub fn switch_levels(input: Res<Input<KeyCode>>, mut level_sets: Query<&mut Leve
         let mut level_set = level_sets.single_mut();
         let current_levels: String = level_set
             .iids
-            .iter()
-            .map(|fst| return fst.clone())
+            .iter().cloned()
             .collect();
         let level_to_toggle: Vec<&&str> = super::LEVEL_IIDS
             .choose_multiple(&mut rand::thread_rng(), 2)
