@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use leafwing_input_manager::{axislike::DualAxisData, prelude::*};
 
-use bevy_pixel_perfect_zoom::ZoomSettings;
+use bevy_pixel_perfect_zoom::PixelPerfectZoomSettings;
 
 #[derive(Actionlike, Clone, Debug, Copy, PartialEq, Eq, Reflect)]
 pub enum Mouse {
@@ -10,7 +10,7 @@ pub enum Mouse {
 
 pub fn update_cursor_state_from_window(
     window_query: Query<(&Window, &ActionStateDriver<Mouse>)>,
-    settings: Query<&ZoomSettings>,
+    settings: Query<&PixelPerfectZoomSettings>,
     mut action_state_query: Query<&mut ActionState<Mouse>>,
 ) {
     for (window, driver) in &window_query {

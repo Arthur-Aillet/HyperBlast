@@ -1,6 +1,6 @@
 use bevy::{math::Vec3Swizzles, prelude::*};
 
-use bevy_pixel_perfect_zoom::ZoomSettings;
+use bevy_pixel_perfect_zoom::PixelPerfectZoomSettings;
 
 use crate::{
     debug::{draw_rectangle, DebugLevel},
@@ -32,7 +32,7 @@ fn resize_camera(
         &mut OrthographicProjection,
         With<Camera2d>,
     )>,
-    mut settings: Query<&mut ZoomSettings>,
+    mut settings: Query<&mut PixelPerfectZoomSettings>,
 ) {
     for (camera_data, mut transform, mut projection, _) in &mut camera {
         let mut settings = settings.single_mut();

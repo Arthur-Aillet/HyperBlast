@@ -8,7 +8,7 @@ use bevy::{asset::ChangeWatcher, prelude::*};
 
 use crate::camera::CameraData;
 
-use bevy_pixel_perfect_zoom::{ZoomPlugin, ZoomSettings};
+use bevy_pixel_perfect_zoom::{PixelPerfectZoomPlugin, PixelPerfectZoomSettings};
 
 use self::{
     outline::OutlinePlugin,
@@ -36,7 +36,7 @@ impl Plugin for RenderingPlugin {
                         ..default()
                     }),
                 OutlinePlugin,
-                ZoomPlugin,
+                PixelPerfectZoomPlugin,
             ))
             .add_systems(Startup, setup)
             .register_type::<Zindex>()
@@ -49,7 +49,7 @@ impl Plugin for RenderingPlugin {
 
 fn disable_pixel_perfect(
     input: Res<Input<KeyCode>>,
-    mut set: Query<&mut ZoomSettings>,
+    mut set: Query<&mut PixelPerfectZoomSettings>,
     window_query: Query<&Window>,
     mut camera: Query<(
         &mut CameraData,
