@@ -20,7 +20,13 @@ impl Plugin for RenderingPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Msaa::Off)
             .add_plugins((
-                DefaultPlugins
+                DefaultPlugins.set(WindowPlugin {
+                    primary_window: Some(Window {
+                        title: "HyperBlast!".into(),
+                        ..default()
+                    }),
+                    ..default()
+                    })
                     .set(ImagePlugin::default_nearest())
                     .set(AssetPlugin {
                         // Hot reloading the shader works correctly
