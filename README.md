@@ -1,1 +1,1 @@
-# ShootingPals
+# HyperBlast
