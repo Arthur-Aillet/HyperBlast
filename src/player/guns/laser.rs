@@ -8,31 +8,30 @@ use crate::{
             pickup::GunPickupBundle,
             weapon_manager::GunAssets,
         },
-        weapon::{overheat_shoot_fn, no_reload, GunStats}, bullets::BulletType,
+        weapon::{overheat_shoot_fn, no_reload, GunStats},
     },
     rendering::outline::Outline,
 };
 
-pub fn flamethrower_stats() -> GunStats {
+pub fn laser_stats() -> GunStats {
     GunStats {
         handle_position: Vec2::new(1., 1.),
         size: Vec2::new(16., 5.),
         barrel_length: 18.,
         barrel_height: 3.,
-        bullet_type: BulletType::Flame,
         shoot: overheat_shoot_fn,
         reload: no_reload,
-        damage: 5.,
-        spread: (10_f32).to_radians(),
-        speed: 60.,
-        speed_spread: 40.,
-        distance: 50.,
-        salve: 3,
-        ammo: 900,
-        max_ammo: 900,
-        infinite: false,
-        mag_ammo: 900,
-        mag_size: 900,
+        damage: 1.,
+        spread: (0_f32).to_radians(),
+        speed: 1000.,
+        speed_spread: 0.,
+        distance: 1000.,
+        salve: 1,
+        ammo: 0,
+        max_ammo: 0,
+        infinite: true,
+        mag_ammo: 1000,
+        mag_size: 1000,
         reload_time: 5.,
         fire_rate: 30.,
         max_heat: 20.,
@@ -40,19 +39,19 @@ pub fn flamethrower_stats() -> GunStats {
     }
 }
 
-pub fn create_flamethrower_pickup(
+pub fn create_laser_pickup(
     pos: Vec2,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<Outline>>,
     sprites: &Res<GunAssets>,
 ) -> GunPickupBundle {
-    let mut stats = flamethrower_stats();
+    let mut stats = laser_stats();
     stats.timer.set_elapsed(Duration::new(1, 0));
     GunPickupBundle::create(
         meshes,
         materials,
         sprites.flame_thrower.clone(),
-        "Flamethrower".to_string(),
+        "Laser".to_string(),
         pos,
         stats,
     )

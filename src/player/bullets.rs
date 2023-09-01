@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use strum_macros::EnumIter;
 
 use crate::map::colliders::WallCollider;
 use crate::physics::collision_get;
@@ -53,6 +54,12 @@ impl SphereCollider {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, EnumIter, Reflect)]
+pub enum BulletType {
+    Reagular,
+    Flame,
+}
+
 #[derive(Bundle)]
 pub struct BulletBundle {
     pub name: Name,
@@ -63,7 +70,8 @@ pub struct BulletBundle {
 }
 
 impl BulletBundle {
-    pub fn marine_bullet(
+    pub fn bullet(
+        bullet_type: BulletType,
         assets: &Res<GunAssets>,
         barrel_end: Vec2,
         angle: f32,
@@ -75,25 +83,47 @@ impl BulletBundle {
         dist: f32,
         damage: f32,
     ) -> Self {
-        BulletBundle {
-            name: Name::new("Marine bullet"),
-            zindex: Zindex(45.),
-            stats: BulletStats {
-                owner: player,
-                distance_traveled: 0.,
-                angle,
-                distance: dist,
-                speed: spd / (inventory.amount(Items::Mercury) as f32 * 3. + 1.),
-                mercury_amount: inventory.amount(Items::Mercury),
-                damages: (damage + player_stats.damages_added)
-                    * player_stats.damages_multiplier,
+        match bullet_type {
+            BulletType::Reagular => BulletBundle {
+                name: Name::new("Marine bullet"),
+                zindex: Zindex(45.),
+                stats: BulletStats {
+                    owner: player,
+                    distance_traveled: 0.,
+                    angle,
+                    distance: dist,
+                    speed: spd / (inventory.amount(Items::Mercury) as f32 * 3. + 1.),
+                    mercury_amount: inventory.amount(Items::Mercury),
+                    damages: (damage + player_stats.damages_added)
+                        * player_stats.damages_multiplier,
+                },
+                sprite: SpriteBundle {
+                    texture: assets.marine_bullet.clone(),
+                    transform: Transform::from_translation(barrel_end.extend(150.)),
+                    ..default()
+                },
+                collider: SphereCollider::new(),
             },
-            sprite: SpriteBundle {
-                texture: assets.marine_bullet.clone(),
-                transform: Transform::from_translation(barrel_end.extend(150.)),
-                ..default()
+            BulletType::Flame => BulletBundle {
+                name: Name::new("Marine bullet"),
+                zindex: Zindex(45.),
+                stats: BulletStats {
+                    owner: player,
+                    distance_traveled: 0.,
+                    angle,
+                    distance: dist,
+                    speed: spd / (inventory.amount(Items::Mercury) as f32 * 3. + 1.),
+                    mercury_amount: inventory.amount(Items::Mercury),
+                    damages: (damage + player_stats.damages_added)
+                        * player_stats.damages_multiplier,
+                },
+                sprite: SpriteBundle {
+                    texture: assets.flame.clone(),
+                    transform: Transform::from_translation(barrel_end.extend(150.)),
+                    ..default()
+                },
+                collider: SphereCollider::new(),
             },
-            collider: SphereCollider::new(),
         }
     }
 }

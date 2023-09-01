@@ -4,13 +4,15 @@ use strum_macros::EnumIter;
 
 use super::pickup::GunPickupBundle;
 use crate::player::guns::auto::create_auto_pickup;
-use crate::player::guns::{revolver::create_revolver_pickup, sniper::create_sniper_pickup, charge::create_charged_pickup, flamethrower::create_flamethrower_pickup, semi_auto::create_semi_auto_pickup, shotgun::create_shotgun_pickup};
+use crate::player::guns::{revolver::create_revolver_pickup, sniper::create_sniper_pickup, charge::create_charged_pickup, flamethrower::create_flamethrower_pickup, semi_auto::create_semi_auto_pickup, shotgun::create_shotgun_pickup, laser::create_laser_pickup};
 use crate::rendering::outline::Outline;
 
 #[derive(AssetCollection, Resource)]
 pub struct GunAssets {
     #[asset(path = "guns/bullet.png")]
     pub marine_bullet: Handle<Image>,
+    #[asset(path = "guns/flame.png")]
+    pub flame: Handle<Image>,
     #[asset(path = "guns/marine_gun.png")]
     pub marine: Handle<Image>,
     #[asset(path = "guns/revolver.png")]
@@ -35,7 +37,8 @@ pub enum Guns {
     SemiAuto,
     Auto,
     Flamethrower,
-    Charge
+    Charge,
+    Laser,
 }
 
 impl Guns {
@@ -54,6 +57,7 @@ impl Guns {
             Guns::Auto => create_auto_pickup(pos, meshes, materials, sprites),
             Guns::Flamethrower => create_flamethrower_pickup(pos, meshes, materials, sprites),
             Guns::Charge => create_charged_pickup(pos, meshes, materials, sprites),
+            Guns::Laser => create_laser_pickup(pos, meshes, materials, sprites),
         }
     }
 }

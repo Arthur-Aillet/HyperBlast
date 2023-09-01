@@ -7,6 +7,7 @@ use crate::{
     player::roll::RollStats, rendering::utils::Angle,
 };
 
+use super::bullets::BulletType;
 use super::inventory::weapon_manager::GunAssets;
 use super::{inventory::inventory_manager::Inventory, stats::PlayerStats};
 
@@ -41,6 +42,7 @@ pub struct GunStats {
     pub size: Vec2,
     pub barrel_length: f32,
     pub barrel_height: f32,
+    pub bullet_type: BulletType,
     pub spread: f32,
     pub speed: f32,
     pub speed_spread: f32,
@@ -73,6 +75,7 @@ impl Default for GunStats {
             size: Vec2::new(14., 9.),
             barrel_length: 12.,
             barrel_height: 5.5,
+            bullet_type: BulletType::Reagular,
             timer: Stopwatch::new(),
             shoot: auto_shoot_fn,
             reload: basic_reload_fn,
@@ -226,7 +229,8 @@ pub fn manual_shoot_fn(
             stats.timer.reset();
             let mut rng = rand::thread_rng();
             for _ in 0..stats.salve {
-                commands.spawn(BulletBundle::marine_bullet(
+                commands.spawn(BulletBundle::bullet(
+                    stats.bullet_type,
                     assets,
                     barrel_end,
                     angle + (
@@ -294,7 +298,8 @@ pub fn auto_shoot_fn(
             stats.timer.reset();
             let mut rng = rand::thread_rng();
             for _ in 0..stats.salve {
-                commands.spawn(BulletBundle::marine_bullet(
+                commands.spawn(BulletBundle::bullet(
+                    stats.bullet_type,
                     assets,
                     barrel_end,
                     angle
@@ -365,7 +370,8 @@ pub fn charging_shoot_fn(
             stats.timer.reset();
             let mut rng = rand::thread_rng();
             for _ in 0..stats.salve {
-                commands.spawn(BulletBundle::marine_bullet(
+                commands.spawn(BulletBundle::bullet(
+                    stats.bullet_type,
                     assets,
                     barrel_end,
                     angle + (
@@ -462,7 +468,8 @@ pub fn overheat_shoot_fn(
             stats.timer.reset();
             let mut rng = rand::thread_rng();
             for _ in 0..stats.salve {
-                commands.spawn(BulletBundle::marine_bullet(
+                commands.spawn(BulletBundle::bullet(
+                    stats.bullet_type,
                     assets,
                     barrel_end,
                     angle
