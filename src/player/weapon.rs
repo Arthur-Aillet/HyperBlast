@@ -319,8 +319,6 @@ pub fn auto_shoot_fn(
             stats.mag_ammo -= 1;
             stats.left_to_fire -= 1;
         }
-        stats.mag_ammo -= 1;
-        stats.left_to_fire -= 1;
     }
 }
 
@@ -378,7 +376,7 @@ pub fn charging_shoot_fn(
                         if stats.spread == 0. {
                             0.
                         } else {
-                            rng.gen_range(((stats.speed_spread / stats.heat.log2()) * -1.)..(stats.speed_spread / stats.heat.log2()))
+                            rng.gen_range((stats.speed_spread * -1.)..(stats.speed_spread))
                         })) * stats.heat.log2(),
                     stats.distance * stats.heat,
                     stats.damage * stats.heat.log2(),
@@ -479,7 +477,5 @@ pub fn overheat_shoot_fn(
             stats.mag_ammo -= 1;
             stats.left_to_fire -= 1;
         }
-        stats.mag_ammo -= 1;
-        stats.left_to_fire -= 1;
     }
 }
