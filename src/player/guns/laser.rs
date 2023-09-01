@@ -1,6 +1,6 @@
-use std::{time::Duration, f32::INFINITY};
+use std::time::Duration;
 
-use bevy::{prelude::*, time::Stopwatch};
+use bevy::prelude::*;
 
 use crate::{
     player::{
