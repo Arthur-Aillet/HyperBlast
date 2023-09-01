@@ -8,10 +8,12 @@ use bevy::{asset::ChangeWatcher, prelude::*};
 
 use crate::camera::CameraData;
 
+use bevy_pixel_perfect_zoom::{ZoomPlugin, ZoomSettings};
+
 use self::{
     outline::OutlinePlugin,
     utils::Zindex,
-    zoom::{setup, ZoomPlugin, ZoomSettings},
+    zoom::setup,
 };
 
 pub struct RenderingPlugin;

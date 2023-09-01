@@ -1,9 +1,10 @@
 use bevy::{math::Vec3Swizzles, prelude::*};
 
+use bevy_pixel_perfect_zoom::ZoomSettings;
+
 use crate::{
     debug::{draw_rectangle, DebugLevel},
     player::stats::PlayerStats,
-    rendering::zoom::ZoomSettings,
 };
 
 pub struct CameraPlugin;

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use leafwing_input_manager::{axislike::DualAxisData, prelude::*};
 
-use crate::rendering::zoom::ZoomSettings;
+use bevy_pixel_perfect_zoom::ZoomSettings;
 
 #[derive(Actionlike, Clone, Debug, Copy, PartialEq, Eq, Reflect)]
 pub enum Mouse {

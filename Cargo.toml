@@ -9,7 +9,8 @@ bevy_ecs_tilemap = { git = "http://github.com/StarArawn/bevy_ecs_tilemap", versi
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 bevy = { version = "0.11.0", features = ["dynamic_linking"] }
-bevy_editor_pls = { git = "https://github.com/jakobhellermann/bevy_editor_pls.git", branch = "main", optional = true}
+bevy_editor_pls = { git = "https://github.com/jakobhellermann/bevy_editor_pls.git", branch = "main", optional = true }
+bevy_pixel_perfect_zoom = { git = "https://github.com/Arthur-Aillet/bevy_pixel_perfect_zoom", branch = "main" }
 leafwing-input-manager = "0.10.0"
 bevy_prototype_debug_lines = "0.11"
 bevy_rapier2d = "0.22.0"
