@@ -10,7 +10,7 @@ bevy_ecs_tilemap = { git = "http://github.com/StarArawn/bevy_ecs_tilemap", versi
 [dependencies]
 bevy = { version = "0.11.0", features = ["dynamic_linking"] }
 bevy_editor_pls = { git = "https://github.com/jakobhellermann/bevy_editor_pls.git", branch = "main", optional = true }
-bevy_pixel_perfect_zoom = { git = "https://github.com/Arthur-Aillet/bevy_pixel_perfect_zoom", branch = "main" }
+bevy_pixel_perfect_zoom = { git = "https://github.com/Arthur-Aillet/bevy_pixel_perfect_zoom", version = "0.1.0" }
 leafwing-input-manager = "0.10.0"
 bevy_prototype_debug_lines = "0.11"
 bevy_rapier2d = "0.22.0"
