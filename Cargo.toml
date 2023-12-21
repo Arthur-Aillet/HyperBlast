@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [patch.crates-io]
-bevy_ecs_tilemap = { git = "http://github.com/StarArawn/bevy_ecs_tilemap", version = "0.11", branch = "main" }
+bevy_ecs_tilemap = { git = "http://github.com/StarArawn/bevy_ecs_tilemap", tag = "v0.11.0", version = "0.11"}
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
